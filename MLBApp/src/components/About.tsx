@@ -11,7 +11,8 @@ function About() {
         <h1 className="text-4xl text-center font-bold p-8 z-10">
           Home Run Hub is bringing magic<br></br> back to MLB apps.
         </h1>
-
+        
+        {/* Explicit declaration of CSS perspective and transformations to simulate a 3D effect */}
         <div
           className="w-1/2 my-10 sm:w-3/4 sm:my-20 max-w-[550px] aspect-video bg-contain bg-no-repeat bg-inherit bg-center"
           style={{
@@ -77,7 +78,6 @@ function About() {
             Home Run Hub Founder: <br></br> Derrick Williams
           </p>
         </div>
-
       </div>
       <div className="container grid grid-cols-1 md:grid-cols-4 gap-4 w-full h-fit cursor-help">
         <TeamMemeberLinks

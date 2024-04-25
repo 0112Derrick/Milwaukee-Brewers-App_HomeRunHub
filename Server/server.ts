@@ -5,6 +5,7 @@ import cors from "cors";
 import axios from "axios";
 import cache from "memory-cache";
 
+// Type definitions for a general team and MLB-specific team details.
 type team = {
   id: number;
   name: string;
@@ -12,7 +13,7 @@ type team = {
   location: string;
   abbreviation: string;
   logo: string;
-  leage: string;
+  leage: string; // TODO - Spelling error, should be "league".
   division: string;
 };
 
@@ -53,7 +54,7 @@ class Server {
     "/teams/?id=110",
     "/teams/?location=New york",
   ];
-  private apikey = "0ca80ddc-63f6-476e-b548-e5fb0934fc4b";
+  private apikey = "0ca80ddc-63f6-476e-b548-e5fb0934fc4b"; // This should be kept secure. In Production
 
   constructor(port?: number) {
     if (port) {
@@ -62,26 +63,29 @@ class Server {
     this.startServer();
   }
 
+  // Initializes the server and sets up basic middleware and routes.
   startServer() {
     this.app.use(express.static("static"));
     this.app.use(express.static("static/js"));
-    this.app.use(express.static("/"));
+    this.app.use(express.static("/")); // Serves the root directory, could expose sensitive files.
     this.registerStaticPaths();
     this.configureRoutes();
     console.log("Server started on port:" + this.port);
     this.app.listen(this.port);
   }
 
+  // Configures middleware for parsing requests and handling CORS.
   registerStaticPaths() {
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(express.json());
     this.app.use(cors());
   }
 
+  // Fetches data from an API, caches it, and organizes it based on team league and division.
   async fetchData(url: string, key: string): Promise<mlbTeams> {
     const cachedData = cache.get(key);
     if (cachedData) {
-      return cachedData;
+      return cachedData; // Returns cached data if available, reducing API calls.
     }
 
     const response = await axios.get(url, {
@@ -135,6 +139,7 @@ class Server {
       return team.division.includes("West");
     });
 
+    // Filters and organizes teams by league and division.
     organizedMlbTeams = organizedMlbTeams.concat(
       americanCentral,
       americanEast,
@@ -148,14 +153,17 @@ class Server {
     return organizedMlbTeams;
   }
 
+  // Sets up API endpoints and defines route behaviors.
   configureRoutes() {
     this.app.get("/", (req, res) => {
       res.status(200).json({
+        // Provides options for different API endpoints.
         options: this.apiEndpoints,
       });
     });
 
     this.app.get("/teams", async (req, res) => {
+      // Implements query parameter handling for pagination and filtering.
       let start = parseInt(String(req.query.start)) || 0;
       let limit = parseInt(String(req.query.limit)) || 10;
 
@@ -198,6 +206,7 @@ class Server {
       }
 
       try {
+        // Retrieves teams based on filters and paginates the results.
         const mlbTeams = await this.fetchData(
           "http://brew-roster-svc.us-e2.cloudhub.io/api/teams",
           "mlbTeams"
@@ -256,6 +265,20 @@ class Server {
         res
           .status(500)
           .send("Sorry an error occurred while retrieving the teams.");
+      }
+    });
+
+    this.app.post("/contact", (req, res) => {
+      //NOTE - This is where you would add a database in order to store the contact info.
+      console.log(req.body);
+      const { message, email, name } = req.body;
+      //NOTE - Sanitize user input before storing them in a database!
+      
+      if (message & email & name) {
+        res.status(200).json({
+          message: "Post was successful",
+          options: this.apiEndpoints,
+        });
       }
     });
 

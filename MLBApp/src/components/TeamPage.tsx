@@ -8,38 +8,45 @@ import { useNavigate } from "react-router-dom";
 import { MlbTeamDataModifiedI } from "src/interfaces";
 import { mlbTeamsDetails } from "src/data/teamData";
 
+// Defines a React component that displays a detailed page for a specific MLB team.
 function TeamPage() {
-  const { id } = useParams();
+  const { id } = useParams(); // Retrieves 'id' from the URL parameters.
   const [team, setTeam] = useState<MlbTeamDataModifiedI | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>(null);
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Hook to programmatically navigate between routes.
 
   useEffect(() => {
-    const cancelTokenSource = axios.CancelToken.source();
+    const cancelTokenSource = axios.CancelToken.source(); // Creates a source to cancel the request if needed (e.g., component unmounting).
 
     const fetchTeam = async () => {
       setLoading(true);
 
       console.log("ID:" + id);
       try {
-        const serverIpAddress = "";
+        const serverIpAddress = ""; //NOTE -  Placeholder for server IP address.
         const localhost = "http://localhost:8080";
 
         const defaultAddress = serverIpAddress || localhost; // Fallback to localhost if needed
         const endpoint = `${defaultAddress}/teams?id=${id}`;
         const response = await axios.get(endpoint, {
-          cancelToken: cancelTokenSource.token,
+          cancelToken: cancelTokenSource.token, // Passes cancel token to axios request.
         });
 
         if (response.data && response.data.teams) {
           const team = response.data.teams[0] as MlbTeamDataI;
 
+          // Adds in additional team data from /data/teamData this adds in info about world series won and hall of fame players that was not provided with the brewers api.
           let additionalTeamDetails = mlbTeamsDetails.find(
             (mlbTeam) => mlbTeam.team.toLowerCase() === team.name.toLowerCase()
           );
+
           console.log("Team data:" + additionalTeamDetails);
-          if (!additionalTeamDetails) return;
+
+          if (!additionalTeamDetails)
+            throw new Error(
+              "Could not find additional team data. Please contact support."
+            );
 
           let modifiedTeam = { ...team, ...additionalTeamDetails };
           setTeam(modifiedTeam);
@@ -66,8 +73,9 @@ function TeamPage() {
     return () => {
       cancelTokenSource.cancel("Component unmounted");
     };
-  }, [id]); // Depend on `id` to refetch if it changes
+  }, [id]); // Effect depends on `id` to refetch data if it changes.
 
+  // Render logic based on the state of the data fetching.
   if (loading) {
     return <div className="flex flex-grow p-8">Loading...</div>;
   }
@@ -81,6 +89,7 @@ function TeamPage() {
   }
 
   if (team) {
+    // Render the team data using a styled Card component.
     return (
       <div className="flex flex-grow w-full h-full mt-24 items-center justify-center">
         <Card className="flex items-center flex-wrap justify-evenly h-fit p-4 border-0 md:border-2 sm:p-24 gap-12 space-y-4 bg-inherit rounded-md">
@@ -102,8 +111,16 @@ function TeamPage() {
           </div>
           <div className="flex flex-col items-center bg-gray-800 text-white text-center p-8 rounded-lg shadow-lg">
             <h1 className="text-4xl sm:text-3xl py-4">
-              <span className="text-blue-500">{team.name}</span>, affectionately
-              known as <span className="shadow-md bg-white  rounded-md p-1" style={{ color: team.color, boxShadow:`${team.color} 1px 1px 3px`}}>{team.nickname}</span>
+              <span
+                className="shadow-md bg-white rounded-md p-1"
+                style={{
+                  color: team.color,
+                  boxShadow: `${team.color} 1px 1px 3px`,
+                }}
+              >
+                {team.name}
+              </span>
+              , affectionately known as <span>{team.nickname}</span>
             </h1>
             <p className="text-xl">
               Proud members of the {team.league} and dominating the{" "}

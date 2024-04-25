@@ -11,18 +11,20 @@ import TeamsFilterSearchBar from "./TeamsFilterSearchBar";
 import TeamFilterRadioButtons from "./TeamFilterRadioButtons";
 import { mlbTeamsDetails } from "src/data/teamData";
 
+// Custom React hook for managing and fetching team data.
 const useTeams = (initialStart = 0) => {
   const [teams, setTeams] = useState<MlbTeamDataModifiedI[]>([]);
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [start, setStart] = useState<number>(initialStart);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const itemsPerPage = 9;
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false); // State to track user's preference for reduced motion.
+  const itemsPerPage = 9; //NOTE -  Number of items to be fetched per page.
 
-  const api = axios.create();
+  const api = axios.create(); // Instance of axios with default settings.
 
   let cancelRequest: CancelTokenSource | null = null;
 
+  // Fetch teams from the server.
   const fetchTeams = async (
     newStart: number = 0,
     searchTerm: string = "",
@@ -44,10 +46,11 @@ const useTeams = (initialStart = 0) => {
         `Search term: ${searchTerm} | Division: ${filterDivision} | League: ${filterLeague}`
       );
 
-      const serverIpAddress = "";
+      const serverIpAddress = ""; //NOTE -  Should be replaced with actual server IP if deployed.
       const localhost = "http://localhost:8080";
       const defaultAddress = serverIpAddress || localhost;
 
+      // Constructing query parameters based on inputs and pagination.
       let params = `start=${newStart}&limit=${itemsPerPage}`;
 
       if (Number.isInteger(parseInt(searchTerm))) {
@@ -64,6 +67,7 @@ const useTeams = (initialStart = 0) => {
         params += `&division=${filterDivision}`;
       }
 
+      //NOTE -  Building the endpoint URL with parameters.
       const endpoint = `${defaultAddress}/teams?${params}`;
 
       console.log("Endpoint: " + endpoint);
@@ -71,6 +75,7 @@ const useTeams = (initialStart = 0) => {
         cancelToken: cancelRequest.token, // Pass the cancel token to the request
       });
 
+      // Handle the response: setting teams state or throwing an error if something went wrong.
       if (!response.data.error) {
         console.log(response.data);
         for (
@@ -87,7 +92,7 @@ const useTeams = (initialStart = 0) => {
           if (color) team.color = color;
         }
 
-        setTeams(response.data.teams);
+        setTeams(response.data.teams); // Updating the teams state with the fetched data.
       } else {
         throw new Error(
           response.data.error +
@@ -108,6 +113,7 @@ const useTeams = (initialStart = 0) => {
         setError(error);
       }
     } finally {
+      // Delay clearing the loading state to provide a better user experience.
       setTimeout(() => {
         setLoading(false);
       }, 500);
@@ -122,10 +128,10 @@ const useTeams = (initialStart = 0) => {
 
     // Listen for changes in the media query's evaluation result
     const handler = () => setPrefersReducedMotion(mediaQuery.matches);
-    mediaQuery.addListener(handler);
+    mediaQuery.addEventListener("change", handler);
 
     // Cleanup function to remove the event listener
-    return () => mediaQuery.removeListener(handler);
+    return () => mediaQuery.removeEventListener("change", handler);
     //eslint-disable-next-line
   }, []);
 
@@ -158,20 +164,22 @@ const MainContent = () => {
   const video = useRef<HTMLVideoElement>(null);
   let timerId: string | number | NodeJS.Timeout | null | undefined = null;
   let videoUnmuted = false;
+  const maxNumberOfTeams = 30;
 
-  // Handler for search input change
+  // Delays the fetch operation by 500ms after the user stops typing to avoid excessive API calls (Live search)
   const handleSearchChange = (event: any) => {
     setSearchTerm(event.target.value);
     if (timerId) clearTimeout(timerId);
     timerId = setTimeout(() => fetchTeams(0, event.target.value), 500);
   };
 
-  // Handler for search submit
+  // Fetches teams when the search form is submitted, ensuring it starts from the first page
   const handleSearchSubmit = (event: any) => {
     event.preventDefault();
     fetchTeams(0, searchTerm); // Start from the first page with the search term
   };
 
+  // Handles league or division filter changes and triggers a fetch with the new filters
   const handleFilterChange = (event: any) => {
     const { name, value } = event.target;
     if (name === "league") {
@@ -187,13 +195,14 @@ const MainContent = () => {
     );
   };
 
-  // Pagination handlers
+  // Loads the previous page of teams, ensuring the start index does not go below zero
   const handlePreviousPage = () => {
-    fetchTeams(Math.max(0, start - itemsPerPage), searchTerm, division, league); // Decrease start by 10, not going below 0
+    fetchTeams(Math.max(0, start - itemsPerPage), searchTerm, division, league);
   };
 
+  // Advances to the next page of teams by increasing the start index by the items per page
   const handleNextPage = () => {
-    fetchTeams(start + itemsPerPage, searchTerm, division, league); // Increase start by 10
+    fetchTeams(start + itemsPerPage, searchTerm, division, league);
   };
 
   const videoSrc =
@@ -201,7 +210,9 @@ const MainContent = () => {
   const reducedMotionWorldCupImgSrc =
     process.env.PUBLIC_URL + "/images/baseballAbstractArt3.webp";
 
+  // Conditional rendering based on loading and error states or successful data fetching
   if (loading) {
+    /* loading state UI */
     return (
       <div className="p-4 px-8 flex flex-col flex-grow overflow-hidden">
         <TitleSection></TitleSection>
@@ -240,6 +251,7 @@ const MainContent = () => {
   }
 
   if (error) {
+    /* error state UI */
     return (
       <div className="p-4 px-8 flex flex-col flex-grow">
         <TitleSection></TitleSection>
@@ -377,14 +389,15 @@ const MainContent = () => {
         <Button
           className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 hover:shadow-lg"
           onClick={handlePreviousPage}
-          disabled={start === 0}
+          disabled={!start}
         >
           Previous
         </Button>
+
         <Button
           className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 hover:shadow-lg"
           onClick={handleNextPage}
-          disabled={teams.length < itemsPerPage || start >= 30}
+          disabled={teams.length < itemsPerPage || start >= maxNumberOfTeams}
         >
           Next
         </Button>

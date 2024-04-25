@@ -51,15 +51,21 @@ https://docs.google.com/document/d/15DGLAQPNOcNfosnqi6z3F7URQ-xhkBvEyl7Kx2p5Bo8/
 There's 2 file directories:
 MLBApp and Server
 
+Type npm install to install all project dependencies
+
 You will need to open a terminal for each of these (It does not matter the order, but I will start with the react app first.)
 
 Change Directories (CD) into MLBApp directory in the terminal
 
-> type npm run start
+> Type npm install to install all project dependencies
+
+> Type npm run start
 
 In a different terminal window you will need to CD into the Server directory
 
-> type npm run start
+> Type npm install to install all project dependencies
+
+> Type npm run start
 
 The react app will be opened on your local network at http://ipAddress:3000 or http://localhost:3000
 The server app will run on port 8080 of your local network: http://ipAddress:8080 or http://localhost:8080
