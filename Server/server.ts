@@ -276,17 +276,33 @@ class Server {
       //NOTE - This is where you would add a database in order to store the contact info.
       console.log(req.body);
       const { message, email, name, reasonForContact } = req.body;
-      //NOTE - Sanitize user input before storing them in a database!
-
-      if (message && email && name && reasonForContact) {
-        res.status(200).json({
-          message: "Post was successful",
-          options: this.apiEndpoints,
-        });
-      } else {
-        res.status(422).json({
+      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+      try {
+        if (
+          message &&
+          email &&
+          name &&
+          reasonForContact &&
+          emailRegex.test(email)
+        ) {
+          //NOTE - Sanitize inputs prior to saving them in a data base.
+          res.status(200).json({
+            message: `Post was successful. We will be in touch soon ${name}.`,
+            options: this.apiEndpoints,
+          });
+        } else {
+          res.status(422).json({
+            message:
+              "Warning Missing Data. - Expected the following: message, email, name, reasonForContact",
+            options: this.apiEndpoints,
+          });
+        }
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({
           message:
-            "Warning Missing Data. - Expected the following: message, email, name, reasonForContact",
+            error +
+            " Something went wrong on our end when processing your contact information. Please try again.",
           options: this.apiEndpoints,
         });
       }

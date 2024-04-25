@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { MlbTeamDataI } from "src/interfaces";
 import { useParams } from "react-router-dom";
 import { Card } from "src/@/components/ui/card";
@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { MlbTeamDataModifiedI } from "src/interfaces";
 import { mlbTeamsDetails } from "src/data/teamData";
 import ErrorPage from "./ErrorPage";
+import { Skeleton } from "src/@/components/ui/skeleton";
 
 // Defines a React component that displays a detailed page for a specific MLB team.
 function TeamPage() {
@@ -65,7 +66,7 @@ function TeamPage() {
       } finally {
         setTimeout(() => {
           setLoading(false);
-        }, 500);
+        }, 750);
       }
     };
 
@@ -79,7 +80,35 @@ function TeamPage() {
 
   // Render logic based on the state of the data fetching.
   if (loading) {
-    return <div className="flex flex-grow p-8">Loading...</div>;
+    return (
+      <div className="flex flex-grow items-center justify-center p-8">
+        <div className="border border-white w-3/4 h-fit rounded flex flex-col items-center justify-center gap-8 p-8 sm:flex-row">
+          <div className="grid grid-cols-1 gap-4">
+            <Button
+              variant={"outline"}
+              className="bg-blue-500 hover:bg-blue-600 text-lg text-white hover:text-white"
+              onClick={() => {
+                navigate("/");
+              }}
+            >
+              Back to home
+            </Button>
+            <Skeleton className="h-32 w-32 rounded-full bg-white p-4" />
+          </div>
+
+          <div className="bg-gray-800 h-full w-full p-6 rounded">
+            <Skeleton className="h-8 w-full p-2 m-2 bg-white" />
+            <Skeleton className="h-8 w-3/4 p-2 m-2 bg-white" />
+            <Skeleton className="h-8 w-3/6 p-2 m-2 bg-white" />
+            <Skeleton className="h-8 w-3/4 p-2 m-2 bg-white" />
+            <Skeleton className="h-8 w-full p-2 m-2 bg-white" />
+            <div className="w-full flex items-center justify-center">
+              <Skeleton className="h-8 w-3/12 rounded-full p-2 mt-4 bg-blue-500 shadow-md shadow-black" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -90,7 +119,7 @@ function TeamPage() {
     // Render the team data using a styled Card component.
     return (
       <div className="flex flex-grow w-full h-full mt-24 items-center justify-center">
-        <Card className="flex items-center flex-wrap justify-evenly gap-8 sm:gap-12 h-fit px-2 py-8 sm:p-24 border-0 md:border-2   space-y-4 bg-inherit rounded-md">
+        <Card className="flex items-center flex-wrap justify-evenly gap-8 sm:gap-12 h-fit px-2 py-8 sm:p-24 border-0 md:border-2 space-y-4 bg-inherit rounded-md">
           <div className="flex flex-col gap-8">
             <Button
               variant={"outline"}

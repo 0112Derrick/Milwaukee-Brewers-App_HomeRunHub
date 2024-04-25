@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Button } from "src/@/components/ui/button";
 import { Card } from "src/@/components/ui/card";
 import { Input } from "src/@/components/ui/input";
 import axios, { AxiosError } from "axios";
+import Dompurify from "dompurify";
+import { formDataI } from "src/interfaces";
+import { useNavigate} from "react-router-dom";
 
 import {
   DropdownMenu,
@@ -22,6 +25,8 @@ const ContactUs = () => {
   const [formSubmissionInProgress, setFormSubmissionInProgress] =
     useState(false);
   const [responseMessage, setResponseMessage] = useState<string>("");
+  const contactForm = useRef<HTMLFormElement>(null);
+  const navigate = useNavigate();
 
   const [
     displayFormSubmissionPostSuccessful,
@@ -33,7 +38,7 @@ const ContactUs = () => {
 
   const [error, setError] = useState<any>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<formDataI>({
     name: "",
     email: "",
     message: "",
@@ -53,12 +58,24 @@ const ContactUs = () => {
     console.log(formData);
     //Sending data to a server
     //FIXME - Add a captcha in order to stop bots from spamming your api
-    //FIXME - Sanitize user input prior to sending them to the server.
+
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    if (!emailRegex.test(formData.email)) {
+      alert("Email was invalid.");
+      return;
+    }
+
     setFormSubmissionInProgress(true);
     try {
-     
+      const sanitizedInputs: formDataI = {
+        name: Dompurify.sanitize(formData.name),
+        email: Dompurify.sanitize(formData.email),
+        message: Dompurify.sanitize(formData.message),
+        reasonForContact: Dompurify.sanitize(formData.reasonForContact),
+      };
+
       let response = await axios.post(defaultIpAddress, {
-        ...formData,
+        ...sanitizedInputs,
       });
 
       if (response.status === 200) {
@@ -78,6 +95,7 @@ const ContactUs = () => {
         setFormSubmissionInProgress(false);
         setFormSubmissionPostSuccessful(false);
         setDisplayFormSubmissionPostSuccessful(false);
+        navigate("/");
       }, 4000);
     }
   };
@@ -118,7 +136,7 @@ const ContactUs = () => {
             <div className="mb-4">
               <h1 className="font-bold text-xl">Contact Us</h1>
             </div>
-            <form onSubmit={handleSubmit}>
+            <form ref={contactForm} onSubmit={handleSubmit}>
               <div className="mb-4">
                 <DropdownMenu>
                   <DropdownMenuTrigger>
@@ -302,10 +320,10 @@ const ContactUs = () => {
       {formSubmissionInProgress &&
       displayFormSubmissionPostSuccessful &&
       formSubmissionPostSuccessful ? (
-        <span className="bg-white rounded-md p-4 text-green-700 border border-green-500">
+        <span className="bg-white rounded-md p-4 text-green-700 border border-green-500 text-lg">
           Form submission was a success! Look forward to chatting with you soon.{" "}
           {responseMessage && (
-            <span className="text-blue-700">
+            <span className="text-blue-700 text-lg">
               <br></br>
               Server message: {responseMessage}
             </span>
@@ -314,12 +332,12 @@ const ContactUs = () => {
       ) : formSubmissionInProgress &&
         displayFormSubmissionPostSuccessful &&
         !formSubmissionPostSuccessful ? (
-        <span className="bg-white rounded-md p-4 text-red-500 border border-red-500">
+        <span className="bg-white rounded-md p-4 text-red-500 border border-red-500 text-lg">
           There was a problem with the submission of your form data. Please try
           again.
         </span>
       ) : formSubmissionInProgress ? (
-        <span className="bg-white rounded-md p-4 text-blue-500 border border-blue-500">
+        <span className="bg-white rounded-md p-4 text-blue-500 border border-blue-500 text-lg">
           Form submission in progress. Hang tight.
         </span>
       ) : null}

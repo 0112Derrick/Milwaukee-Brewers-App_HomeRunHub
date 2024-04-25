@@ -177,15 +177,30 @@ class Server {
         this.app.post("/contact", (req, res) => {
             console.log(req.body);
             const { message, email, name, reasonForContact } = req.body;
-            if (message && email && name && reasonForContact) {
-                res.status(200).json({
-                    message: "Post was successful",
-                    options: this.apiEndpoints,
-                });
+            const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+            try {
+                if (message &&
+                    email &&
+                    name &&
+                    reasonForContact &&
+                    emailRegex.test(email)) {
+                    res.status(200).json({
+                        message: `Post was successful. We will be in touch soon ${name}.`,
+                        options: this.apiEndpoints,
+                    });
+                }
+                else {
+                    res.status(422).json({
+                        message: "Warning Missing Data. - Expected the following: message, email, name, reasonForContact",
+                        options: this.apiEndpoints,
+                    });
+                }
             }
-            else {
-                res.status(422).json({
-                    message: "Warning Missing Data. - Expected the following: message, email, name, reasonForContact",
+            catch (error) {
+                console.error(error);
+                res.status(500).json({
+                    message: error +
+                        " Something went wrong on our end when processing your contact information. Please try again.",
                     options: this.apiEndpoints,
                 });
             }

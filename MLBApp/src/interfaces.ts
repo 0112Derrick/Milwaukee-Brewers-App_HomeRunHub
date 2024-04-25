@@ -28,3 +28,10 @@ export interface MlbTeamDataModifiedI {
   hallOfFamePlayers: number;
   url: string;
 }
+
+export interface formDataI {
+  name: string;
+  message: string;
+  email: string;
+  reasonForContact: string;
+}

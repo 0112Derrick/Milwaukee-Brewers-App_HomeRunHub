@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import axios, { AxiosError, CancelTokenSource } from "axios";
+import axios, { CancelTokenSource } from "axios";
 import TeamCard from "./TeamCard";
 import SkeletonCard from "./SkeletonCard";
 import { MlbTeamDataI, MlbTeamDataModifiedI } from "src/interfaces";
@@ -10,6 +10,7 @@ import TeamsFilterSearchBar from "./TeamsFilterSearchBar";
 import TeamFilterRadioButtons from "./TeamFilterRadioButtons";
 import { mlbTeamsDetails } from "src/data/teamData";
 import ErrorPage from "./ErrorPage";
+import Dompurify from "dompurify";
 
 // Custom React hook for managing and fetching team data.
 const useTeams = (initialStart = 0) => {
@@ -68,9 +69,7 @@ const useTeams = (initialStart = 0) => {
       }
 
       //NOTE -  Building the endpoint URL with parameters.
-      //const endpoint = `${defaultAddress}/teams?${params}`;
-
-      const endpoint = `${defaultAddress}/teams?version=v1&league=blank`;
+      const endpoint = `${defaultAddress}/teams?${params}`;
 
       console.log("Endpoint: " + endpoint);
       const response = await api.get(endpoint, {
@@ -159,6 +158,7 @@ const MainContent = () => {
     itemsPerPage,
     prefersReducedMotion,
   } = useTeams();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [league, setLeague] = useState("any");
   const [division, setDivision] = useState("any");
@@ -170,9 +170,11 @@ const MainContent = () => {
 
   // Delays the fetch operation by 500ms after the user stops typing to avoid excessive API calls (Live search)
   const handleSearchChange = (event: any) => {
+    //FIXME - Sanitize user input
     setSearchTerm(event.target.value);
+    let sanitizedSearchInput = Dompurify.sanitize(event.target.value);
     if (timerId) clearTimeout(timerId);
-    timerId = setTimeout(() => fetchTeams(0, event.target.value), 500);
+    timerId = setTimeout(() => fetchTeams(0, sanitizedSearchInput), 500);
   };
 
   // Fetches teams when the search form is submitted, ensuring it starts from the first page
@@ -380,7 +382,10 @@ const MainContent = () => {
         <Button
           className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 hover:shadow-lg"
           onClick={handleNextPage}
-          disabled={teams.length < itemsPerPage || start >= maxNumberOfTeams}
+          disabled={
+            teams.length < itemsPerPage ||
+            start + itemsPerPage >= maxNumberOfTeams
+          }
         >
           Next
         </Button>
