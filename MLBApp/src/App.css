@@ -1,0 +1,55 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;800&display=swap");
+
+@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap");
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+body {
+  font-family: "EB+Garamond" !important;
+}
+
+.semi-circle-gradient {
+  width: 200px; /* Adjust width as needed */
+  height: 100px; /* Half of the width to create a semi-circle */
+  background: linear-gradient(to bottom, #718096, #e2e8f0); /* Example colors */
+  border-top-left-radius: 100px; /* 100px is half the width, adjust as needed */
+  border-top-right-radius: 100px; /* Same as left-radius */
+  overflow: hidden; /* Ensures the content doesn't overflow the semi-circular shape */
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "author": "Your Name",
+  "license": "ISC",
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Your description",
+  "main": "lib/server.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon ./lib/server.js",
+    "compile": "tsc --project tsconfig.json",
+    "build": "npm run compile && npm run start"
+  },
+  "type": "module",
+  "dependencies": {
+    "axios": "^0.21.4",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "memory-cache": "^0.2.0",
+    "nodemon": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.10",
+    "@types/express": "^4.17.13",
+    "@types/node": "^16.11.16"
+  }
+}
