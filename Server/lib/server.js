@@ -8,6 +8,26 @@ class Server {
     app = express();
     port = process.env.Port ?? 8080;
     __dirname = path.dirname(fileURLToPath(import.meta.url));
+    apiEndpoints = [
+        `/teams?version=v1&start=0&limit=10`,
+        `/teams?version=v1&start=10&limit=10`,
+        `/teams?version=v1&start=20&limit=10`,
+        `/teams?version=v1&limit=30`,
+        "/teams?version=v1&league=american",
+        "/teams?version=v1&league=national",
+        "/teams?version=v1&division=east",
+        "/teams?version=v1&division=west",
+        "/teams?version=v1&division=central",
+        "/teams?version=v1&league=american&division=east",
+        "/teams?version=v1&league=american&division=west",
+        "/teams?version=v1&league=american&division=central",
+        "/teams?version=v1&league=national&division=east",
+        "/teams?version=v1&league=national&division=west",
+        "/teams?version=v1&start=0&limit=30&league=national&division=central",
+        "/teams/?name=brewers",
+        "/teams/?id=110",
+        "/teams/?location=New york",
+    ];
     apikey = "0ca80ddc-63f6-476e-b548-e5fb0934fc4b";
     constructor(port) {
         if (port) {
@@ -77,26 +97,7 @@ class Server {
     configureRoutes() {
         this.app.get("/", (req, res) => {
             res.status(200).json({
-                options: [
-                    `/teams?version=v1&start=0&limit=10`,
-                    `/teams?version=v1&start=10&limit=10`,
-                    `/teams?version=v1&start=20&limit=10`,
-                    `/teams?version=v1&limit=30`,
-                    "/teams?version=v1&league=american",
-                    "/teams?version=v1&league=national",
-                    "/teams?version=v1&division=east",
-                    "/teams?version=v1&division=west",
-                    "/teams?version=v1&division=central",
-                    "/teams?version=v1&league=american&division=east",
-                    "/teams?version=v1&league=american&division=west",
-                    "/teams?version=v1&league=american&division=central",
-                    "/teams?version=v1&league=national&division=east",
-                    "/teams?version=v1&league=national&division=west",
-                    "/teams?version=v1&start=0&limit=30&league=national&division=central",
-                    "/teams/name",
-                    "/teams/id",
-                    "/teams/location",
-                ],
+                options: this.apiEndpoints,
             });
         });
         this.app.get("/teams", async (req, res) => {
@@ -152,48 +153,13 @@ class Server {
                     paginatedTeams = filteredTeams.slice(start, start + limit);
                     res.status(200).json({
                         teams: paginatedTeams,
-                        options: [
-                            `/teams?version=v1&start=0&limit=10`,
-                            `/teams?version=v1&start=10&limit=10`,
-                            `/teams?version=v1&start=20&limit=10`,
-                            `/teams?version=v1&limit=30`,
-                            "/teams?version=v1&league=american",
-                            "/teams?version=v1&league=national",
-                            "/teams?version=v1&division=east",
-                            "/teams?version=v1&division=west",
-                            "/teams?version=v1&division=central",
-                            "/teams?version=v1&league=american&division=east",
-                            "/teams?version=v1&league=american&division=west",
-                            "/teams?version=v1&league=american&division=central",
-                            "/teams?version=v1&league=national&division=east",
-                            "/teams?version=v1&league=national&division=west",
-                            "/teams?version=v1&start=0&limit=30&league=national&division=central",
-                        ],
+                        options: this.apiEndpoints,
                     });
                 }
                 else {
                     res.status(404).json({
                         error: "An unknown version was detected. Please see the options for available versions.",
-                        options: [
-                            `/teams?version=v1&start=0&limit=10`,
-                            `/teams?version=v1&start=10&limit=10`,
-                            `/teams?version=v1&start=20&limit=10`,
-                            `/teams?version=v1&limit=30`,
-                            "/teams?version=v1&league=american",
-                            "/teams?version=v1&league=national",
-                            "/teams?version=v1&division=east",
-                            "/teams?version=v1&division=west",
-                            "/teams?version=v1&division=central",
-                            "/teams?version=v1&league=american&division=east",
-                            "/teams?version=v1&league=american&division=west",
-                            "/teams?version=v1&league=american&division=central",
-                            "/teams?version=v1&league=national&division=east",
-                            "/teams?version=v1&league=national&division=west",
-                            "/teams?version=v1&start=0&limit=30&league=national&division=central",
-                            "/teams?name=dodgers",
-                            "/teams?id=110",
-                            "/teams?location=milwaukee",
-                        ],
+                        options: this.apiEndpoints,
                     });
                 }
             }
@@ -207,14 +173,7 @@ class Server {
         this.app.use((req, res) => {
             res.status(404).json({
                 error: "404 - Page was not found.",
-                options: [
-                    "/teams?start=`0`&limit=`10`",
-                    "/teams/:name",
-                    "/teams/:id",
-                    "/teams/:location",
-                    "/teams/american",
-                    "/teams/national",
-                ],
+                options: this.apiEndpoints,
             });
         });
     }
