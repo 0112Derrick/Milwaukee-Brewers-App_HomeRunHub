@@ -14,7 +14,7 @@ function About() {
         
         {/* Explicit declaration of CSS perspective and transformations to simulate a 3D effect */}
         <div
-          className="w-1/2 my-10 sm:w-3/4 sm:my-20 max-w-[550px] aspect-video bg-contain bg-no-repeat bg-inherit bg-center"
+          className="w-[90%] my-10 sm:w-3/4 sm:my-20 max-w-[550px] aspect-video bg-contain bg-no-repeat bg-inherit bg-center"
           style={{
             backgroundImage: `linear-gradient(to bottom, rgba(16, 24, 39, 0.1) 70%, rgba(16, 24, 39, 1) 100%), url('${heroImg}')`,
             transform:

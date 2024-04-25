@@ -9,6 +9,7 @@ class Server {
     port = process.env.Port ?? 8080;
     __dirname = path.dirname(fileURLToPath(import.meta.url));
     apiEndpoints = [
+        "GET: -",
         `/teams?version=v1&start=0&limit=10`,
         `/teams?version=v1&start=10&limit=10`,
         `/teams?version=v1&start=20&limit=10`,
@@ -27,6 +28,8 @@ class Server {
         "/teams/?name=brewers",
         "/teams/?id=110",
         "/teams/?location=New york",
+        "POST: - ",
+        "/contact - data expected: name, email, message, reasonForContact",
     ];
     apikey = "0ca80ddc-63f6-476e-b548-e5fb0934fc4b";
     constructor(port) {
@@ -158,28 +161,38 @@ class Server {
                 }
                 else {
                     res.status(404).json({
-                        error: "An unknown version was detected. Please see the options for available versions.",
+                        message: "An unknown version was detected. Please see the options for available versions.",
                         options: this.apiEndpoints,
                     });
                 }
             }
             catch (error) {
                 console.error(error);
-                res
-                    .status(500)
-                    .send("Sorry an error occurred while retrieving the teams.");
+                res.status(500).json({
+                    message: "Sorry an error occurred while retrieving the teams.",
+                    options: this.apiEndpoints,
+                });
             }
         });
         this.app.post("/contact", (req, res) => {
             console.log(req.body);
-            res.status(200).json({
-                message: "Post was successful",
-                options: this.apiEndpoints,
-            });
+            const { message, email, name, reasonForContact } = req.body;
+            if (message && email && name && reasonForContact) {
+                res.status(200).json({
+                    message: "Post was successful",
+                    options: this.apiEndpoints,
+                });
+            }
+            else {
+                res.status(422).json({
+                    message: "Warning Missing Data. - Expected the following: message, email, name, reasonForContact",
+                    options: this.apiEndpoints,
+                });
+            }
         });
         this.app.use((req, res) => {
             res.status(404).json({
-                error: "404 - Page was not found.",
+                message: "Sorry we couldn't find the page you were looking for 🔍.",
                 options: this.apiEndpoints,
             });
         });

@@ -19,7 +19,7 @@ function TeamsFilterSearchBar({
 }) {
   return (
     <form onSubmit={handleSearchSubmit} className="mb-4">
-      <div className="flex mb-2 gap-2">
+      <div className="flex flex-wrap sm:flex-nowrap mb-2 gap-2">
         <Input
           type="text"
           placeholder="Search teams..."

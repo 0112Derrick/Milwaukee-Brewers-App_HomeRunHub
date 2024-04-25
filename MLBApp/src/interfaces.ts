@@ -1,3 +1,5 @@
+import { AxiosRequestConfig, AxiosResponse } from "axios";
+
 export interface MlbTeamDataI {
   id: number;
   name: string;

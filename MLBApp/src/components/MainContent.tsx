@@ -1,15 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
-import axios, { CancelTokenSource } from "axios";
+import axios, { AxiosError, CancelTokenSource } from "axios";
 import TeamCard from "./TeamCard";
 import SkeletonCard from "./SkeletonCard";
 import { MlbTeamDataI, MlbTeamDataModifiedI } from "src/interfaces";
 import { Button } from "src/@/components/ui/button";
-import { Card, CardDescription, CardTitle } from "src/@/components/ui/card";
 import TitleSection from "./TitleSection";
 import { PlayIcon } from "@radix-ui/react-icons";
 import TeamsFilterSearchBar from "./TeamsFilterSearchBar";
 import TeamFilterRadioButtons from "./TeamFilterRadioButtons";
 import { mlbTeamsDetails } from "src/data/teamData";
+import ErrorPage from "./ErrorPage";
 
 // Custom React hook for managing and fetching team data.
 const useTeams = (initialStart = 0) => {
@@ -68,7 +68,9 @@ const useTeams = (initialStart = 0) => {
       }
 
       //NOTE -  Building the endpoint URL with parameters.
-      const endpoint = `${defaultAddress}/teams?${params}`;
+      //const endpoint = `${defaultAddress}/teams?${params}`;
+
+      const endpoint = `${defaultAddress}/teams?version=v1&league=blank`;
 
       console.log("Endpoint: " + endpoint);
       const response = await api.get(endpoint, {
@@ -255,42 +257,23 @@ const MainContent = () => {
     return (
       <div className="p-4 px-8 flex flex-col flex-grow">
         <TitleSection></TitleSection>
-
         <div className="flex items-center justify-center pb-8">
           <h2 className="text-4xl text-neutral-200">
             Find Your Favorite Teams
           </h2>
         </div>
-
         <TeamsFilterSearchBar
           handleSearchSubmit={handleSearchSubmit}
           handleSearchChange={handleSearchChange}
           searchTerm={searchTerm}
         ></TeamsFilterSearchBar>
-
         <TeamFilterRadioButtons
           league={league}
           division={division}
           handleFilterChange={handleFilterChange}
         ></TeamFilterRadioButtons>
 
-        <div className="flex flex-col flex-grow items-center justify-center text-red-600 text-xl font-bold">
-          <Card className="p-6 text-xl sm:text-2xl border-2 border-red-600">
-            <CardTitle>
-              Sorry an error occurred while fetching the teams
-            </CardTitle>{" "}
-            <CardDescription className="text-slate-950 pt-2 text-lg sm:text-xl">
-              Error that occurred: <br></br>
-              <span className="text-red-600 pb-1"> {error.message}</span>
-              <br></br>
-              <span className="font-bold text-slate-950 pb-2">
-                Steps to resolve the error:
-              </span>
-              <br></br>Try refreshing the page.<br></br>If the error persist
-              contact us at homerunhub@fakeemail.com
-            </CardDescription>
-          </Card>
-        </div>
+        <ErrorPage pageError={error}></ErrorPage>
 
         <div className="flex justify-between mt-4">
           <Button

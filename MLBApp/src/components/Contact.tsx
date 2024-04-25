@@ -2,7 +2,18 @@ import React, { useState } from "react";
 import { Button } from "src/@/components/ui/button";
 import { Card } from "src/@/components/ui/card";
 import { Input } from "src/@/components/ui/input";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "src/@/components/ui/dropdown-menu";
+import {
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@radix-ui/react-dropdown-menu";
 
 const ContactUs = () => {
   const serverIp = "";
@@ -10,6 +21,7 @@ const ContactUs = () => {
   const defaultIpAddress = serverIp || localhost;
   const [formSubmissionInProgress, setFormSubmissionInProgress] =
     useState(false);
+  const [responseMessage, setResponseMessage] = useState<string>("");
 
   const [
     displayFormSubmissionPostSuccessful,
@@ -25,6 +37,7 @@ const ContactUs = () => {
     name: "",
     email: "",
     message: "",
+    reasonForContact: "Inquiry",
   });
 
   const handleChange = (e: any) => {
@@ -43,40 +56,56 @@ const ContactUs = () => {
     //FIXME - Sanitize user input prior to sending them to the server.
     setFormSubmissionInProgress(true);
     try {
+     
       let response = await axios.post(defaultIpAddress, {
         ...formData,
       });
 
       if (response.status === 200) {
+        setResponseMessage(response.data.message);
         setFormSubmissionPostSuccessful(true);
         setDisplayFormSubmissionPostSuccessful(true);
-
-        setTimeout(() => {
-          setFormSubmissionInProgress(false);
-          setFormSubmissionPostSuccessful(false);
-          setDisplayFormSubmissionPostSuccessful(false);
-        }, 2000);
       } else {
         setFormSubmissionPostSuccessful(false);
         setDisplayFormSubmissionPostSuccessful(true);
       }
     } catch (error) {
+      console.log(error);
       setError(error);
     } finally {
       setTimeout(() => {
+        setResponseMessage("");
         setFormSubmissionInProgress(false);
         setFormSubmissionPostSuccessful(false);
         setDisplayFormSubmissionPostSuccessful(false);
-      }, 2000);
+      }, 4000);
     }
   };
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center flex-grow">
-        <p className="text-red-500 font-bold text-2xl">
-          Error: {error.message || "An error occurred."}
-        </p>
+      <div className="flex flex-col items-center justify-center flex-grow font-bold text-xl text-red-500 ">
+        <h1 className="text-2xl py-8 pt-12 sm:py-4 text-center">
+          Sorry something went wrong:
+        </h1>
+        <div className="w-4/5 h-fit bg-white p-4 rounded flex flex-col justify-center overflow-x-scroll">
+          <p className="">
+            Error Status code:{" "}
+            <span className="text-black">
+              {(error as AxiosError).response?.status}
+            </span>
+          </p>
+          <p className="">
+            Error name:{" "}
+            <span className="text-black">
+              {(error as AxiosError).response?.statusText}
+            </span>
+          </p>
+          <p className="">
+            Server response:{" "}
+            <span className="text-black">{error.response?.data?.message}</span>
+          </p>
+        </div>
       </div>
     );
   }
@@ -90,6 +119,115 @@ const ContactUs = () => {
               <h1 className="font-bold text-xl">Contact Us</h1>
             </div>
             <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <span className="flex gap-1 items-center justify-center bg-blue-500 p-2 hover:bg-blue-600 shadow hover:shadow-none shadow-black rounded text-white">
+                      Reason For Contact: {formData.reasonForContact}
+                    </span>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="p-4 outline-none">
+                    <DropdownMenuLabel className="flex items-center justify-center">
+                      Reason For Contact
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator></DropdownMenuSeparator>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() =>
+                        handleChange({
+                          target: {
+                            name: "reasonForContact",
+                            value: "Inquiry",
+                          },
+                        })
+                      }
+                      disabled={formData.reasonForContact === "Inquiry"}
+                    >
+                      Inquiry
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator></DropdownMenuSeparator>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() =>
+                        handleChange({
+                          target: {
+                            name: "reasonForContact",
+                            value: "Product",
+                          },
+                        })
+                      }
+                      disabled={formData.reasonForContact === "Product"}
+                    >
+                      Product
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator></DropdownMenuSeparator>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() =>
+                        handleChange({
+                          target: {
+                            name: "reasonForContact",
+                            value: "Services",
+                          },
+                        })
+                      }
+                      disabled={formData.reasonForContact === "Services"}
+                    >
+                      Services
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator></DropdownMenuSeparator>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() =>
+                        handleChange({
+                          target: {
+                            name: "reasonForContact",
+                            value: "Marketing/Sales",
+                          },
+                        })
+                      }
+                      disabled={formData.reasonForContact === "Marketing/Sales"}
+                    >
+                      Marketing/Sales
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator></DropdownMenuSeparator>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() =>
+                        handleChange({
+                          target: {
+                            name: "reasonForContact",
+                            value: "Event Opportunities",
+                          },
+                        })
+                      }
+                      disabled={
+                        formData.reasonForContact === "Event Opportunities"
+                      }
+                    >
+                      Event Opportunities
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator></DropdownMenuSeparator>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() =>
+                        handleChange({
+                          target: {
+                            name: "reasonForContact",
+                            value: "Partnership Opportunities",
+                          },
+                        })
+                      }
+                      disabled={
+                        formData.reasonForContact ===
+                        "Partnership Opportunities"
+                      }
+                    >
+                      Partnership Opportunities
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
               <div className="mb-4">
                 <label
                   className="block text-grey-darker text-sm font-bold mb-2"
@@ -149,7 +287,7 @@ const ContactUs = () => {
               </div>
               <div className="flex items-center justify-between">
                 <Button
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  className="bg-blue-500 hover:bg-blue-700 hover:shadow-lg shadow-black text-white font-bold py-2 px-4 rounded"
                   type="submit"
                   disabled={formSubmissionInProgress}
                 >
@@ -160,11 +298,18 @@ const ContactUs = () => {
           </div>
         </div>
       </Card>
+
       {formSubmissionInProgress &&
       displayFormSubmissionPostSuccessful &&
       formSubmissionPostSuccessful ? (
-        <span className="bg-white rounded-md p-4 text-green-500 border border-green-500">
-          Form submission was a success! Look forward to chatting with you soon.
+        <span className="bg-white rounded-md p-4 text-green-700 border border-green-500">
+          Form submission was a success! Look forward to chatting with you soon.{" "}
+          {responseMessage && (
+            <span className="text-blue-700">
+              <br></br>
+              Server message: {responseMessage}
+            </span>
+          )}
         </span>
       ) : formSubmissionInProgress &&
         displayFormSubmissionPostSuccessful &&

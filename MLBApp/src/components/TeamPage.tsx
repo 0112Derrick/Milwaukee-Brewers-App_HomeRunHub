@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { MlbTeamDataI } from "src/interfaces";
 import { useParams } from "react-router-dom";
 import { Card } from "src/@/components/ui/card";
@@ -7,6 +7,7 @@ import { Button } from "src/@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { MlbTeamDataModifiedI } from "src/interfaces";
 import { mlbTeamsDetails } from "src/data/teamData";
+import ErrorPage from "./ErrorPage";
 
 // Defines a React component that displays a detailed page for a specific MLB team.
 function TeamPage() {
@@ -29,6 +30,7 @@ function TeamPage() {
 
         const defaultAddress = serverIpAddress || localhost; // Fallback to localhost if needed
         const endpoint = `${defaultAddress}/teams?id=${id}`;
+
         const response = await axios.get(endpoint, {
           cancelToken: cancelTokenSource.token, // Passes cancel token to axios request.
         });
@@ -81,19 +83,15 @@ function TeamPage() {
   }
 
   if (error) {
-    return (
-      <div className="text-red-500 flex items-center justify-center flex-grow">
-        Error: {error.message || "An error occurred"}
-      </div>
-    );
+    return <ErrorPage pageError={error}></ErrorPage>;
   }
 
   if (team) {
     // Render the team data using a styled Card component.
     return (
       <div className="flex flex-grow w-full h-full mt-24 items-center justify-center">
-        <Card className="flex items-center flex-wrap justify-evenly h-fit p-4 border-0 md:border-2 sm:p-24 gap-12 space-y-4 bg-inherit rounded-md">
-          <div className="flex flex-col gap-4">
+        <Card className="flex items-center flex-wrap justify-evenly gap-8 sm:gap-12 h-fit px-2 py-8 sm:p-24 border-0 md:border-2   space-y-4 bg-inherit rounded-md">
+          <div className="flex flex-col gap-8">
             <Button
               variant={"outline"}
               className="bg-blue-500 hover:bg-blue-600 text-lg text-white hover:text-white"
@@ -109,8 +107,8 @@ function TeamPage() {
               className="w-28 h-28 sm:w-48 sm:h-48 object-contain"
             />
           </div>
-          <div className="flex flex-col items-center bg-gray-800 text-white text-center p-8 rounded-lg shadow-lg">
-            <h1 className="text-4xl sm:text-3xl py-4">
+          <div className="flex flex-col items-center bg-gray-800 text-white text-center px-4 py-8 sm:p-8 rounded-lg shadow-lg">
+            <h1 className="text-2xl sm:text-4xl py-4">
               <span
                 className="shadow-md bg-white rounded-md p-1"
                 style={{
@@ -120,7 +118,8 @@ function TeamPage() {
               >
                 {team.name}
               </span>
-              , affectionately known as <span>{team.nickname}</span>
+              <span className="text-xl"> , affectionately known as </span>
+              {team.nickname}
             </h1>
             <p className="text-xl">
               Proud members of the {team.league} and dominating the{" "}
@@ -186,7 +185,7 @@ function TeamPage() {
                 href={`${team.url}`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-lg bg-blue-600 hover:bg-blue-700 shadow-md shadow-black text-white font-bold py-2 px-4 rounded-full"
+                className="text-lg bg-blue-600 hover:bg-blue-700 shadow-md shadow-black text-white font-bold py-2 px-2 sm:px-4 rounded-full"
               >
                 Learn More About Us
               </a>
