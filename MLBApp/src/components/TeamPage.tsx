@@ -115,6 +115,8 @@ function TeamPage() {
     return <ErrorPage pageError={error}></ErrorPage>;
   }
 
+  
+
   if (team) {
     // Render the team data using a styled Card component.
     return (
@@ -214,7 +216,7 @@ function TeamPage() {
                 href={`${team.url}`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-lg bg-blue-600 hover:bg-blue-700 shadow-md shadow-black text-white font-bold py-2 px-2 sm:px-4 rounded-full"
+                className="text-lg bg-blue-600 hover:bg-blue-700 shadow-md shadow-black hover:shadow-none text-white font-bold py-2 px-2 sm:px-4 rounded-full"
               >
                 Learn More About Us
               </a>

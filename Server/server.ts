@@ -85,75 +85,87 @@ class Server {
   }
 
   // Fetches data from an API, caches it, and organizes it based on team league and division.
-  async fetchData(url: string, key: string): Promise<mlbTeams> {
+  async fetchData(
+    url: string,
+    key: string
+  ): Promise<{ teams: mlbTeams; error: any }> {
     const cachedData = cache.get(key);
     if (cachedData) {
-      return cachedData; // Returns cached data if available, reducing API calls.
+      return { teams: cachedData, error: null }; // Returns cached data if available, reducing API calls.
     }
 
-    const response = await axios.get(url, {
-      headers: {
-        "api-key": this.apikey,
-      },
-    });
+    try {
+      const response = await (axios as any).get(url, {
+        headers: {
+          "api-key": this.apikey,
+        },
+        signal: AbortSignal.timeout(25000),
+      });
 
-    const data: mlbTeams = response.data.map((team: team) => ({
-      id: team.id,
-      name: team.name,
-      nickname: team.nickname,
-      location: team.location,
-      abbreviation: team.abbreviation,
-      logo: team.logo,
-      league: team.leage, //TODO - This will need to be updated once the Brewers update their api.
-      division: team.division,
-    }));
+      const data: mlbTeams = response.data.map((team: team) => ({
+        id: team.id,
+        name: team.name,
+        nickname: team.nickname,
+        location: team.location,
+        abbreviation: team.abbreviation,
+        logo: team.logo,
+        league: team.leage, //TODO - This will need to be updated once the Brewers update their api.
+        division: team.division,
+      }));
 
-    let organizedMlbTeams: mlbTeams = [];
+      let organizedMlbTeams: mlbTeams = [];
 
-    const americanTeams = data.filter(
-      (team) => team.league === "American League"
-    );
+      const americanTeams = data.filter(
+        (team) => team.league === "American League"
+      );
 
-    const americanCentral = americanTeams.filter((team) => {
-      return team.division.includes("Central");
-    });
+      const americanCentral = americanTeams.filter((team) => {
+        return team.division.includes("Central");
+      });
 
-    const americanEast = americanTeams.filter((team) => {
-      return team.division.includes("East");
-    });
+      const americanEast = americanTeams.filter((team) => {
+        return team.division.includes("East");
+      });
 
-    const americanWest = americanTeams.filter((team) => {
-      return team.division.includes("West");
-    });
+      const americanWest = americanTeams.filter((team) => {
+        return team.division.includes("West");
+      });
 
-    const nationalTeams = data.filter(
-      (team) => team.league === "National League"
-    );
+      const nationalTeams = data.filter(
+        (team) => team.league === "National League"
+      );
 
-    const nationalCentral = nationalTeams.filter((team) => {
-      return team.division.includes("Central");
-    });
+      const nationalCentral = nationalTeams.filter((team) => {
+        return team.division.includes("Central");
+      });
 
-    const nationalEast = nationalTeams.filter((team) => {
-      return team.division.includes("East");
-    });
+      const nationalEast = nationalTeams.filter((team) => {
+        return team.division.includes("East");
+      });
 
-    const nationalWest = nationalTeams.filter((team) => {
-      return team.division.includes("West");
-    });
+      const nationalWest = nationalTeams.filter((team) => {
+        return team.division.includes("West");
+      });
 
-    // Filters and organizes teams by league and division.
-    organizedMlbTeams = organizedMlbTeams.concat(
-      americanCentral,
-      americanEast,
-      americanWest,
-      nationalCentral,
-      nationalEast,
-      nationalWest
-    );
+      // Filters and organizes teams by league and division.
+      organizedMlbTeams = organizedMlbTeams.concat(
+        americanCentral,
+        americanEast,
+        americanWest,
+        nationalCentral,
+        nationalEast,
+        nationalWest
+      );
 
-    cache.put(key, organizedMlbTeams, 120000); // Cache for 1 minute (adjust as needed)
-    return organizedMlbTeams;
+      cache.put(key, organizedMlbTeams, 300000); // Cache for 5 minute (adjust as needed)
+      return { teams: organizedMlbTeams, error: null };
+    } catch (error) {
+      if (axios.isCancel(error)) {
+        console.log("Request timed-out:", error.message);
+      }
+
+      return { teams: null, error: error };
+    }
   }
 
   // Sets up API endpoints and defines route behaviors.
@@ -210,10 +222,24 @@ class Server {
 
       try {
         // Retrieves teams based on filters and paginates the results.
-        const mlbTeams = await this.fetchData(
+        const data = await this.fetchData(
           "http://brew-roster-svc.us-e2.cloudhub.io/api/teams",
           "mlbTeams"
         );
+
+        if (data.error) {
+          res.status(500).json({
+            message:
+              "An error occurred while fetching teams data." + data.error,
+            options: this.apiEndpoints,
+          });
+          console.log(
+            `Error:\nCode:${data.error.code}\nSystem Call:${data.error.syscall}\nHostname:${data.error.hostname}\nConfig Options:${data.error.config}`
+          );
+          return;
+        }
+
+        const mlbTeams = data.teams;
 
         if (start >= mlbTeams.length) {
           start = 0;

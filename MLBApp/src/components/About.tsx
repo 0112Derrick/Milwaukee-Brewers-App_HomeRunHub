@@ -11,7 +11,7 @@ function About() {
         <h1 className="text-4xl text-center font-bold p-8 z-10">
           Home Run Hub is bringing magic<br></br> back to MLB apps.
         </h1>
-        
+
         {/* Explicit declaration of CSS perspective and transformations to simulate a 3D effect */}
         <div
           className="w-[90%] my-10 sm:w-3/4 sm:my-20 max-w-[550px] aspect-video bg-contain bg-no-repeat bg-inherit bg-center"
@@ -56,15 +56,14 @@ function About() {
           </h3>
           <p className="px-4 text-lg sm:text-xl opacity-70">
             Home Run Hub is the passion project of a solo developer, Derrick,
-            who works remotely from home. I'm dedication to the Milwaukee
-            Brewers and creating a positive change for individuals, drives me to
-            create an application that will excite the baseball world. Despite
-            being a team of one, I'm committed to delivering a top-notch
-            experience for fans, making it easier for them to access information
-            about their favorite teams. I'm a true maker at heart, caring deeply
-            about the quality and detail of my work, and I'm determined to make
-            Home Run Hub a valuable resource for baseball enthusiasts
-            everywhere.
+            who works remotely from home. My dedication to the Milwaukee Brewers
+            and creating a positive change for individuals, drives me to create
+            an application that will excite the baseball world. Despite being a
+            team of one, I'm committed to delivering a top-notch experience for
+            fans, making it easier for them to access information about their
+            favorite teams. I'm a true maker at heart, caring deeply about the
+            quality and detail of my work, and I'm determined to make Home Run
+            Hub a valuable resource for baseball enthusiasts everywhere.
           </p>
         </div>
 

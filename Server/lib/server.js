@@ -55,47 +55,56 @@ class Server {
     async fetchData(url, key) {
         const cachedData = cache.get(key);
         if (cachedData) {
-            return cachedData;
+            return { teams: cachedData, error: null };
         }
-        const response = await axios.get(url, {
-            headers: {
-                "api-key": this.apikey,
-            },
-        });
-        const data = response.data.map((team) => ({
-            id: team.id,
-            name: team.name,
-            nickname: team.nickname,
-            location: team.location,
-            abbreviation: team.abbreviation,
-            logo: team.logo,
-            league: team.leage,
-            division: team.division,
-        }));
-        let organizedMlbTeams = [];
-        const americanTeams = data.filter((team) => team.league === "American League");
-        const americanCentral = americanTeams.filter((team) => {
-            return team.division.includes("Central");
-        });
-        const americanEast = americanTeams.filter((team) => {
-            return team.division.includes("East");
-        });
-        const americanWest = americanTeams.filter((team) => {
-            return team.division.includes("West");
-        });
-        const nationalTeams = data.filter((team) => team.league === "National League");
-        const nationalCentral = nationalTeams.filter((team) => {
-            return team.division.includes("Central");
-        });
-        const nationalEast = nationalTeams.filter((team) => {
-            return team.division.includes("East");
-        });
-        const nationalWest = nationalTeams.filter((team) => {
-            return team.division.includes("West");
-        });
-        organizedMlbTeams = organizedMlbTeams.concat(americanCentral, americanEast, americanWest, nationalCentral, nationalEast, nationalWest);
-        cache.put(key, organizedMlbTeams, 120000);
-        return organizedMlbTeams;
+        try {
+            const response = await axios.get(url, {
+                headers: {
+                    "api-key": this.apikey,
+                },
+                signal: AbortSignal.timeout(25000),
+            });
+            const data = response.data.map((team) => ({
+                id: team.id,
+                name: team.name,
+                nickname: team.nickname,
+                location: team.location,
+                abbreviation: team.abbreviation,
+                logo: team.logo,
+                league: team.leage,
+                division: team.division,
+            }));
+            let organizedMlbTeams = [];
+            const americanTeams = data.filter((team) => team.league === "American League");
+            const americanCentral = americanTeams.filter((team) => {
+                return team.division.includes("Central");
+            });
+            const americanEast = americanTeams.filter((team) => {
+                return team.division.includes("East");
+            });
+            const americanWest = americanTeams.filter((team) => {
+                return team.division.includes("West");
+            });
+            const nationalTeams = data.filter((team) => team.league === "National League");
+            const nationalCentral = nationalTeams.filter((team) => {
+                return team.division.includes("Central");
+            });
+            const nationalEast = nationalTeams.filter((team) => {
+                return team.division.includes("East");
+            });
+            const nationalWest = nationalTeams.filter((team) => {
+                return team.division.includes("West");
+            });
+            organizedMlbTeams = organizedMlbTeams.concat(americanCentral, americanEast, americanWest, nationalCentral, nationalEast, nationalWest);
+            cache.put(key, organizedMlbTeams, 300000);
+            return { teams: organizedMlbTeams, error: null };
+        }
+        catch (error) {
+            if (axios.isCancel(error)) {
+                console.log("Request timed-out:", error.message);
+            }
+            return { teams: null, error: error };
+        }
     }
     configureRoutes() {
         this.app.get("/", (req, res) => {
@@ -130,7 +139,16 @@ class Server {
                 division = null;
             }
             try {
-                const mlbTeams = await this.fetchData("http://brew-roster-svc.us-e2.cloudhub.io/api/teams", "mlbTeams");
+                const data = await this.fetchData("http://brew-roster-svc.us-e2.cloudhub.io/api/teams", "mlbTeams");
+                if (data.error) {
+                    res.status(500).json({
+                        message: "An error occurred while fetching teams data." + data.error,
+                        options: this.apiEndpoints,
+                    });
+                    console.log(`Error:\nCode:${data.error.code}\nSystem Call:${data.error.syscall}\nHostname:${data.error.hostname}\nConfig Options:${data.error.config}`);
+                    return;
+                }
+                const mlbTeams = data.teams;
                 if (start >= mlbTeams.length) {
                     start = 0;
                     limit = mlbTeams.length;
