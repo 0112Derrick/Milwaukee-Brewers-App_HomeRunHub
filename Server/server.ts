@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import cors from "cors";
 import axios from "axios";
 import cache from "memory-cache";
+import { Database } from "./jsonManager";
 
 // Type definitions for a general team and MLB-specific team details.
 type team = {
@@ -28,7 +29,7 @@ type mlbTeam = {
   division: string;
 };
 
-type mlbTeams = Array<mlbTeam>;
+export type mlbTeams = Array<mlbTeam>;
 
 class Server {
   private app = express();
@@ -84,6 +85,58 @@ class Server {
     this.app.use(cors());
   }
 
+  organizeMLBTeams(data: mlbTeams) {
+    let organizedMlbTeams: mlbTeams = [];
+
+    const americanTeams = data.filter(
+      (team) => team.league === "American League"
+    );
+
+    const americanCentral = americanTeams.filter((team) => {
+      return team.division.includes("Central");
+    });
+
+    const americanEast = americanTeams.filter((team) => {
+      return team.division.includes("East");
+    });
+
+    const americanWest = americanTeams.filter((team) => {
+      return team.division.includes("West");
+    });
+
+    const nationalTeams = data.filter(
+      (team) => team.league === "National League"
+    );
+
+    const nationalCentral = nationalTeams.filter((team) => {
+      return team.division.includes("Central");
+    });
+
+    const nationalEast = nationalTeams.filter((team) => {
+      return team.division.includes("East");
+    });
+
+    const nationalWest = nationalTeams.filter((team) => {
+      return team.division.includes("West");
+    });
+
+    // Filters and organizes teams by league and division.
+    organizedMlbTeams = organizedMlbTeams.concat(
+      americanCentral,
+      americanEast,
+      americanWest,
+      nationalCentral,
+      nationalEast,
+      nationalWest
+    );
+
+    return organizedMlbTeams;
+  }
+
+  cacheTeams(teams: mlbTeams, key: string, time = 300000) {
+    cache.put(key, teams, time); // Cache for 5 minute (adjust as needed)
+  }
+
   // Fetches data from an API, caches it, and organizes it based on team league and division.
   async fetchData(
     url: string,
@@ -102,7 +155,7 @@ class Server {
         signal: AbortSignal.timeout(25000),
       });
 
-      const data: mlbTeams = response.data.map((team: team) => ({
+      let data: mlbTeams = response.data.map((team: team) => ({
         id: team.id,
         name: team.name,
         nickname: team.nickname,
@@ -112,57 +165,19 @@ class Server {
         league: team.leage, //TODO - This will need to be updated once the Brewers update their api.
         division: team.division,
       }));
-
-      let organizedMlbTeams: mlbTeams = [];
-
-      const americanTeams = data.filter(
-        (team) => team.league === "American League"
-      );
-
-      const americanCentral = americanTeams.filter((team) => {
-        return team.division.includes("Central");
-      });
-
-      const americanEast = americanTeams.filter((team) => {
-        return team.division.includes("East");
-      });
-
-      const americanWest = americanTeams.filter((team) => {
-        return team.division.includes("West");
-      });
-
-      const nationalTeams = data.filter(
-        (team) => team.league === "National League"
-      );
-
-      const nationalCentral = nationalTeams.filter((team) => {
-        return team.division.includes("Central");
-      });
-
-      const nationalEast = nationalTeams.filter((team) => {
-        return team.division.includes("East");
-      });
-
-      const nationalWest = nationalTeams.filter((team) => {
-        return team.division.includes("West");
-      });
-
-      // Filters and organizes teams by league and division.
-      organizedMlbTeams = organizedMlbTeams.concat(
-        americanCentral,
-        americanEast,
-        americanWest,
-        nationalCentral,
-        nationalEast,
-        nationalWest
-      );
-
-      cache.put(key, organizedMlbTeams, 300000); // Cache for 5 minute (adjust as needed)
+      const organizedMlbTeams = this.organizeMLBTeams(data);
+      this.cacheTeams(organizedMlbTeams, key);
       return { teams: organizedMlbTeams, error: null };
     } catch (error) {
       if (axios.isCancel(error)) {
         console.log("Request timed-out:", error.message);
       }
+
+      const data = await Database.readMlbTeams();
+      const organizedMlbTeams = this.organizeMLBTeams(data);
+      this.cacheTeams(organizedMlbTeams, key);
+
+      if (data.length > 0) return { teams: organizedMlbTeams, error: null };
 
       return { teams: null, error: error };
     }
@@ -230,7 +245,7 @@ class Server {
         if (data.error) {
           res.status(500).json({
             message:
-              "An error occurred while fetching teams data." + data.error,
+              "An error occurred while fetching teams data. " + data.error,
             options: this.apiEndpoints,
           });
           console.log(

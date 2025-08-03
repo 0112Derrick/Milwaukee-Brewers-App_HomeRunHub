@@ -183,6 +183,8 @@ const MainContent = () => {
     fetchTeams(0, searchTerm); // Start from the first page with the search term
   };
 
+  
+
   // Handles league or division filter changes and triggers a fetch with the new filters
   const handleFilterChange = (event: any) => {
     const { name, value } = event.target;

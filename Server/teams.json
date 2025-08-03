@@ -1,0 +1,302 @@
+[
+  {
+    "id": 108,
+    "name": "Los Angeles Angels",
+    "nickname": "Angels",
+    "location": "Anaheim, California",
+    "abbreviation": "LAA",
+    "logo": "https://www.mlbstatic.com/team-logos/108.svg",
+    "league": "American League",
+    "division": "West"
+  },
+  {
+    "id": 109,
+    "name": "Arizona Diamondbacks",
+    "nickname": "Diamondbacks",
+    "location": "Phoenix, Arizona",
+    "abbreviation": "ARI",
+    "logo": "https://www.mlbstatic.com/team-logos/109.svg",
+    "league": "National League",
+    "division": "West"
+  },
+  {
+    "id": 110,
+    "name": "Baltimore Orioles",
+    "nickname": "Orioles",
+    "location": "Baltimore, Maryland",
+    "abbreviation": "BAL",
+    "logo": "https://www.mlbstatic.com/team-logos/110.svg",
+    "league": "American League",
+    "division": "East"
+  },
+  {
+    "id": 111,
+    "name": "Boston Red Sox",
+    "nickname": "Red Sox",
+    "location": "Boston, Massachusetts",
+    "abbreviation": "BOS",
+    "logo": "https://www.mlbstatic.com/team-logos/111.svg",
+    "league": "American League",
+    "division": "East"
+  },
+  {
+    "id": 112,
+    "name": "Chicago Cubs",
+    "nickname": "Cubs",
+    "location": "Chicago, Illinois",
+    "abbreviation": "CHC",
+    "logo": "https://www.mlbstatic.com/team-logos/112.svg",
+    "league": "National League",
+    "division": "Central"
+  },
+  {
+    "id": 113,
+    "name": "Cincinnati Reds",
+    "nickname": "Reds",
+    "location": "Cincinnati, Ohio",
+    "abbreviation": "CIN",
+    "logo": "https://www.mlbstatic.com/team-logos/113.svg",
+    "league": "National League",
+    "division": "Central"
+  },
+  {
+    "id": 114,
+    "name": "Cleveland Guardians",
+    "nickname": "Guardians",
+    "location": "Cleveland, Ohio",
+    "abbreviation": "CLE",
+    "logo": "https://www.mlbstatic.com/team-logos/114.svg",
+    "league": "American League",
+    "division": "Central"
+  },
+  {
+    "id": 115,
+    "name": "Colorado Rockies",
+    "nickname": "Rockies",
+    "location": "Denver, Colorado",
+    "abbreviation": "COL",
+    "logo": "https://www.mlbstatic.com/team-logos/115.svg",
+    "league": "National League",
+    "division": "West"
+  },
+  {
+    "id": 116,
+    "name": "Detroit Tigers",
+    "nickname": "Tigers",
+    "location": "Detroit, Michigan",
+    "abbreviation": "DET",
+    "logo": "https://www.mlbstatic.com/team-logos/116.svg",
+    "league": "American League",
+    "division": "Central"
+  },
+  {
+    "id": 117,
+    "name": "Houston Astros",
+    "nickname": "Astros",
+    "location": "Houston, Texas",
+    "abbreviation": "HOU",
+    "logo": "https://www.mlbstatic.com/team-logos/117.svg",
+    "league": "American League",
+    "division": "West"
+  },
+  {
+    "id": 118,
+    "name": "Kansas City Royals",
+    "nickname": "Royals",
+    "location": "Kansas City, Missouri",
+    "abbreviation": "KC",
+    "logo": "https://www.mlbstatic.com/team-logos/118.svg",
+    "league": "American League",
+    "division": "Central"
+  },
+  {
+    "id": 119,
+    "name": "Los Angeles Dodgers",
+    "nickname": "Dodgers",
+    "location": "Los Angeles, California",
+    "abbreviation": "LAD",
+    "logo": "https://www.mlbstatic.com/team-logos/119.svg",
+    "league": "National League",
+    "division": "West"
+  },
+  {
+    "id": 120,
+    "name": "Washington Nationals",
+    "nickname": "Nationals",
+    "location": "Washington, D.C.",
+    "abbreviation": "WSH",
+    "logo": "https://www.mlbstatic.com/team-logos/120.svg",
+    "league": "National League",
+    "division": "East"
+  },
+  {
+    "id": 121,
+    "name": "New York Mets",
+    "nickname": "Mets",
+    "location": "New York, New York",
+    "abbreviation": "NYM",
+    "logo": "https://www.mlbstatic.com/team-logos/121.svg",
+    "league": "National League",
+    "division": "East"
+  },
+  {
+    "id": 133,
+    "name": "Oakland Athletics",
+    "nickname": "Athletics",
+    "location": "Oakland, California",
+    "abbreviation": "OAK",
+    "logo": "https://www.mlbstatic.com/team-logos/133.svg",
+    "league": "American League",
+    "division": "West"
+  },
+  {
+    "id": 134,
+    "name": "Pittsburgh Pirates",
+    "nickname": "Pirates",
+    "location": "Pittsburgh, Pennsylvania",
+    "abbreviation": "PIT",
+    "logo": "https://www.mlbstatic.com/team-logos/134.svg",
+    "league": "National League",
+    "division": "Central"
+  },
+  {
+    "id": 135,
+    "name": "San Diego Padres",
+    "nickname": "Padres",
+    "location": "San Diego, California",
+    "abbreviation": "SD",
+    "logo": "https://www.mlbstatic.com/team-logos/135.svg",
+    "league": "National League",
+    "division": "West"
+  },
+  {
+    "id": 136,
+    "name": "Seattle Mariners",
+    "nickname": "Mariners",
+    "location": "Seattle, Washington",
+    "abbreviation": "SEA",
+    "logo": "https://www.mlbstatic.com/team-logos/136.svg",
+    "league": "American League",
+    "division": "West"
+  },
+  {
+    "id": 137,
+    "name": "San Francisco Giants",
+    "nickname": "Giants",
+    "location": "San Francisco, California",
+    "abbreviation": "SF",
+    "logo": "https://www.mlbstatic.com/team-logos/137.svg",
+    "league": "National League",
+    "division": "West"
+  },
+  {
+    "id": 138,
+    "name": "St. Louis Cardinals",
+    "nickname": "Cardinals",
+    "location": "St. Louis, Missouri",
+    "abbreviation": "STL",
+    "logo": "https://www.mlbstatic.com/team-logos/138.svg",
+    "league": "National League",
+    "division": "Central"
+  },
+  {
+    "id": 139,
+    "name": "Tampa Bay Rays",
+    "nickname": "Rays",
+    "location": "Tampa, Florida",
+    "abbreviation": "TB",
+    "logo": "https://www.mlbstatic.com/team-logos/139.svg",
+    "league": "American League",
+    "division": "East"
+  },
+  {
+    "id": 140,
+    "name": "Texas Rangers",
+    "nickname": "Rangers",
+    "location": "Arlington, Texas",
+    "abbreviation": "TEX",
+    "logo": "https://www.mlbstatic.com/team-logos/140.svg",
+    "league": "American League",
+    "division": "West"
+  },
+  {
+    "id": 141,
+    "name": "Toronto Blue Jays",
+    "nickname": "Blue Jays",
+    "location": "Toronto, Ontario",
+    "abbreviation": "TOR",
+    "logo": "https://www.mlbstatic.com/team-logos/141.svg",
+    "league": "American League",
+    "division": "East"
+  },
+  {
+    "id": 142,
+    "name": "Minnesota Twins",
+    "nickname": "Twins",
+    "location": "Minneapolis, Minnesota",
+    "abbreviation": "MIN",
+    "logo": "https://www.mlbstatic.com/team-logos/142.svg",
+    "league": "American League",
+    "division": "Central"
+  },
+  {
+    "id": 143,
+    "name": "Philadelphia Phillies",
+    "nickname": "Phillies",
+    "location": "Philadelphia, Pennsylvania",
+    "abbreviation": "PHI",
+    "logo": "https://www.mlbstatic.com/team-logos/143.svg",
+    "league": "National League",
+    "division": "East"
+  },
+  {
+    "id": 144,
+    "name": "Atlanta Braves",
+    "nickname": "Braves",
+    "location": "Atlanta, Georgia",
+    "abbreviation": "ATL",
+    "logo": "https://www.mlbstatic.com/team-logos/144.svg",
+    "league": "National League",
+    "division": "East"
+  },
+  {
+    "id": 145,
+    "name": "Chicago White Sox",
+    "nickname": "White Sox",
+    "location": "Chicago, Illinois",
+    "abbreviation": "CWS",
+    "logo": "https://www.mlbstatic.com/team-logos/145.svg",
+    "league": "American League",
+    "division": "Central"
+  },
+  {
+    "id": 146,
+    "name": "Miami Marlins",
+    "nickname": "Marlins",
+    "location": "Miami, Florida",
+    "abbreviation": "MIA",
+    "logo": "https://www.mlbstatic.com/team-logos/146.svg",
+    "league": "National League",
+    "division": "East"
+  },
+  {
+    "id": 147,
+    "name": "New York Yankees",
+    "nickname": "Yankees",
+    "location": "New York, New York",
+    "abbreviation": "NYY",
+    "logo": "https://www.mlbstatic.com/team-logos/147.svg",
+    "league": "American League",
+    "division": "East"
+  },
+  {
+    "id": 158,
+    "name": "Milwaukee Brewers",
+    "nickname": "Brewers",
+    "location": "Milwaukee, Wisconsin",
+    "abbreviation": "MIL",
+    "logo": "https://www.mlbstatic.com/team-logos/158.svg",
+    "league": "National League",
+    "division": "Central"
+  }
+]
