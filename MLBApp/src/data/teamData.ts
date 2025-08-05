@@ -134,7 +134,7 @@ export const mlbTeamsDetails = [
     color: "#005A9C",
     city: "Los Angeles",
     state: "California",
-    worldSeriesTitles: 7,
+    worldSeriesTitles: 8,
     founded: 1883,
     hallOfFamePlayers: 26,
     url: "https://www.mlb.com/dodgers",
