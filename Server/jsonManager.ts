@@ -1,6 +1,6 @@
 import { constants } from "fs";
-import fs from "fs/promises";
-import { mlbTeams } from "./server";
+import * as fs from "fs/promises";
+import { mlbTeams } from "./interfaces.js";
 
 export class Database {
   static async checkIfFileExists(filePath: string, writeFile: boolean = true) {

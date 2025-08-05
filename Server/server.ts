@@ -1,40 +1,29 @@
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
 import cors from "cors";
 import axios from "axios";
 import cache from "memory-cache";
-import { Database } from "./jsonManager";
-
-// Type definitions for a general team and MLB-specific team details.
-type team = {
-  id: number;
-  name: string;
-  nickname: string;
-  location: string;
-  abbreviation: string;
-  logo: string;
-  leage: string; // TODO - Spelling error, should be "league".
-  division: string;
-};
-
-type mlbTeam = {
-  id: number;
-  name: string;
-  nickname: string;
-  location: string;
-  abbreviation: string;
-  logo: string;
-  league: string;
-  division: string;
-};
-
-export type mlbTeams = Array<mlbTeam>;
+import { Database } from "./jsonManager.js";
+import {
+  BoxscoreResponse,
+  DivisionRecord,
+  DivisionResponse,
+  MlbGame,
+  MLBLeagueIds,
+  MlbTeamApp,
+  mlbTeams,
+  PlayByPlayResponse,
+  ScheduleResponse,
+  SportsLeagueId,
+  StandingsResponse,
+  StandingsResponseV2,
+  team,
+} from "./interfaces.js";
 
 class Server {
   private app = express();
   private port: string | number = process.env.Port ?? 8080;
-  private __dirname = path.dirname(fileURLToPath(import.meta.url));
+  private mlbApiHost = "https://statsapi.mlb.com";
+  // private __dirname = path.dirname(fileURLToPath(import.meta.url));
   private apiEndpoints = [
     "GET: -",
     `/teams?version=v1&start=0&limit=10`,
@@ -133,8 +122,8 @@ class Server {
     return organizedMlbTeams;
   }
 
-  cacheTeams(teams: mlbTeams, key: string, time = 300000) {
-    cache.put(key, teams, time); // Cache for 5 minute (adjust as needed)
+  cacheData(data: any, key: string, time = 300000) {
+    cache.put(key, data, time);
   }
 
   // Fetches data from an API, caches it, and organizes it based on team league and division.
@@ -166,7 +155,7 @@ class Server {
         division: team.division,
       }));
       const organizedMlbTeams = this.organizeMLBTeams(data);
-      this.cacheTeams(organizedMlbTeams, key);
+      this.cacheData(organizedMlbTeams, key);
       return { teams: organizedMlbTeams, error: null };
     } catch (error) {
       if (axios.isCancel(error)) {
@@ -175,12 +164,265 @@ class Server {
 
       const data = await Database.readMlbTeams();
       const organizedMlbTeams = this.organizeMLBTeams(data);
-      this.cacheTeams(organizedMlbTeams, key);
+      this.cacheData(organizedMlbTeams, key);
 
       if (data.length > 0) return { teams: organizedMlbTeams, error: null };
 
       return { teams: null, error: error };
     }
+  }
+
+  async fetchStandings(
+    leagueId: MLBLeagueIds,
+    seasonDt: Date
+  ): Promise<StandingsResponseV2> {
+    try {
+      const dateStr = seasonDt.toISOString().split("T")[0];
+      const combinedKey = `standings-${dateStr}-all`;
+
+      let combined = cache.get<StandingsResponseV2>(
+        combinedKey
+      ) as StandingsResponseV2;
+      if (!combined) {
+        const year = seasonDt.getFullYear();
+        const [resAL, resNL] = await Promise.all([
+          axios.get<StandingsResponse>(`${this.mlbApiHost}/api/v1/standings`, {
+            params: {
+              leagueId: MLBLeagueIds.americanLeagueId,
+              season: year,
+              date: dateStr,
+            },
+          }),
+          axios.get<StandingsResponse>(`${this.mlbApiHost}/api/v1/standings`, {
+            params: {
+              leagueId: MLBLeagueIds.nationalLeagueId,
+              season: year,
+              date: dateStr,
+            },
+          }),
+        ]);
+
+        const divisions = await this.fetchDivision();
+
+        combined = {
+          copyright: resAL.data.copyright,
+          records: [...resAL.data.records, ...resNL.data.records],
+          divisions: divisions.divisions,
+        };
+
+        this.cacheData(combined, combinedKey);
+      }
+
+      if (leagueId === MLBLeagueIds.all) {
+        return combined;
+      }
+
+      return {
+        copyright: combined.copyright,
+        records: combined.records.filter(
+          (r: DivisionRecord) => r.league.id === leagueId
+        ),
+        divisions: combined.divisions,
+      };
+    } catch (e) {
+      console.error("Error fetching standings ", e);
+      return { copyright: "", records: [], divisions: [] };
+    }
+  }
+
+  async fetchBoxScores(
+    leagueId: SportsLeagueId,
+    teamName: string,
+    gameDt: Date
+  ): Promise<BoxscoreResponse> {
+    try {
+      let resp = {
+        copyright: "",
+        teams: {
+          away: null,
+          home: null,
+        },
+      };
+      const date = new Date(gameDt);
+
+      const schedule = await this.fetchSchedule(leagueId, date, gameDt);
+
+      const foundGame = this.findGameByTeam(schedule, teamName);
+
+      if (foundGame) {
+        const key = `boxscore-${foundGame.gamePk}`;
+        const cachedData = cache.get(key);
+
+        if (cachedData) {
+          resp = cachedData;
+        } else {
+          const api = `${this.mlbApiHost}/api/v1/game/${foundGame.gamePk}/boxscore`;
+
+          const boxscore = await axios.get(api);
+          resp = boxscore.data;
+
+          this.cacheData(boxscore.data, key);
+        }
+      }
+
+      return resp;
+    } catch (e) {
+      console.error("An error occurred while fetching team standings. ", e);
+
+      let resp = {
+        copyright: "",
+        teams: {
+          away: null,
+          home: null,
+        },
+      };
+      return resp;
+    }
+  }
+
+  async fetchPlayByPlay(
+    leagueId: SportsLeagueId,
+    teamName: string,
+    gameDt: Date
+  ): Promise<PlayByPlayResponse> {
+    try {
+      let resp: PlayByPlayResponse = {
+        copyright: "",
+        allPlays: [],
+        currentPlays: [],
+        scoringPlays: [],
+        playsByInning: [],
+      };
+
+      const date = new Date(gameDt);
+      const schedule = await this.fetchSchedule(leagueId, gameDt, date);
+
+      const foundGame = this.findGameByTeam(schedule, teamName);
+
+      if (foundGame) {
+        const key = `playbyplay-${foundGame.gamePk}`;
+        const cachedData = cache.get(key);
+
+        if (cachedData) {
+          resp = cachedData;
+        } else {
+          const api = `${this.mlbApiHost}/api/v1/game/${foundGame.gamePk}/playByPlay`;
+
+          const playByPlay = await axios.get(api);
+          this.cacheData(playByPlay.data, key);
+          resp = playByPlay.data;
+        }
+      }
+
+      return resp;
+    } catch (e) {
+      console.error("An error occurred while fetching team standings. ", e);
+
+      let resp: PlayByPlayResponse = {
+        copyright: "",
+        allPlays: [],
+        currentPlays: [],
+        scoringPlays: [],
+        playsByInning: [],
+      };
+
+      return resp;
+    }
+  }
+
+  async fetchSchedule(
+    leagueId: SportsLeagueId,
+    startDt: Date,
+    endDate: Date
+  ): Promise<ScheduleResponse> {
+    const startDay = new Date(startDt).toISOString().split("T").at(0);
+
+    const endDay = new Date(endDate).toISOString().split("T").at(0);
+
+    const api = `${this.mlbApiHost}/api/v1/schedule?sportId=${leagueId}&startDate=${startDay}&endDate=${endDay}`;
+
+    try {
+      const key = `schedule-${startDay}-endDay`;
+      const cachedData = cache.get(key);
+
+      if (cachedData) {
+        return cachedData; // Returns cached data if available, reducing API calls.
+      }
+
+      const res = await axios.get(api);
+      this.cacheData(res.data, key);
+
+      return res.data;
+    } catch (e) {
+      console.error("An error occurred while fetching team schedule. ", e);
+      return {
+        copyright: "",
+        dates: [],
+        totalItems: 0,
+        totalEvents: 0,
+        totalGames: 0,
+        totalGamesInProgress: 0,
+      };
+    }
+  }
+
+  async fetchDivision(id?: number): Promise<DivisionResponse> {
+    try {
+      const key = `division`;
+      const cachedData = cache.get(key);
+
+      if (cachedData) {
+        return cachedData; // Returns cached data if available, reducing API calls.
+      }
+
+      const api = `${this.mlbApiHost}/api/v1/divisions`;
+      const res = await axios.get(api);
+      let data = res.data as DivisionResponse;
+      this.cacheData(data, key);
+
+      if (id) {
+        data.divisions = data.divisions.filter((d) => {
+          return d.id === id;
+        });
+      }
+
+      return data;
+    } catch (e) {
+      console.error("An error occurred while fetching division info. ", e);
+
+      let data: DivisionResponse = {
+        copyright: "",
+        divisions: [],
+      };
+      return data;
+    }
+  }
+
+  private findGameByTeam(
+    schedule: ScheduleResponse,
+    teamName: string
+  ): MlbGame | undefined {
+    const normalized = teamName.trim().toLowerCase();
+
+    for (const dateObj of schedule.dates) {
+      for (const game of dateObj.games) {
+        const {
+          teams: {
+            home: { team: homeTeam },
+            away: { team: awayTeam },
+          },
+        } = game;
+
+        if (
+          homeTeam.name.toLowerCase().includes(normalized) ||
+          awayTeam.name.toLowerCase().includes(normalized)
+        ) {
+          return game;
+        }
+      }
+    }
+
+    return undefined;
   }
 
   // Sets up API endpoints and defines route behaviors.
@@ -262,7 +504,7 @@ class Server {
         }
 
         if (version == "v1" || version == "") {
-          let filteredTeams: mlbTeam[] = mlbTeams.filter((team) => {
+          let filteredTeams: MlbTeamApp[] = mlbTeams.filter((team) => {
             let matchesLeague =
               !league || team.league.toLowerCase().includes(league);
             let matchesDivision =
@@ -286,7 +528,7 @@ class Server {
             filteredTeams = mlbTeams;
           }
 
-          let paginatedTeams: mlbTeam[] = [];
+          let paginatedTeams: MlbTeamApp[] = [];
 
           //Removes duplicate teams
           filteredTeams = Array.from(new Set(filteredTeams));
@@ -311,6 +553,101 @@ class Server {
           options: this.apiEndpoints,
         });
       }
+    });
+
+    this.app.post("/mlb/standings", async (req, res) => {
+      console.log(req.body);
+      const { leagueId, seasonDt } = req.body;
+
+      if (typeof seasonDt !== "string") {
+        res.send(
+          "Error seasonDt expected type is string in yyyy-mm-dd format."
+        );
+        return;
+      }
+
+      if (
+        typeof leagueId !== "number" &&
+        leagueId !== MLBLeagueIds.americanLeagueId &&
+        leagueId !== MLBLeagueIds.nationalLeagueId
+      ) {
+        res.send(
+          "Error leagueId expected type is number and should be equal to 103 for american league or 104 for national league."
+        );
+        return;
+      }
+
+      const id = leagueId ?? MLBLeagueIds.americanLeagueId;
+
+      const dt = new Date(seasonDt);
+
+      const resp = await this.fetchStandings(id, dt);
+
+      res.json(resp);
+    });
+    this.app.post("/mlb/schedule", async (req, res) => {
+      console.log(req.body);
+      const { leagueId, startDt, endDt } = req.body;
+
+      const id = leagueId ?? 1;
+
+      if (typeof startDt !== "string" || typeof endDt !== "string") {
+        res.send(
+          "Error startDt/endDt expected type is string in yyyy-mm-dd format."
+        );
+        return;
+      }
+
+      const startdt = new Date(startDt);
+      const enddt = new Date(endDt);
+
+      const resp = await this.fetchSchedule(id, startdt, enddt);
+
+      res.json(resp);
+    });
+    this.app.post("/mlb/boxscores", async (req, res) => {
+      console.log(req.body);
+      const { leagueId, gameDt, teamName } = req.body;
+
+      const id = leagueId ?? 1;
+
+      if (typeof gameDt !== "string") {
+        res.send("Error gameDt expected type is string in yyyy-mm-dd format.");
+        return;
+      }
+
+      if (typeof teamName !== "string") {
+        res.send("Error teamName expected type is string.");
+        return;
+      }
+
+      const gameDate = new Date(gameDt);
+
+      const resp = await this.fetchBoxScores(id, teamName, gameDate);
+
+      res.json(resp);
+    });
+    this.app.post("/mlb/playbyplay", async (req, res) => {
+      console.log(req.body);
+      const { leagueId, gameDt, teamName } = req.body;
+
+      const id = leagueId ?? 1;
+
+      if (typeof gameDt !== "string") {
+        res.send("Error gameDt expected type is string in yyyy-mm-dd format.");
+        return;
+      }
+
+      if (typeof teamName !== "string") {
+        res.send("Error teamName expected type is string.");
+        return;
+      }
+
+      const gameDate = new Date(gameDt);
+
+      const resp = await this.fetchPlayByPlay(id, teamName, gameDate);
+
+      res.json(resp);
     });
 
     this.app.post("/contact", (req, res) => {
@@ -347,6 +684,26 @@ class Server {
           options: this.apiEndpoints,
         });
       }
+    });
+
+    this.app.get("/test", async (req, res) => {
+      // const standings = await this.fetchStandings(
+      //   MLBLeagueIds.nationalLeagueId,
+      //   2025,
+      //   "2025-08-02"
+      // );
+
+      // res.json(standings);
+
+      const today = new Date(2025, 7, 3);
+      // const schedule = await this.fetchSchedule(1, today, today);
+      const boxscore = await this.fetchPlayByPlay(
+        SportsLeagueId.MLB,
+        "Astros",
+        today
+      );
+
+      res.json(boxscore);
     });
 
     this.app.use((req, res) => {
