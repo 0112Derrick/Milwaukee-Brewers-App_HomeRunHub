@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { MlbTeamDataI } from "src/interfaces";
 import { useParams } from "react-router-dom";
@@ -114,8 +114,6 @@ function TeamPage() {
   if (error) {
     return <ErrorPage pageError={error}></ErrorPage>;
   }
-
-  
 
   if (team) {
     // Render the team data using a styled Card component.
