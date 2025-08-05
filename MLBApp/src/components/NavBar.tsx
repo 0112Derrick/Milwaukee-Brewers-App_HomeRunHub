@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "src/@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,6 +33,9 @@ const NavBar = () => {
           <span className="hover:text-white cursor-pointer">Home Run Hub</span>
         </div>
         <div>
+          <Button variant={"default"} onClick={() => navigate("/standings")}>
+            Standings
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="default">Company</Button>

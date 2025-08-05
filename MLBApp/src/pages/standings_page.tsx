@@ -1,0 +1,132 @@
+import React, { useEffect, useState } from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "src/@/components/ui/card";
+import { Badge } from "src/@/components/ui/badge";
+import { StandingsResponseV2 } from "src/interfaces";
+import { Spinner } from "src/components/Spinner";
+import axios, { CancelTokenSource } from "axios";
+
+const StandingsPage: React.FC = () => {
+  const [standings, setStandings] = useState<StandingsResponseV2 | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [division, setDivision] = useState<number>(105);
+
+  const serverIpAddress = "";
+  const localhost = "http://localhost:8080";
+  const defaultAddress = serverIpAddress || localhost;
+
+  const api = axios.create(); // Instance of axios with default settings.
+  var cancelRequest: CancelTokenSource | null = null;
+
+  const fetchStandings = async () => {
+    setLoading(true);
+
+    // Cancel the previous request before making a new request
+    if (cancelRequest) {
+      cancelRequest.cancel("Operation canceled due to new request.");
+    }
+
+    // Create a new CancelToken
+    cancelRequest = axios.CancelToken.source();
+    const endpoint = `${defaultAddress}/mlb/standings`;
+
+    try {
+      const response = await api.post(endpoint, {
+        leagueId: division,
+        seasonDt: new Date().toISOString().split("T")[0],
+        cancelRequest: cancelRequest.token,
+      });
+
+      if (response.status !== 200)
+        throw new Error(`Fetch error: ${response.statusText}`);
+      const data: StandingsResponseV2 = await response.data;
+
+      setStandings(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const timeout = setTimeout(() => fetchStandings(), 300);
+    return () => clearTimeout(timeout);
+  }, [division]);
+
+  if (loading)
+    return (
+      <div className="flex justify-center p-4">
+        <Spinner />
+      </div>
+    );
+  if (error) return <p className="text-red-500">{error}</p>;
+  if (!standings) return null;
+
+  return (
+    <div className="p-4 mt-16 space-y-8 flex flex-col flex-grow">
+      <h1 className="text-2xl font-bold">MLB Standings</h1>
+      <div className="flex justify-end text-black">
+        <select
+          defaultValue={division}
+          onChange={(e) => {
+            const val = parseInt(e.target.value, 10);
+            setDivision(val);
+          }}
+        >
+          <option value={105}>All</option>
+          <option value={103}>American league</option>
+          <option value={104}>National league</option>
+        </select>
+      </div>
+      {standings.records.map((division) => (
+        <Card key={division.division.id}>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between text-black">
+              <span>
+                {division.division.id
+                  ? standings.divisions.find(
+                      (d) => d.id === division.division.id
+                    )?.name
+                  : ""}
+              </span>
+              <Badge>{division.standingsType}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {division.teamRecords.map((team) => (
+                <Card key={team.team.id} className="hover:shadow-lg">
+                  <CardHeader>
+                    <CardTitle>{team.team.name}</CardTitle>
+                    <p className="text-sm text-gray-500">{team.divisionRank}</p>
+                  </CardHeader>
+                  <CardContent>
+                    <p>
+                      W: {team.wins} - L: {team.losses}
+                    </p>
+                    <p>GB: {team.gamesBack}</p>
+                    <p>
+                      RD:{" "}
+                      {team.runDifferential >= 0
+                        ? `+${team.runDifferential}`
+                        : team.runDifferential}
+                    </p>
+                    <p>Streak: {team.streak.streakCode}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
+export default StandingsPage;

@@ -1,12 +1,12 @@
-import React from "react";
 import "./App.css";
 import NavBar from "./components/NavBar";
 import MainContent from "./components/MainContent";
 import Footer from "./components/Footer";
 import { HashRouter as Router, Route, Routes } from "react-router-dom";
-import TeamPage from "./components/TeamPage";
+import TeamPage from "./pages/TeamPage";
 import ContactUs from "./components/Contact";
 import About from "./components/About";
+import StandingsPage from "./pages/standings_page";
 
 function App() {
   return (
@@ -38,6 +38,16 @@ function App() {
             <div className="flex flex-col min-h-screen bg-gray-900 text-white">
               <NavBar />
               <ContactUs></ContactUs>
+              <Footer />
+            </div>
+          }
+        ></Route>
+        <Route
+          path="/standings"
+          element={
+            <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+              <NavBar />
+              <StandingsPage></StandingsPage>
               <Footer />
             </div>
           }
