@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios, { CancelTokenSource } from "axios";
 import TeamCard from "./TeamCard";
 import SkeletonCard from "./SkeletonCard";
@@ -9,7 +9,7 @@ import { PlayIcon } from "@radix-ui/react-icons";
 import TeamsFilterSearchBar from "./TeamsFilterSearchBar";
 import TeamFilterRadioButtons from "./TeamFilterRadioButtons";
 import { mlbTeamsDetails } from "src/data/teamData";
-import ErrorPage from "./ErrorPage";
+import ErrorPage from "../pages/ErrorPage";
 import Dompurify from "dompurify";
 
 // Custom React hook for managing and fetching team data.
@@ -182,8 +182,6 @@ const MainContent = () => {
     event.preventDefault();
     fetchTeams(0, searchTerm); // Start from the first page with the search term
   };
-
-  
 
   // Handles league or division filter changes and triggers a fetch with the new filters
   const handleFilterChange = (event: any) => {
