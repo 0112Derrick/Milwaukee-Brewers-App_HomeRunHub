@@ -12,11 +12,11 @@ import {
   MlbTeamApp,
   mlbTeams,
   PlayByPlayResponse,
+  RosterResponse,
   ScheduleResponse,
   SportsLeagueId,
   StandingsResponse,
   StandingsResponseV2,
-  team,
 } from "./interfaces.js";
 
 class Server {
@@ -137,36 +137,32 @@ class Server {
     }
 
     try {
-      const response = await (axios as any).get(url, {
-        headers: {
-          "api-key": this.apikey,
-        },
-        signal: AbortSignal.timeout(25000),
-      });
+      // const response = await (axios as any).get(url, {
+      //   headers: {
+      //     "api-key": this.apikey,
+      //   },
+      //   signal: AbortSignal.timeout(25000),
+      // });
 
-      let data: mlbTeams = response.data.map((team: team) => ({
-        id: team.id,
-        name: team.name,
-        nickname: team.nickname,
-        location: team.location,
-        abbreviation: team.abbreviation,
-        logo: team.logo,
-        league: team.leage, //TODO - This will need to be updated once the Brewers update their api.
-        division: team.division,
-      }));
+      // let data: mlbTeams = response.data.map((team: team) => ({
+      //   id: team.id,
+      //   name: team.name,
+      //   nickname: team.nickname,
+      //   location: team.location,
+      //   abbreviation: team.abbreviation,
+      //   logo: team.logo,
+      //   league: team.leage, //TODO - This will need to be updated once the Brewers update their api.
+      //   division: team.division,
+      // }));
+
+      const data = await Database.readMlbTeams();
       const organizedMlbTeams = this.organizeMLBTeams(data);
-      this.cacheData(organizedMlbTeams, key);
+      this.cacheData(organizedMlbTeams, key, 600000);
       return { teams: organizedMlbTeams, error: null };
     } catch (error) {
       if (axios.isCancel(error)) {
         console.log("Request timed-out:", error.message);
       }
-
-      const data = await Database.readMlbTeams();
-      const organizedMlbTeams = this.organizeMLBTeams(data);
-      this.cacheData(organizedMlbTeams, key);
-
-      if (data.length > 0) return { teams: organizedMlbTeams, error: null };
 
       return { teams: null, error: error };
     }
@@ -398,6 +394,37 @@ class Server {
     }
   }
 
+  async fetchRoster(teamId: number, date: Date): Promise<RosterResponse> {
+    try {
+      const key = `roster-${teamId}`;
+      const cachedData = cache.get(key);
+
+      if (cachedData) {
+        return cachedData;
+      }
+
+      const api = `${
+        this.mlbApiHost
+      }/api/v1/teams/${teamId}/roster?rosterType=Active  
+    &hydrate=person(stats(group=[hitting,pitching],type=season,season=${date.getUTCFullYear()}))`;
+
+      const res = await axios.get<RosterResponse>(api);
+      let data = res.data;
+      this.cacheData(data, key);
+
+      return data;
+    } catch (e) {
+      console.error("An error occurred while fetching roster info. ", e);
+
+      let data: RosterResponse = {
+        copyright: "",
+        roster: [],
+      };
+
+      return data;
+    }
+  }
+
   private findGameByTeam(
     schedule: ScheduleResponse,
     teamName: string
@@ -602,6 +629,26 @@ class Server {
       const enddt = new Date(endDt);
 
       const resp = await this.fetchSchedule(id, startdt, enddt);
+
+      res.json(resp);
+    });
+    this.app.post("/mlb/roster", async (req, res) => {
+      console.log(req.body);
+      const { teamId, seasonDt } = req.body;
+
+      if (!teamId || typeof teamId !== "number") {
+        res.send("Error: teamId expected type is int.");
+      }
+
+      if (seasonDt && typeof seasonDt !== "string") {
+        res.send(
+          "Error: seasonDt expected type is string in yyyy-mm-dd format."
+        );
+      }
+
+      const _seasonDt = new Date(seasonDt) ?? new Date();
+
+      const resp = await this.fetchRoster(teamId, _seasonDt);
 
       res.json(resp);
     });
