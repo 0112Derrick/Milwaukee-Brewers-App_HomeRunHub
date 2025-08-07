@@ -854,3 +854,171 @@ export interface DivisionResponse {
   copyright: string;
   divisions: Division[];
 }
+
+export interface RosterResponse {
+  copyright: string;
+  roster: Player[];
+}
+
+export interface Player {
+  person: {
+    id: number;
+    fullName: string;
+    link: string;
+    firstName: string;
+    lastName: string;
+    primaryNumber: string;
+    birthDate: string;
+    currentAge: number;
+    birthCity: string;
+    birthCountry: string;
+    height: string;
+    weight: number;
+    active: boolean;
+    primaryPosition: {
+      code: string;
+      name: string;
+      type: string;
+      abbreviation: string;
+    };
+    useName: string;
+    useLastName: string;
+    middleName: string;
+    boxscoreName: string;
+    gender: string;
+    nameMatrilineal: string;
+    isPlayer: boolean;
+    isVerified: boolean;
+    pronunciation: string;
+    stats: [
+      {
+        type: {
+          displayName: string;
+        };
+        group: {
+          displayName: string;
+        };
+        exemptions: [];
+        splits: [
+          {
+            season: string;
+            stat: {
+              gamesPlayed: number;
+              gamesStarted: number;
+              groundOuts: number;
+              airOuts: number;
+              runs: number;
+              doubles: number;
+              triples: number;
+              homeRuns: number;
+              strikeOuts: number;
+              baseOnBalls: number;
+              intentionalWalks: number;
+              hits: number;
+              hitByPitch: number;
+              avg: string;
+              atBats: number;
+              obp: string;
+              slg: string;
+              ops: string;
+              caughtStealing: number;
+              stolenBases: number;
+              stolenBasePercentage: string;
+              groundIntoDoublePlay: number;
+              numberOfPitches: number;
+              era: string;
+              inningsPitched: string;
+              wins: number;
+              losses: number;
+              saves: number;
+              saveOpportunities: number;
+              holds: number;
+              blownSaves: number;
+              earnedRuns: number;
+              whip: string;
+              battersFaced: number;
+              outs: number;
+              gamesPitched: number;
+              completeGames: number;
+              shutouts: number;
+              strikes: number;
+              strikePercentage: string;
+              hitBatsmen: number;
+              balks: number;
+              wildPitches: number;
+              pickoffs: number;
+              totalBases: number;
+              groundOutsToAirouts: string;
+              winPercentage: string;
+              pitchesPerInning: string;
+              gamesFinished: number;
+              strikeoutWalkRatio: string;
+              strikeoutsPer9Inn: string;
+              walksPer9Inn: string;
+              hitsPer9Inn: string;
+              runsScoredPer9: string;
+              homeRunsPer9: string;
+              inheritedRunners: number;
+              inheritedRunnersScored: number;
+              catchersInterference: number;
+              sacBunts: number;
+              sacFlies: number;
+            };
+            team: {
+              id: number;
+              name: string;
+              link: string;
+            };
+            player: {
+              id: number;
+              fullName: string;
+              link: string;
+            };
+            league: {
+              id: number;
+              name: string;
+              link: string;
+            };
+            sport: {
+              id: number;
+              link: string;
+              abbreviation: string;
+            };
+            gameType: string;
+          }
+        ];
+      }
+    ];
+    mlbDebutDate: string;
+    batSide: {
+      code: string;
+      description: string;
+    };
+    pitchHand: {
+      code: string;
+      description: string;
+    };
+    nameFirstLast: string;
+    nameSlug: string;
+    firstLastName: string;
+    lastFirstName: string;
+    lastInitName: string;
+    initLastName: string;
+    fullFMLName: string;
+    fullLFMName: string;
+    strikeZoneTop: number;
+    strikeZoneBottom: number;
+  };
+  jerseyNumber: string;
+  position: {
+    code: string;
+    name: string;
+    type: string;
+    abbreviation: string;
+  };
+  status: {
+    code: string;
+    description: string;
+  };
+  parentTeamId: number;
+}
