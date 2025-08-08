@@ -1,6 +1,11 @@
 import { constants } from "fs";
 import * as fs from "fs/promises";
 import { mlbTeams } from "./interfaces.js";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filenameResolved = fileURLToPath(import.meta.url);
+const __dirnameResolved = path.dirname(__filenameResolved);
 
 export class Database {
   static async checkIfFileExists(filePath: string, writeFile: boolean = true) {
@@ -21,10 +26,10 @@ export class Database {
 
   static async readMlbTeams(): Promise<mlbTeams> {
     try {
-      const path = "./teams.json";
-      await Database.checkIfFileExists(path, true);
+      const jsonPath = path.join(__dirnameResolved, "teams.json");
+      await Database.checkIfFileExists(jsonPath, true);
 
-      const fileContent = await fs.readFile(path, "utf-8");
+      const fileContent = await fs.readFile(jsonPath, "utf-8");
 
       const existingData = JSON.parse(fileContent) as mlbTeams;
 

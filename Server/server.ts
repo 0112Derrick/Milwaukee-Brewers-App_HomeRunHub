@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import axios from "axios";
+import axiosPkg from "axios";
 import cache from "memory-cache";
 import { Database } from "./jsonManager.js";
 import {
@@ -18,8 +18,15 @@ import {
   StandingsResponse,
   StandingsResponseV2,
 } from "./interfaces.js";
+import expressStaticGzip from "express-static-gzip/index.js";
+import path from "path";
+import { fileURLToPath } from "url";
+const axios = axiosPkg.default;
 
-class Server {
+const __filenameResolved = fileURLToPath(import.meta.url);
+const __dirnameResolved = path.dirname(__filenameResolved);
+
+export class Server {
   private app = express();
   private port: string | number = process.env.Port ?? 8080;
   private mlbApiHost = "https://statsapi.mlb.com";
@@ -47,24 +54,24 @@ class Server {
     "POST: - ",
     "/contact - data expected: name, email, message, reasonForContact",
   ];
-  private apikey = "0ca80ddc-63f6-476e-b548-e5fb0934fc4b"; // This should be kept secure. In Production
 
   constructor(port?: number) {
     if (port) {
       this.port = process.env.Port ?? port;
     }
-    this.startServer();
+    //this.startServer();
   }
 
-  // Initializes the server and sets up basic middleware and routes.
-  startServer() {
+  public buildApp() {
+    this.app.use(express.static("build"));
+    this.app.use(express.urlencoded({ extended: false }));
+    this.app.use(express.json());
+    this.app.use(cors());
     this.app.use(express.static("static"));
     this.app.use(express.static("static/js"));
-    this.app.use(express.static("/")); // Serves the root directory, could expose sensitive files.
-    this.registerStaticPaths();
+    this.app.use(expressStaticGzip("build", {}));
     this.configureRoutes();
-    console.log("Server started on port:" + this.port);
-    this.app.listen(this.port);
+    return this.app;
   }
 
   // Configures middleware for parsing requests and handling CORS.
@@ -228,7 +235,7 @@ class Server {
 
   async fetchBoxScores(
     leagueId: SportsLeagueId,
-    teamName: string,
+    gamePk: number,
     gameDt: Date
   ): Promise<BoxscoreResponse> {
     try {
@@ -243,7 +250,7 @@ class Server {
 
       const schedule = await this.fetchSchedule(leagueId, date, gameDt);
 
-      const foundGame = this.findGameByTeam(schedule, teamName);
+      const foundGame = this.findGameByGamePk(schedule, gamePk);
 
       if (foundGame) {
         const key = `boxscore-${foundGame.gamePk}`;
@@ -278,7 +285,7 @@ class Server {
 
   async fetchPlayByPlay(
     leagueId: SportsLeagueId,
-    teamName: string,
+    gamePk: number,
     gameDt: Date
   ): Promise<PlayByPlayResponse> {
     try {
@@ -293,7 +300,7 @@ class Server {
       const date = new Date(gameDt);
       const schedule = await this.fetchSchedule(leagueId, gameDt, date);
 
-      const foundGame = this.findGameByTeam(schedule, teamName);
+      const foundGame = this.findGameByGamePk(schedule, gamePk);
 
       if (foundGame) {
         const key = `playbyplay-${foundGame.gamePk}`;
@@ -338,7 +345,7 @@ class Server {
     const api = `${this.mlbApiHost}/api/v1/schedule?sportId=${leagueId}&startDate=${startDay}&endDate=${endDay}`;
 
     try {
-      const key = `schedule-${startDay}-endDay`;
+      const key = `schedule-${startDay}-${endDay}`;
       const cachedData = cache.get(key);
 
       if (cachedData) {
@@ -425,25 +432,13 @@ class Server {
     }
   }
 
-  private findGameByTeam(
+  private findGameByGamePk(
     schedule: ScheduleResponse,
-    teamName: string
+    gamePk: number
   ): MlbGame | undefined {
-    const normalized = teamName.trim().toLowerCase();
-
     for (const dateObj of schedule.dates) {
       for (const game of dateObj.games) {
-        const {
-          teams: {
-            home: { team: homeTeam },
-            away: { team: awayTeam },
-          },
-        } = game;
-
-        if (
-          homeTeam.name.toLowerCase().includes(normalized) ||
-          awayTeam.name.toLowerCase().includes(normalized)
-        ) {
+        if (game.gamePk == gamePk) {
           return game;
         }
       }
@@ -454,12 +449,16 @@ class Server {
 
   // Sets up API endpoints and defines route behaviors.
   configureRoutes() {
-    this.app.get("/", (req, res) => {
-      res.status(200).json({
-        // Provides options for different API endpoints.
-        options: this.apiEndpoints,
-      });
-    });
+    // this.app.get("/", (req, res) => {
+    //   res.status(200).json({
+    //     // Provides options for different API endpoints.
+    //     options: this.apiEndpoints,
+    //   });
+    // });
+
+    this.app.get("/", (req, res) =>
+      res.sendFile(path.join(__dirnameResolved, "build", "index.html"))
+    );
 
     this.app.get("/teams", async (req, res) => {
       // Implements query parameter handling for pagination and filtering.
@@ -654,7 +653,7 @@ class Server {
     });
     this.app.post("/mlb/boxscores", async (req, res) => {
       console.log(req.body);
-      const { leagueId, gameDt, teamName } = req.body;
+      const { leagueId, gameDt, gamePk } = req.body;
 
       const id = leagueId ?? 1;
 
@@ -663,36 +662,43 @@ class Server {
         return;
       }
 
-      if (typeof teamName !== "string") {
-        res.send("Error teamName expected type is string.");
+      if (typeof gamePk !== "number") {
+        res.send("Error gamePk expected type is int.");
         return;
       }
 
       const gameDate = new Date(gameDt);
 
-      const resp = await this.fetchBoxScores(id, teamName, gameDate);
+      const resp = await this.fetchBoxScores(id, gamePk, gameDate);
 
       res.json(resp);
     });
     this.app.post("/mlb/playbyplay", async (req, res) => {
       console.log(req.body);
-      const { leagueId, gameDt, teamName } = req.body;
+      const { leagueId: sportsLeagueId, gameDt, gamePk } = req.body;
 
-      const id = leagueId ?? 1;
+      const id = sportsLeagueId ?? 1;
 
       if (typeof gameDt !== "string") {
         res.send("Error gameDt expected type is string in yyyy-mm-dd format.");
         return;
       }
 
-      if (typeof teamName !== "string") {
-        res.send("Error teamName expected type is string.");
+      if (sportsLeagueId && typeof sportsLeagueId !== "number") {
+        res.send(
+          "Error leagueId expected type is int. 1 = mlb, 11 = AAA, 12 = AA"
+        );
+        return;
+      }
+
+      if (typeof gamePk !== "number") {
+        res.send("Error gamePk expected type is int.");
         return;
       }
 
       const gameDate = new Date(gameDt);
 
-      const resp = await this.fetchPlayByPlay(id, teamName, gameDate);
+      const resp = await this.fetchPlayByPlay(id, gamePk, gameDate);
 
       res.json(resp);
     });
@@ -733,25 +739,29 @@ class Server {
       }
     });
 
-    this.app.get("/test", async (req, res) => {
-      // const standings = await this.fetchStandings(
-      //   MLBLeagueIds.nationalLeagueId,
-      //   2025,
-      //   "2025-08-02"
-      // );
+    // this.app.get("/test", async (req, res) => {
+    //   // const standings = await this.fetchStandings(
+    //   //   MLBLeagueIds.nationalLeagueId,
+    //   //   2025,
+    //   //   "2025-08-02"
+    //   // );
 
-      // res.json(standings);
+    //   // res.json(standings);
 
-      const today = new Date(2025, 7, 3);
-      // const schedule = await this.fetchSchedule(1, today, today);
-      const boxscore = await this.fetchPlayByPlay(
-        SportsLeagueId.MLB,
-        "Astros",
-        today
-      );
+    //   const today = new Date(2025, 7, 3);
+    //   // const schedule = await this.fetchSchedule(1, today, today);
+    //   const boxscore = await this.fetchPlayByPlay(
+    //     SportsLeagueId.MLB,
+    //     "Astros",
+    //     today
+    //   );
 
-      res.json(boxscore);
-    });
+    //   res.json(boxscore);
+    // });
+
+    this.app.get("*", (_req, res) =>
+      res.sendFile(path.join(__dirnameResolved, "build", "index.html"))
+    );
 
     this.app.use((req, res) => {
       res.status(404).json({
@@ -759,6 +769,11 @@ class Server {
         options: this.apiEndpoints,
       });
     });
+  }
+
+  public listen() {
+    console.log("Server started on port:" + this.port);
+    this.app.listen(this.port);
   }
 }
 
