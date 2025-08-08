@@ -64,7 +64,7 @@ function App() {
           }
         ></Route>
         <Route
-          path="/feed"
+          path="/feed/:id/:awayName?/:homeName?/:awayAbbr?/:homeAbbr?"
           element={
             <div className="flex flex-col min-h-screen bg-gray-900 text-white">
               <NavBar />
