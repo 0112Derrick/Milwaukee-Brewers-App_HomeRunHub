@@ -332,6 +332,11 @@ export interface Stats {
   catchersInterference: number;
   sacBunts: number;
   sacFlies: number;
+  atBatsPerHomeRun: string;
+  babip: string;
+  leftonbase: number;
+  plateappearances: number;
+  rbi: number;
 }
 
 export interface SplitRow {
