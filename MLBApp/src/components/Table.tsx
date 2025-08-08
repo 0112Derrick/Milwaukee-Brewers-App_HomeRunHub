@@ -34,6 +34,16 @@ export function StatsTable<T extends object>({
     getCoreRowModel: getCoreRowModel(),
   } as TableOptions<T>);
 
+  const allLeafCols = table.getAllLeafColumns();
+
+  const visibleLeafCols = allLeafCols.filter((col) =>
+    table.getRowModel().rows.some((row) => {
+      const val = row.getValue(col.id);
+
+      return !(val === "" || val == null);
+    })
+  );
+
   return (
     <ScrollArea className="w-full rounded border overflow-auto">
       <div className="min-w-full">
@@ -41,24 +51,36 @@ export function StatsTable<T extends object>({
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
-                {hg.headers.map((h) => (
-                  <TableHead key={h.id} colSpan={h.colSpan}>
-                    {h.isPlaceholder
-                      ? null
-                      : flexRender(h.column.columnDef.header, h.getContext())}
-                  </TableHead>
-                ))}
+                {hg.headers
+                  .filter((header) =>
+                    visibleLeafCols.some((c) => c.id === header.id)
+                  )
+                  .map((h) => (
+                    <TableHead key={h.id} colSpan={h.colSpan}>
+                      {h.isPlaceholder
+                        ? null
+                        : flexRender(h.column.columnDef.header, h.getContext())}
+                    </TableHead>
+                  ))}
               </TableRow>
             ))}
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+                {row
+                  .getVisibleCells()
+                  .filter((cell) =>
+                    visibleLeafCols.some((c) => c.id === cell.column.id)
+                  )
+                  .map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
               </TableRow>
             ))}
           </TableBody>
