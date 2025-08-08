@@ -46,7 +46,11 @@ const col = createColumnHelper<SplitRowExtended>();
 export const splitColumns: ColumnDef<SplitRowExtended, any>[] = [
   col.accessor("season", { header: "Season" }),
 
+  col.accessor("team.name", { header: "Team" }),
+
   col.accessor("gameType", { header: "Game Type" }),
+
+  col.accessor("group", { header: "Group" }),
 
   // Now all the stat fields:
   col.accessor((row) => row.stat.gamesPlayed, {
@@ -217,6 +221,19 @@ export const splitColumns: ColumnDef<SplitRowExtended, any>[] = [
   }),
   col.accessor((row) => row.stat.sacBunts, { id: "sacBunts", header: "SB" }),
   col.accessor((row) => row.stat.sacFlies, { id: "sacFlies", header: "SF" }),
+  col.accessor((row) => row.stat.babip, {
+    id: "babip",
+    header: "BABIP",
+  }),
+  col.accessor((row) => row.stat.leftonbase, {
+    id: "leftonbase",
+    header: "LOB",
+  }),
+  col.accessor((row) => row.stat.plateappearances, {
+    id: "plateappearances",
+    header: "PA",
+  }),
+  col.accessor((row) => row.stat.rbi, { id: "rbi", header: "RBI" }),
 ];
 
 export const rosterColumns: ColumnDef<Player>[] = [
