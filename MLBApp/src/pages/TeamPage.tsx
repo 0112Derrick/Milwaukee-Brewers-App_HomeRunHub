@@ -37,8 +37,8 @@ function TeamPage() {
 
       console.log("ID:" + id);
       try {
-        const serverIpAddress = ""; //NOTE -  Placeholder for server IP address.
-        const localhost = "http://localhost:8080";
+        const serverIpAddress = "/"; //NOTE -  Placeholder for server IP address.
+        const localhost = "http://localhost:8080/";
 
         //Fallback to localhost if needed
         const defaultAddress = serverIpAddress || localhost;
@@ -46,7 +46,7 @@ function TeamPage() {
         let endpoint = `${defaultAddress}`;
 
         if (page == TeamPages.Description) {
-          endpoint += `/teams?id=${id}`;
+          endpoint += `teams?id=${id}`;
 
           const response = await axios.get(endpoint, {
             cancelToken: cancelTokenSource.token,
@@ -76,7 +76,7 @@ function TeamPage() {
         }
         if (page == TeamPages.DivisionRanking) {
           //FIXME - Fix table height. Add more columns
-          endpoint += `/mlb/standings`;
+          endpoint += `mlb/standings`;
           const division = 105;
 
           const response = await axios.post<StandingsResponseV2>(endpoint, {
@@ -105,7 +105,7 @@ function TeamPage() {
           setDivisionData(foundDivision);
         }
         if (page == TeamPages.Roster) {
-          endpoint += `/mlb/roster`;
+          endpoint += `mlb/roster`;
 
           const response = await axios.post<RosterResponse>(endpoint, {
             cancelToken: cancelTokenSource.token,
