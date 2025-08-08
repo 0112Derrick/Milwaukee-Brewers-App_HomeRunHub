@@ -311,10 +311,10 @@ function TeamPage() {
     }
     if (page == TeamPages.DivisionRanking) {
       return (
-        <div className="flex flex-grow flex-col w-full h-full mt-24 items-center justify-center">
+        <div className="flex flex-grow flex-col w-full h-full p-8 mt-24">
           <InnerNav></InnerNav>
-          <Card className="flex flex-col flex-wrap flex-grow justify-evenly gap-2 w-[90%] h-fit space-y-4  rounded-md">
-            <div className="flex-grow">
+          <Card className="w-full pb-12 rounded-md">
+            <div className="h-[50%]">
               <DataTable columns={columns} data={divisionData}></DataTable>
             </div>
           </Card>
@@ -325,7 +325,7 @@ function TeamPage() {
       return (
         <div className="flex flex-grow flex-col w-full h-full mt-24 items-center justify-center">
           <InnerNav></InnerNav>
-          <Card className="w-[90%] rounded-md">
+          <Card className="w-[95%] rounded-md">
             <div className="min-w-full overflow-hidden">
               <RosterTable data={rosterData}></RosterTable>
             </div>
