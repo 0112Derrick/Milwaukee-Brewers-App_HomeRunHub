@@ -16,8 +16,8 @@ const StandingsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [division, setDivision] = useState<number>(105);
 
-  const serverIpAddress = "";
-  const localhost = "http://localhost:8080";
+  const serverIpAddress = "/";
+  const localhost = "http://localhost:8080/";
   const defaultAddress = serverIpAddress || localhost;
 
   const api = axios.create(); // Instance of axios with default settings.
@@ -32,15 +32,19 @@ const StandingsPage: React.FC = () => {
     }
 
     // Create a new CancelToken
-    cancelRequest = axios.CancelToken.source();
-    const endpoint = `${defaultAddress}/mlb/standings`;
+    const endpoint = `${defaultAddress}mlb/standings`;
+    let cancel: ReturnType<typeof axios.CancelToken.source> | null =
+      axios.CancelToken.source();
 
     try {
-      const response = await api.post(endpoint, {
-        leagueId: division,
-        seasonDt: new Date().toISOString().split("T")[0],
-        cancelRequest: cancelRequest.token,
-      });
+      const response = await api.post(
+        endpoint,
+        {
+          leagueId: division,
+          seasonDt: new Date().toISOString().split("T")[0],
+        },
+        { cancelToken: cancel!.token } 
+      );
 
       if (response.status !== 200)
         throw new Error(`Fetch error: ${response.statusText}`);
@@ -50,7 +54,9 @@ const StandingsPage: React.FC = () => {
     } catch (err: any) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 450);
     }
   };
 
@@ -61,7 +67,7 @@ const StandingsPage: React.FC = () => {
 
   if (loading)
     return (
-      <div className="flex justify-center p-4">
+      <div className="flex flex-col flex-grow h-full w-full items-center justify-center p-4">
         <Spinner />
       </div>
     );
