@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import axios, { CancelTokenSource } from "axios";
-import TeamCard from "./TeamCard";
-import SkeletonCard from "./SkeletonCard";
+import TeamCard from "../components/TeamCard";
+import SkeletonCard from "../components/SkeletonCard";
 import { MlbTeamDataI, MlbTeamDataModifiedI } from "src/interfaces";
 import { Button } from "src/@/components/ui/button";
-import TitleSection from "./TitleSection";
+import TitleSection from "../components/TitleSection";
 import { PlayIcon } from "@radix-ui/react-icons";
-import TeamsFilterSearchBar from "./TeamsFilterSearchBar";
-import TeamFilterRadioButtons from "./TeamFilterRadioButtons";
+import TeamsFilterSearchBar from "../components/TeamsFilterSearchBar";
+import TeamFilterRadioButtons from "../components/TeamFilterRadioButtons";
 import { mlbTeamsDetails } from "src/data/teamData";
-import ErrorPage from "../pages/ErrorPage";
+import ErrorPage from "./ErrorPage";
 import Dompurify from "dompurify";
 
 // Custom React hook for managing and fetching team data.
@@ -47,8 +47,8 @@ const useTeams = (initialStart = 0) => {
         `Search term: ${searchTerm} | Division: ${filterDivision} | League: ${filterLeague}`
       );
 
-      const serverIpAddress = ""; //NOTE -  Should be replaced with actual server IP if deployed.
-      const localhost = "http://localhost:8080";
+      const serverIpAddress = "/"; //NOTE -  Should be replaced with actual server IP if deployed.
+      const localhost = "http://localhost:8080/";
       const defaultAddress = serverIpAddress || localhost;
 
       // Constructing query parameters based on inputs and pagination.
@@ -69,7 +69,7 @@ const useTeams = (initialStart = 0) => {
       }
 
       //NOTE -  Building the endpoint URL with parameters.
-      const endpoint = `${defaultAddress}/teams?${params}`;
+      const endpoint = `${defaultAddress}teams?${params}`;
 
       console.log("Endpoint: " + endpoint);
       const response = await api.get(endpoint, {
@@ -170,7 +170,6 @@ const MainContent = () => {
 
   // Delays the fetch operation by 500ms after the user stops typing to avoid excessive API calls (Live search)
   const handleSearchChange = (event: any) => {
-    //FIXME - Sanitize user input
     setSearchTerm(event.target.value);
     let sanitizedSearchInput = Dompurify.sanitize(event.target.value);
     if (timerId) clearTimeout(timerId);
