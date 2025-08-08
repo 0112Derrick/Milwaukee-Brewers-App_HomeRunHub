@@ -1,4 +1,27 @@
-// Type definitions for a general team and MLB-specific team details.
+export enum MLBLeagueIds {
+  nationalLeagueId = 104,
+  americanLeagueId = 103,
+  all = 105,
+}
+
+export enum SportsLeagueId {
+  MLB = 1,
+  AAA = 11,
+  AA = 12,
+  APlus = 13,
+  A = 14,
+  ROK = 16,
+  WIN = 17,
+  MINORS = 21,
+  IND = 23,
+  COLLEGE = 22,
+  INTC = 508,
+  INEighteenAndUnder = 509,
+  INSixteenAndUnder = 510,
+  HS = 586,
+}
+
+// Type definitions for a general team and MLB-specific team details.;
 export type team = {
   id: number;
   name: string;
@@ -22,24 +45,6 @@ export type MlbTeamApp = {
 };
 
 export type mlbTeams = Array<MlbTeamApp>;
-
-export interface StandingsResponse {
-  copyright: string;
-  records: DivisionRecord[];
-}
-
-export interface StandingsResponseV2 extends StandingsResponse {
-  divisions: Division[];
-}
-
-export interface DivisionRecord {
-  standingsType: string;
-  league: ResourceLink;
-  division: ResourceLink;
-  sport: ResourceLink;
-  lastUpdated: string; // ISO date string
-  teamRecords: TeamRecord[];
-}
 
 export interface TeamRecord {
   team: TeamInfo;
@@ -80,13 +85,62 @@ export interface TeamRecord {
   winningPercentage: string;
 }
 
+export interface Link {
+  link: string;
+}
+
 export interface ResourceLink {
   id: number;
   link: string;
 }
 
+interface idNameLink2 {
+  id: number;
+  fullName: string;
+  link: string;
+}
+
+interface codeDescription {
+  code: string;
+  description: string;
+}
+
 export interface TeamInfo extends ResourceLink {
   name: string;
+}
+
+export interface IDLink {
+  id: number;
+  link: string;
+}
+
+export interface IdNameLink {
+  id: number;
+  name: string;
+  link: string;
+}
+
+export interface LabelValue {
+  label: string;
+  value: string;
+}
+
+export interface StandingsResponse {
+  copyright: string;
+  records: DivisionRecord[];
+}
+
+export interface DivisionRecord {
+  standingsType: string;
+  league: ResourceLink;
+  division: ResourceLink;
+  sport: ResourceLink;
+  lastUpdated: string; // ISO date string
+  teamRecords: TeamRecord[];
+}
+
+export interface StandingsResponseV2 extends StandingsResponse {
+  divisions: Division[];
 }
 
 export interface Streak {
@@ -151,29 +205,6 @@ export interface ExpectedPerformance {
   pct: string;
 }
 
-export enum MLBLeagueIds {
-  nationalLeagueId = 104,
-  americanLeagueId = 103,
-  all = 105,
-}
-
-export enum SportsLeagueId {
-  MLB = 1,
-  AAA = 11,
-  AA = 12,
-  APlus = 13,
-  A = 14,
-  ROK = 16,
-  WIN = 17,
-  MINORS = 21,
-  IND = 23,
-  COLLEGE = 22,
-  INTC = 508,
-  INEighteenAndUnder = 509,
-  INSixteenAndUnder = 510,
-  HS = 586,
-}
-
 export interface MlbGameDates {
   date: string;
   totalItems: number;
@@ -204,20 +235,10 @@ export interface GameStats {
   seriesNumber: number;
 }
 
-export interface Link {
-  link: string;
-}
-
-export interface Venue {
-  id: number;
-  name: string;
-  link: string;
-}
-
 export interface MlbGamesTeam {
   away: GameStats;
   home: GameStats;
-  venue: Venue;
+  venue: IdNameLink;
   content: Link;
   isTie: boolean;
   gameNumber: number;
@@ -257,22 +278,6 @@ export interface ScheduleResponse {
   dates: MlbGameDates[];
 }
 
-export interface IDLink {
-  id: number;
-  link: string;
-}
-
-export interface IdNameLink {
-  id: number;
-  name: string;
-  link: string;
-}
-
-export interface LabelValue {
-  label: string;
-  value: string;
-}
-
 export interface BoxscoreRecord {
   gamesPlayed: number;
   wildCardGamesback: string;
@@ -302,7 +307,7 @@ export interface BoxscoreTeam {
     name: string;
     link: string;
     season: number;
-    venue: Venue;
+    venue: IdNameLink;
     springVenue: IDLink;
     teamCode: string;
     fileCode: string;
@@ -600,7 +605,7 @@ export interface PlayByPlayResult {
 
 export interface PlayByPlayAbout {
   atBatIndex: number;
-  halfInning: "top";
+  halfInning: "top" | "bottom";
   isTopInning: boolean;
   inning: number;
   startTime: Date;
@@ -690,7 +695,7 @@ export interface PlayByPlayCurrentPlay {
   pitchIndex: number[];
   actionIndex: number[];
   runnerIndex: number[];
-  runners: PlayByPlayRunners;
+  runners: PlayByPlayRunners[];
   playEvents: {
     details: {
       call: {
@@ -808,17 +813,6 @@ export interface PlayByPlayByInning {
     away: BoxscoreTeam[];
     home: BoxscoreTeam[];
   };
-}
-
-interface idNameLink2 {
-  id: number;
-  fullName: string;
-  link: string;
-}
-
-interface codeDescription {
-  code: string;
-  description: string;
 }
 
 export interface PlayByPlayResponse {
