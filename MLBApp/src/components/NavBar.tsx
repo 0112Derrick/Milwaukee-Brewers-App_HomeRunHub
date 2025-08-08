@@ -36,6 +36,9 @@ const NavBar = () => {
           <Button variant={"default"} onClick={() => navigate("/standings")}>
             Standings
           </Button>
+          <Button variant={"default"} onClick={() => navigate("/feed")}>
+            Feed
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="default">Company</Button>
