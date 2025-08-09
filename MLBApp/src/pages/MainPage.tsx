@@ -47,7 +47,7 @@ const useTeams = (initialStart = 0) => {
         `Search term: ${searchTerm} | Division: ${filterDivision} | League: ${filterLeague}`
       );
 
-      const serverIpAddress = "/"; //NOTE -  Should be replaced with actual server IP if deployed.
+      const serverIpAddress = ""; //NOTE -  Should be replaced with actual server IP if deployed.
       const localhost = "http://localhost:8080/";
       const defaultAddress = serverIpAddress || localhost;
 
