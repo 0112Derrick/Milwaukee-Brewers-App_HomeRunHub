@@ -7,7 +7,8 @@ import TeamPage from "./pages/TeamPage";
 import ContactUs from "./components/Contact";
 import About from "./components/About";
 import StandingsPage from "./pages/standings_page";
-import { PlayByPlay } from "./pages/playByPlayPage";
+import { PlayByPlay } from "./pages/PlayByPlayPage";
+import { LiveGames } from "./pages/LiveGamesPage";
 
 function App() {
   return (
@@ -64,11 +65,21 @@ function App() {
           }
         ></Route>
         <Route
-          path="/feed/:id/:awayName?/:homeName?/:awayAbbr?/:homeAbbr?"
+          path="/feed/:id/:homeId/:awayId"
           element={
             <div className="flex flex-col min-h-screen bg-gray-900 text-white">
               <NavBar />
               <PlayByPlay></PlayByPlay>
+              <Footer />
+            </div>
+          }
+        ></Route>
+        <Route
+          path="/feed"
+          element={
+            <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+              <NavBar />
+              <LiveGames></LiveGames>
               <Footer />
             </div>
           }
