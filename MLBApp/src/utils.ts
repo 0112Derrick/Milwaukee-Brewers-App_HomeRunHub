@@ -2,7 +2,7 @@ import {
   GameHeader,
   PlayByPlayResponse,
   PlayEvent,
-  TeamSide,
+  TeamMeta,
 } from "./interfaces";
 
 export function groupPlays(plays: PlayEvent[]) {
@@ -26,62 +26,51 @@ export function groupPlays(plays: PlayEvent[]) {
 }
 
 export function adaptPlays(resp: PlayByPlayResponse): PlayEvent[] {
-  // If your server mirrors StatsAPI, allPlays is the history
-  return (resp.allPlays ?? []).map((p) => {
-    const half = p.about.isTopInning ? "Top" : "Bottom";
-    const team: TeamSide = p.about.isTopInning ? "away" : "home";
-
-    const resultText = p.result?.event || p.result?.description || "";
-    const desc = p.result?.description || "";
-
-    return {
-      id: String(p.atBatIndex),
-      inning: p.about.inning,
-      half,
-      team,
-      count: `${p.count.balls}-${p.count.strikes}`,
-      outsAfter: p.count.outs,
-      result: resultText,
-      description: desc,
-      isScoringPlay: p.about.isScoringPlay ?? false,
-      awayScore: p.result?.awayScore ?? 0,
-      homeScore: p.result?.homeScore ?? 0,
-    };
-  });
+  return resp.allPlays.map((p) => ({
+    id: String(p.atBatIndex),
+    inning: p.about.inning,
+    half: p.about.halfInning, // "top" | "bottom"
+    team: p.about.isTopInning ? "away" : "home",
+    result: p.result.eventType || p.result.event,
+    description: p.result.description,
+    count: `${p.count.balls}-${p.count.strikes}`,
+    outsAfter: p.count.outs,
+    awayScore: p.result.awayScore,
+    homeScore: p.result.homeScore,
+    isScoringPlay: p.about.isScoringPlay,
+    resultObj: p.result,
+    matchup: { batter: p.matchup?.batter },
+  }));
 }
 
 export function adaptHeader(
-  resp: PlayByPlayResponse,
-  // pass these from your schedule page (via URL params or route state)
-  teams: {
-    awayName: string;
-    awayAbbr: string;
-    homeName: string;
-    homeAbbr: string;
-  }
+  pbp: PlayByPlayResponse,
+  meta: { away: TeamMeta; home: TeamMeta; statusText: string }
 ): GameHeader {
-  // Pick the last play as "current" if server didn't supply one
-  const last = [...(resp.allPlays ?? [])].pop();
-  const count = last?.count ?? { balls: 0, strikes: 0, outs: 0 };
+  // Use the latest play you have to get current score and count
+  const last =
+    pbp.currentPlays?.[pbp.currentPlays.length - 1] ??
+    pbp.allPlays?.[pbp.allPlays.length - 1];
+
+  const scoreAway = last?.result?.awayScore ?? null;
+  const scoreHome = last?.result?.homeScore ?? null;
 
   return {
     away: {
-      name: teams.awayName,
-      abbr: teams.awayAbbr,
-      score: last?.result?.awayScore ?? 0,
+      team: { id: meta.away.id, name: meta.away.name, abbr: meta.away.abbr },
+      score: scoreAway,
+      logoUrl: meta.away.logoUrl,
     },
     home: {
-      name: teams.homeName,
-      abbr: teams.homeAbbr,
-      score: last?.result?.homeScore ?? 0,
+      team: { id: meta.home.id, name: meta.home.name, abbr: meta.home.abbr },
+      score: scoreHome,
+      logoUrl: meta.home.logoUrl,
     },
-    statusText: last
-      ? `Inning ${last.about.inning} (${
-          last.about.isTopInning ? "Top" : "Bottom"
-        })`
-      : "—",
-    balls: count.balls,
-    strikes: count.strikes,
-    outs: count.outs,
+    statusText: meta.statusText,
+    count: last?.count ?? { balls: 0, strikes: 0, outs: 0 },
   };
 }
+
+export const capitalizeFirstLetter = (str: string) => {
+  return str.slice(0, 1).toUpperCase() + str.slice(1);
+};
