@@ -7,6 +7,7 @@ import {
   BoxscoreResponse,
   DivisionRecord,
   DivisionResponse,
+  LiveFeedResponse,
   MlbGame,
   MLBLeagueIds,
   MlbTeamApp,
@@ -134,34 +135,14 @@ export class Server {
   }
 
   // Fetches data from an API, caches it, and organizes it based on team league and division.
-  async fetchData(
-    url: string,
-    key: string
-  ): Promise<{ teams: mlbTeams; error: any }> {
+  async fetchTeams(): Promise<{ teams: mlbTeams; error: any }> {
+    const key = "mlbTeams";
     const cachedData = cache.get(key);
     if (cachedData) {
       return { teams: cachedData, error: null }; // Returns cached data if available, reducing API calls.
     }
 
     try {
-      // const response = await (axios as any).get(url, {
-      //   headers: {
-      //     "api-key": this.apikey,
-      //   },
-      //   signal: AbortSignal.timeout(25000),
-      // });
-
-      // let data: mlbTeams = response.data.map((team: team) => ({
-      //   id: team.id,
-      //   name: team.name,
-      //   nickname: team.nickname,
-      //   location: team.location,
-      //   abbreviation: team.abbreviation,
-      //   logo: team.logo,
-      //   league: team.leage, //TODO - This will need to be updated once the Brewers update their api.
-      //   division: team.division,
-      // }));
-
       const data = await Database.readMlbTeams();
       const organizedMlbTeams = this.organizeMLBTeams(data);
       this.cacheData(organizedMlbTeams, key, 600000);
@@ -172,6 +153,19 @@ export class Server {
       }
 
       return { teams: null, error: error };
+    }
+  }
+
+  async fetchGameLineScore(gamePk: number): Promise<any> {
+    try {
+      const resp = await axios.get<LiveFeedResponse>(
+        `${this.mlbApiHost}/api/v1.1/game/${gamePk}/feed/live`
+      );
+
+      return resp.data;
+    } catch (e) {
+      console.error(e);
+      return { copyright: "", innings: [] };
     }
   }
 
@@ -298,7 +292,7 @@ export class Server {
       };
 
       const date = new Date(gameDt);
-      const schedule = await this.fetchSchedule(leagueId, gameDt, date);
+      const schedule = await this.fetchSchedule(leagueId, date, date);
 
       const foundGame = this.findGameByGamePk(schedule, gamePk);
 
@@ -312,7 +306,7 @@ export class Server {
           const api = `${this.mlbApiHost}/api/v1/game/${foundGame.gamePk}/playByPlay`;
 
           const playByPlay = await axios.get(api);
-          this.cacheData(playByPlay.data, key);
+          this.cacheData(playByPlay.data, key, 30000);
           resp = playByPlay.data;
         }
       }
@@ -505,10 +499,7 @@ export class Server {
 
       try {
         // Retrieves teams based on filters and paginates the results.
-        const data = await this.fetchData(
-          "http://brew-roster-svc.us-e2.cloudhub.io/api/teams",
-          "mlbTeams"
-        );
+        const data = await this.fetchTeams();
 
         if (data.error) {
           res.status(500).json({
@@ -613,11 +604,16 @@ export class Server {
     });
     this.app.post("/mlb/schedule", async (req, res) => {
       console.log(req.body);
-      const { leagueId, startDt, endDt } = req.body;
+      const { leagueId: sportsLeagueId, startDt, endDt } = req.body;
 
-      const id = leagueId ?? 1;
+      const id = sportsLeagueId ?? 1;
 
-      if (typeof startDt !== "string" || typeof endDt !== "string") {
+      if (
+        typeof startDt !== "string" ||
+        typeof endDt !== "string" ||
+        !startDt ||
+        !endDt
+      ) {
         res.send(
           "Error startDt/endDt expected type is string in yyyy-mm-dd format."
         );
@@ -691,7 +687,7 @@ export class Server {
         return;
       }
 
-      if (typeof gamePk !== "number") {
+      if (typeof gamePk !== "number" && !gamePk) {
         res.send("Error gamePk expected type is int.");
         return;
       }
@@ -701,6 +697,43 @@ export class Server {
       const resp = await this.fetchPlayByPlay(id, gamePk, gameDate);
 
       res.json(resp);
+    });
+    this.app.post("/mlb/linescore", async (req, res) => {
+      console.log(req.body);
+      const { gamePk } = req.body;
+
+      if (typeof gamePk !== "number" && !gamePk) {
+        res.send("Error gamePk expected type is int.");
+        return;
+      }
+
+      const resp = await this.fetchGameLineScore(gamePk);
+
+      res.json(resp);
+    });
+    this.app.post("/mlb/teams", async (req, res) => {
+      console.log(req.body);
+      const { teams } = req.body;
+
+      if (
+        !Array.isArray(teams) ||
+        teams.length < 1 ||
+        typeof teams.at(0) !== "number"
+      ) {
+        res.send("Error teams expected type is an int array of teams ids.");
+        return;
+      }
+
+      const resp = await this.fetchTeams();
+
+      if (resp.error) {
+        res.json({ error: resp.error });
+        return;
+      }
+      let respArr = [...resp.teams];
+      respArr.filter((item) => !teams.includes(item.id));
+
+      res.json(respArr);
     });
 
     this.app.post("/contact", (req, res) => {
@@ -738,26 +771,6 @@ export class Server {
         });
       }
     });
-
-    // this.app.get("/test", async (req, res) => {
-    //   // const standings = await this.fetchStandings(
-    //   //   MLBLeagueIds.nationalLeagueId,
-    //   //   2025,
-    //   //   "2025-08-02"
-    //   // );
-
-    //   // res.json(standings);
-
-    //   const today = new Date(2025, 7, 3);
-    //   // const schedule = await this.fetchSchedule(1, today, today);
-    //   const boxscore = await this.fetchPlayByPlay(
-    //     SportsLeagueId.MLB,
-    //     "Astros",
-    //     today
-    //   );
-
-    //   res.json(boxscore);
-    // });
 
     this.app.get("*", (_req, res) =>
       res.sendFile(path.join(__dirnameResolved, "build", "index.html"))
