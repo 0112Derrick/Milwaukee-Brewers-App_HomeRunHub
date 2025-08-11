@@ -8,10 +8,19 @@ import {
   TableHead,
   TableCell,
 } from "src/@/components/ui/table";
+import { THIRTY_SEC } from "src/interfaces";
 
 type InningRow = { inning: number; away?: number; home?: number };
 
-export function Boxscore({ gamePk }: { gamePk: number }) {
+export function Boxscore({
+  gamePk,
+  homeAbbr,
+  awayAbbr,
+}: {
+  gamePk: number;
+  homeAbbr?: string;
+  awayAbbr?: string;
+}) {
   const [inningsData, setInningsData] = useState<InningRow[]>([]);
   const [totalsData, setTotalsData] = useState<{
     away: { R: number; H: number; E: number; abbr?: string };
@@ -22,7 +31,7 @@ export function Boxscore({ gamePk }: { gamePk: number }) {
   });
 
   useEffect(() => {
-    const cancel = axios.CancelToken.source();
+    const ac = new AbortController();
 
     async function fetchBoxscore() {
       try {
@@ -32,20 +41,17 @@ export function Boxscore({ gamePk }: { gamePk: number }) {
         const { data, status } = await axios.post(
           endpoint,
           { gamePk },
-          { cancelToken: cancel.token }
+          { signal: ac.signal }
         );
         if (status !== 200) return;
 
-        // Pull what we need from StatsAPI live feed
         const ls = data?.liveData?.linescore;
 
-        // IMPORTANT: keep undefined instead of defaulting to 0
-        // so we can render "-" for unplayed halves.
         const innings: InningRow[] = (ls?.innings ?? []).map(
           (inn: any, i: number) => ({
             inning: inn?.num ?? i + 1,
-            away: inn?.away?.runs, // may be undefined if not yet played
-            home: inn?.home?.runs, // may be undefined if not yet played
+            away: inn?.away?.runs,
+            home: inn?.home?.runs,
           })
         );
 
@@ -54,13 +60,13 @@ export function Boxscore({ gamePk }: { gamePk: number }) {
             R: ls?.teams?.away?.runs ?? 0,
             H: ls?.teams?.away?.hits ?? 0,
             E: ls?.teams?.away?.errors ?? 0,
-            abbr: ls?.teams?.away?.team?.abbreviation ?? "AWY",
+            abbr: awayAbbr ?? "AWY",
           },
           home: {
             R: ls?.teams?.home?.runs ?? 0,
             H: ls?.teams?.home?.hits ?? 0,
             E: ls?.teams?.home?.errors ?? 0,
-            abbr: ls?.teams?.home?.team?.abbreviation ?? "HOM",
+            abbr: homeAbbr ?? "HOM",
           },
         };
 
@@ -71,11 +77,15 @@ export function Boxscore({ gamePk }: { gamePk: number }) {
           console.error("Error fetching linescore:", err);
         }
       }
-      // no finally: we don’t show a loader here
     }
 
     fetchBoxscore();
-    return () => cancel.cancel("linescore request canceled");
+    const id = window.setInterval(fetchBoxscore, THIRTY_SEC);
+
+    return () => {
+      ac.abort();
+      window.clearInterval(id);
+    };
   }, [gamePk]);
 
   const displayedInnings = useMemo(() => {
@@ -111,13 +121,6 @@ export function Boxscore({ gamePk }: { gamePk: number }) {
   return (
     <div className="w-full rounded-md border bg-background">
       {/* Sticky header area with team labels and R/H/E */}
-      {/* <div className="flex items-center justify-between px-3 py-2">
-        <div className="flex items-center gap-3">
-          <div className="text-sm font-medium text-muted-foreground">
-            Linescore
-          </div>
-        </div>
-      </div> */}
 
       {/* Horizontal scroll for many innings */}
       <div className="overflow-x-auto">
