@@ -647,7 +647,7 @@ export class Server {
 
       res.json(resp);
     });
-    this.app.post("/mlb/boxscores", async (req, res) => {
+    this.app.post("/mlb/boxscore", async (req, res) => {
       console.log(req.body);
       const { leagueId, gameDt, gamePk } = req.body;
 
