@@ -1,5 +1,6 @@
 import {
   GameHeader,
+  GameStatusBucket,
   PlayByPlayResponse,
   PlayEvent,
   TeamMeta,
@@ -66,7 +67,11 @@ export function adaptHeader(
       score: scoreHome,
       logoUrl: meta.home.logoUrl,
     },
-    statusText: meta.statusText,
+    statusText: last
+      ? `Inning ${last.about.inning} (${
+          last.about.isTopInning ? "Top" : "Bottom"
+        })`
+      : "—",
     count: last?.count ?? { balls: 0, strikes: 0, outs: 0 },
   };
 }
@@ -74,3 +79,25 @@ export function adaptHeader(
 export const capitalizeFirstLetter = (str: string) => {
   return str.slice(0, 1).toUpperCase() + str.slice(1);
 };
+
+// Optional helper to derive a team logo if you don’t pass one
+export const teamLogoUrl = (
+  teamId: number,
+  theme: "dark" | "light" = "dark",
+  variant: "cap" | "primary" = "cap"
+) => `https://www.mlbstatic.com/team-logos/${teamId}.svg`;
+
+export function mlbGameStatus(detailedState: string): GameStatusBucket {
+  const s = detailedState.toLowerCase();
+
+  if (s.includes("final") || s === "game over" || s.includes("completed"))
+    return "final";
+  if (s.includes("postponed") || s.includes("canceled")) return "postponed";
+  if (s.includes("suspend")) return "suspended";
+  if (s.includes("delay")) return "delayed"; // "Rain Delay", "Delayed Start"
+  if (s.includes("in progress")) return "live";
+  if (s.includes("warmup") || s.includes("pre-game") || s.includes("pregame"))
+    return "pregame";
+  if (s.includes("scheduled") || s.includes("tbd")) return "scheduled";
+  return "other";
+}

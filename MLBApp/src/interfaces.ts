@@ -775,19 +775,19 @@ export interface BoxscoreTeam {
     franchiseName: string;
     clubName: string;
     active: boolean;
-    teamStats: BoxscoreTeamStats;
-    players: BoxscorePlayersMap;
-    batters: number[];
-    pitchers: number[];
-    bench: number[];
-    bullpen: number[];
-    battingOrder: number[];
     info: {
       title: string;
       fieldList: LabelValue[];
     }[];
     note: LabelValue[];
   };
+  players: BoxscorePlayersMap;
+  batters: number[];
+  pitchers: number[];
+  bench: number[];
+  bullpen: number[];
+  battingOrder: number[];
+  teamStats: BoxscoreTeamStats;
 }
 // 1) Define the shape of a single player’s boxscore entry
 export interface PlayerBoxscoreEntry {
@@ -810,7 +810,39 @@ export interface PlayerBoxscoreEntry {
   };
   parentTeamId: number;
   stats: {
-    batting: Record<string, never>; // empty object
+    batting: {
+      airOuts: number;
+      atBats: number;
+      atBatsPerHomeRun: string;
+      baseOnBalls: number;
+      catchersInterference: number;
+      caughtStealing: number;
+      doubles: number;
+      flyOuts: number;
+      gamesPlayed: number;
+      groundIntoDoublePlay: number;
+      groundIntoTriplePlay: number;
+      groundOuts: number;
+      hitByPitch: number;
+      hits: number;
+      homeRuns: number;
+      intentionalWalks: number;
+      leftOnBase: number;
+      lineOuts: number;
+      pickoffs: number;
+      plateAppearances: number;
+      popOuts: number;
+      rbi: number;
+      runs: number;
+      sacBunts: number;
+      sacFlies: number;
+      stolenBasePercentage: string;
+      stolenBases: number;
+      strikeOuts: number;
+      summary: string;
+      totalBases: number;
+      triples: number;
+    };
     pitching: {
       note: string;
       summary: string;
@@ -911,6 +943,8 @@ export interface BoxscorePlayersMap {
   /** e.g. "ID664285", "ID111111", etc. */
   [key: `ID${number}`]: PlayerBoxscoreEntry;
 }
+
+export type PlayerIdKey = `ID${number}`;
 
 export interface BoxscoreTeamStats {
   batting: {
@@ -1129,6 +1163,19 @@ export interface BoxscoreCard {
     away: number;
   };
 }
+
+export const THIRTY_SEC = 30000;
+export const THREE_MINUTES = 1800000;
+
+export type GameStatusBucket =
+  | "scheduled"
+  | "pregame"
+  | "live"
+  | "final"
+  | "postponed"
+  | "suspended"
+  | "delayed"
+  | "other";
 
 export interface LiveFeedResponse {
   metaData: {
