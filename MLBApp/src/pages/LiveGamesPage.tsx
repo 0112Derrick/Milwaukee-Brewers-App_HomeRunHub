@@ -3,25 +3,31 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "src/@/components/ui/button";
 import { Skeleton } from "src/@/components/ui/skeleton";
-import { ScheduleResponse } from "src/interfaces";
+import { ScheduleResponse, THREE_MINUTES } from "src/interfaces";
 import ErrorPage from "./ErrorPage";
-import { Card, CardContent, CardHeader } from "src/@/components/ui/card";
 import { Boxscore } from "src/components/Boxscore";
+import useScreenSize from "src/hooks/useScreenSize";
+import { Table, TableBody } from "src/@/components/ui/table";
+import { teamLogoUrl } from "src/utils";
+import DatePicker from "src/components/DatePicker";
+import { PlayCircle } from "lucide-react";
+import { GameCard } from "src/components/GameCard";
 
 export function LiveGames() {
   const [gamesData, setGamesData] = useState<ScheduleResponse | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>(null);
+  const [date, setDate] = useState<Date>(new Date());
+
   const navigate = useNavigate();
+  const screenSize = useScreenSize();
 
   useEffect(() => {
-    let cancel: ReturnType<typeof axios.CancelToken.source> | null =
-      axios.CancelToken.source();
+    const ac = new AbortController();
 
     const fetchSchedule = async () => {
       setLoading(true);
-
       try {
         const serverIpAddress = ""; //NOTE -  Placeholder for server IP address.
         const localhost = "http://localhost:8080/";
@@ -32,17 +38,15 @@ export function LiveGames() {
         let endpoint = `${defaultAddress}`;
 
         endpoint += `mlb/schedule`;
-        const today = new Date().toLocaleDateString("en-CA");
+        const currentDate = date.toLocaleDateString("en-CA");
 
         const { data } = await axios.post<ScheduleResponse>(
           endpoint,
           {
-            startDt: today,
-            endDt: today,
+            startDt: currentDate,
+            endDt: currentDate,
           },
-          {
-            cancelToken: cancel!.token,
-          }
+          { signal: ac.signal }
         );
 
         setGamesData(data);
@@ -61,7 +65,18 @@ export function LiveGames() {
     };
 
     fetchSchedule();
-  }, []);
+
+    const tickId = window.setInterval(fetchSchedule, THREE_MINUTES);
+    fetchSchedule();
+    return () => {
+      ac.abort();
+      window.clearInterval(tickId);
+    };
+  }, [date]);
+
+  const setDateWrapper = (arg: string | undefined | Date) => {
+    if (arg) setDate(new Date(arg));
+  };
 
   if (loading) {
     return (
@@ -105,51 +120,134 @@ export function LiveGames() {
     );
 
     if (!currentDayGames) {
-      return <div>No games</div>;
+      return (
+        <div className="flex flex-col flex-grow">
+          <div className="w-full self-end">
+            <DatePicker date={date} setDate={setDateWrapper}></DatePicker>
+          </div>
+          No games
+        </div>
+      );
     }
-    //console.table(currentDayGames);
     const games = currentDayGames.games.map((game) => {
-      // console.table(game.teams);
-
       return (
         <Link
-          to={`/feed/${game.gamePk}/${game.teams.home.team.id}/${game.teams.away.team.id}`}
+          to={`/games/${game.gameDate.split("T")[0]}/${game.gamePk}`}
           key={`${game.gamePk}`}
         >
-          <Card className="h-fit aspect-video py-8 overflow-x-auto overflow-y-hidden hover:border-4 hover:shadow-md hover: border-blue-400">
-            <CardHeader>
-              <div>
-                {game.teams.home.team.name} vs. {game.teams.away.team.name}
-              </div>
-              <div className="text-sm text-muted-foreground flex flex-col">
-                <span>
-                  Start time: {new Date(game.gameDate).toLocaleString()}
-                </span>
-                <span>
-                  Status: {game.status.detailedState} | Location:{" "}
-                  {game.venue.name}
-                </span>
-                <span></span>
-              </div>
-            </CardHeader>
-            {
-              <CardContent>
-                <Boxscore gamePk={game.gamePk}></Boxscore>
-              </CardContent>
-            }
-          </Card>
+          <GameCard game={game}>
+            <Boxscore
+              gamePk={game.gamePk}
+              homeAbbr={game.teams.home.team.name}
+              awayAbbr={game.teams.away.team.name}
+            />
+          </GameCard>
         </Link>
       );
     });
 
+    const gamesMiniScreen = currentDayGames.games.map((game) => {
+      const awayLogo = teamLogoUrl(game.teams.away.team.id);
+      const homeLogo = teamLogoUrl(game.teams.home.team.id);
+
+      const awayAbbr =
+        game.teams.away.team.name.split(" ")[1] ??
+        game.teams.away.team.name.split(" ")[0];
+      const homeAbbr =
+        game.teams.home.team.name.split(" ")[1] ??
+        game.teams.home.team.name.split(" ")[0];
+
+      const gameHref = `/games/${game.gameDate.split("T")[0]}/${game.gamePk}`;
+      const videoHref = `https://www.mlb.com/stories/game/${game.gamePk}`;
+
+      return (
+        <div
+          key={game.gamePk}
+          role="link"
+          tabIndex={0}
+          onClick={() => navigate(gameHref)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              navigate(gameHref);
+            }
+          }}
+          className="bg-slate-100 text-black cursor-pointer max-w-fit hover:bg-slate-200 transition-colors"
+        >
+          <div className="flex items-center px-4 border-l border-black">
+            {/* teams/score block */}
+            <div className="grid grid-cols-2 items-center justify-items-end flex-grow gap-2 py-4 w-[150px]">
+              <div className="flex justify-self-start gap-2 items-center">
+                <img
+                  src={awayLogo}
+                  alt={`${awayAbbr} logo`}
+                  className="h-8 w-8"
+                />
+                <p>{awayAbbr}</p>
+              </div>
+              <div>{game.teams.away.score ?? "-"}</div>
+
+              <div className="flex justify-self-start gap-2 items-center">
+                <img
+                  src={homeLogo}
+                  alt={`${homeAbbr} logo`}
+                  className="h-8 w-8"
+                />
+                <p>{homeAbbr}</p>
+              </div>
+              <div>{game.teams.home.score ?? "-"}</div>
+            </div>
+
+            <div className="flex-shrink px-2">
+              <a
+                href={videoHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Open game highlights in a new tab"
+                title="Open game highlights"
+                className="group"
+              >
+                <PlayCircle
+                  className="h-7 w-7 group-hover:stroke-green-600"
+                  aria-hidden="true"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      );
+    });
+
     return (
-      <div className="flex flex-col gap-4 w-full h-[80vh] mt-20 overflow-hidden">
+      <div className="flex flex-col gap-4 flex-grow w-full h-[80vh] overflow-hidden mt-24 sm:mt-24 md:mt-24 lg:mt-20">
         <div className="px-2 italic">
-          Games today: {currentDayGames.totalGames}
+          Games today: {currentDayGames.totalGames} | In-progress:{" "}
+          {currentDayGames.totalGamesInProgress} | {"Games ended: "}
+          {
+            currentDayGames.games.filter((game) =>
+              game.status.detailedState.toLowerCase().includes("final")
+            ).length
+          }
         </div>
-        <div className="flex flex-wrap w-full h-full items-center justify-evenly gap-4 overflow-auto">
-          {games}
+        <div className="self-end px-2">
+          <DatePicker date={date} setDate={setDateWrapper}></DatePicker>
         </div>
+        {screenSize.width < 768 ? (
+          <div className="w-full overflow-auto">
+            <Table>
+              <TableBody>
+                <div className="flex flex-wrap justify-center">
+                  {gamesMiniScreen}
+                </div>
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <div className="grid gap-4 p-4 bg-gray-800 sm:grid-cols-2 lg:grid-cols-3 overflow-auto">
+            {games}
+          </div>
+        )}
       </div>
     );
   }
