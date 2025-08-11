@@ -4,7 +4,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "src/@/components/ui/card";
 import {
   Tabs,
@@ -48,14 +47,17 @@ import {
   GameHeader,
   PlayByPlayProps,
   PlayByPlayResponse,
-  MlbTeamDataI,
+  THIRTY_SEC,
+  BoxscoreResponse,
+  PlayerIdKey,
+  ScheduleResponse,
 } from "src/interfaces";
-import { adaptHeader, adaptPlays, groupPlays } from "src/utils";
+import { adaptHeader, adaptPlays, groupPlays, teamLogoUrl } from "src/utils";
 import axios from "axios";
 import { Spinner } from "src/components/Spinner";
 import { Link, useParams } from "react-router-dom";
-import { Boxscore } from "src/components/Boxscore";
 import { Button } from "src/@/components/ui/button";
+import { Boxscore } from "src/components/Boxscore";
 
 function resultBadgeVariant(result: PlayEvent["result"]) {
   switch (result) {
@@ -98,19 +100,14 @@ function ResultIcon({ result }: { result: PlayEvent["result"] }) {
   }
 }
 
-// Optional helper to derive a team logo if you don’t pass one
-const teamLogoUrl = (
-  teamId: number,
-  theme: "dark" | "light" = "dark",
-  variant: "cap" | "primary" = "cap"
-) =>
-  `https://www.mlbstatic.com/team-logos/team-${variant}-on-${theme}/${teamId}.svg`;
-
-function ScoreBug({ header }: { header: GameHeader }) {
+function ScoreBug({ header, gamePk }: { header: GameHeader; gamePk: number }) {
   const { away, home, statusText, count } = header;
+  console.log(away.team.name);
+  const splitAwayName = away.team.name.split(" ");
+  const splitHomeName = home.team.name.split(" ");
 
-  const awayAbbr = away.team.abbr ?? away.team.name.slice(0, 3).toUpperCase();
-  const homeAbbr = home.team.abbr ?? home.team.name.slice(0, 3).toUpperCase();
+  const awayAbbr = away.team.abbr ?? splitAwayName[1];
+  const homeAbbr = home.team.abbr ?? splitHomeName[1];
 
   const awayLogo = away.logoUrl ?? teamLogoUrl(away.team.id);
   const homeLogo = home.logoUrl ?? teamLogoUrl(home.team.id);
@@ -156,6 +153,14 @@ function ScoreBug({ header }: { header: GameHeader }) {
         <Separator orientation="vertical" className="mx-2 h-4" />
         <span>{statusText}</span>
       </div>
+
+      <div className="w-full col-span-3">
+        <Boxscore
+          gamePk={gamePk}
+          awayAbbr={awayAbbr}
+          homeAbbr={homeAbbr}
+        ></Boxscore>
+      </div>
     </div>
   );
 }
@@ -169,7 +174,7 @@ function PlayRow({
 }) {
   const scoring = play.isScoringPlay;
   const batterName = play.matchup?.batter?.fullName ?? "";
-  const rbi = play.resultObj?.rbi ?? 0; // resultObj holds the raw result object if you keep it
+  const rbi = play.resultObj?.rbi ?? 0;
 
   return (
     <TableRow
@@ -262,16 +267,25 @@ export function PlayByPlay({
   initialFilter = "all",
   onPlayClick,
 }: PlayByPlayProps) {
-  const { id, homeId, awayId } = useParams();
+  const { id, gameDate } = useParams();
   const [tab, setTab] = useState<string>("pbp");
+  const [lineupsTab, setLineupsTab] = useState<"home" | "away">("home");
   const [filter, setFilter] = useState<"all" | "scoring" | "home" | "away">(
     initialFilter
   );
-  const [loading, setLoading] = useState<boolean>(false);
+  const today = new Date();
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [noGameFound, setNoGameFound] = useState<boolean>(false);
   const [header, setHeader] = useState<GameHeader | null>(null);
   const [plays, setPlays] = useState<PlayEvent[]>([]);
-  const [pbp, setPbp] = useState<PlayByPlayResponse | null>(null);
+  const [boxscore, setBoxscore] = useState<BoxscoreResponse | null>(null);
+  const [date, setDate] = useState<Date | undefined>(
+    new Date(gameDate ?? today)
+  );
+  const [lastUpdateTime, setLastUpdateTime] = useState<string>(
+    today.toLocaleString()
+  );
 
   const filtered = useMemo(() => {
     return plays.filter((p) => {
@@ -291,66 +305,75 @@ export function PlayByPlay({
   const localhost = "http://localhost:8080/";
   const defaultAddress = serverIpAddress || localhost;
 
-  const api = axios.create(); // Instance of axios with default settings.
+  const api = axios.create();
 
   useEffect(() => {
     const run = async () => {
       try {
         setLoading(true);
-        const endpoint = `${defaultAddress}mlb/playbyplay`;
-        const teamSearch = `${defaultAddress}mlb/teams`;
 
-        if (!homeId || !awayId) {
-          setLoading(false);
-          setError("HomeId and AwayId are required");
+        const gamePk = parseInt(id ?? "0");
+        const ac = new AbortController();
+        const scheduleEndPoint = `${defaultAddress}mlb/schedule`;
+
+        const scheduleResp = await axios.post<ScheduleResponse>(
+          scheduleEndPoint,
+          {
+            startDt: date,
+            endDt: date,
+          }
+        );
+
+        const currentGame = scheduleResp.data.dates[0].games.find((game) => {
+          return game.gamePk === gamePk;
+        });
+
+        if (!currentGame) {
+          setNoGameFound(true);
           return;
+        } else {
+          setNoGameFound(false);
         }
 
-        const awayIdInt = parseInt(awayId);
-        const homeIdInt = parseInt(homeId);
-
-        const ac = new AbortController();
         const tick = async () => {
+          const endpoint = `${defaultAddress}mlb/playbyplay`;
+          const boxscoreEndPoint = `${defaultAddress}mlb/boxscore`;
+
           try {
-            const [pbpResp, teamSearchResp] = await Promise.all([
+            const [pbpResp, boxScoreResp] = await Promise.all([
               api.post<PlayByPlayResponse>(
                 endpoint,
                 {
-                  gameDt: new Date().toLocaleDateString("en-CA"),
-                  gamePk: parseInt(id ?? "0"),
+                  gameDt: currentGame?.gameDate,
+                  gamePk: currentGame?.gamePk,
                 },
                 { signal: ac.signal }
               ),
-              api.post<MlbTeamDataI[]>(
-                teamSearch,
+
+              api.post<BoxscoreResponse>(
+                boxscoreEndPoint,
                 {
-                  teams: [homeIdInt, awayIdInt],
+                  gamePk: currentGame?.gamePk,
+                  gameDt: currentGame?.gameDate,
                 },
                 { signal: ac.signal }
               ),
             ]);
 
             const data = pbpResp.data;
-            setPbp(data);
 
-            const teams = {
-              away: teamSearchResp.data.find((team) => team.id === awayIdInt),
-              home: teamSearchResp.data.find((team) => team.id === homeIdInt),
-            };
-
+            const bxsData = boxScoreResp.data;
+            setBoxscore(bxsData);
+            console.table(currentGame.teams.away);
             setHeader(
               adaptHeader(data, {
                 away: {
-                  id: teams.away?.id ?? 0,
-                  name: teams.away?.name ?? "",
-                  abbr: teams.away?.nickname,
-                  logoUrl: teams.away?.logo,
+                  id: currentGame.teams.away.team.id ?? 0,
+                  name: currentGame.teams.away.team.name ?? "",
                 },
                 home: {
-                  id: teams.home?.id ?? 0,
-                  name: teams.home?.name ?? "",
-                  abbr: teams.home?.nickname,
-                  logoUrl: teams.home?.logo,
+                  id: currentGame.teams.home.team.id ?? 0,
+                  name: currentGame.teams.home.team.name ?? "",
                 },
                 statusText: "",
               })
@@ -359,13 +382,18 @@ export function PlayByPlay({
             const _plays = adaptPlays(data);
 
             setPlays(_plays);
+            setLastUpdateTime(new Date().toLocaleString());
           } catch (e: any) {
             if ((e as any).name === "AbortError") return;
             setError(e);
+          } finally {
+            setTimeout(() => {
+              setLoading(false);
+            }, 750);
           }
         };
 
-        const tickId = window.setInterval(tick, 30000);
+        const tickId = window.setInterval(tick, THIRTY_SEC);
         tick();
         return () => {
           ac.abort();
@@ -375,12 +403,16 @@ export function PlayByPlay({
         if (!axios.isCancel(err))
           setError(err.message || "Failed to load play-by-play");
       } finally {
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+        }, 750);
       }
     };
 
     run();
-  }, [id]);
+  }, [id, date]);
+
+  
 
   if (loading)
     return (
@@ -389,6 +421,31 @@ export function PlayByPlay({
       </div>
     );
   if (error) return <p className="text-red-500">{error}</p>;
+
+  if (noGameFound) {
+    return (
+      <div className="flex-grow max-h-full overflow-hidden flex flex-col mt-16 p-4">
+        <div className="flex flex-col w-full self-end items-center justify-center">
+          <div className="w-fit my-4 flex gap-4 items-center">
+            <Link to={`/games`} className="w-full h-full">
+              <Button variant={"secondary"} className="bg-blue-300">
+                Back
+              </Button>
+            </Link>
+          </div>
+          <div>Last update time: {lastUpdateTime}</div>
+        </div>
+        <Card className="w-full h-[30vh] overflow-y-hidden overflow-x-auto">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl">No Game found.</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>Try adjusting your search date.</div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const h: GameHeader = {
     away: {
@@ -418,22 +475,25 @@ export function PlayByPlay({
   };
 
   return (
-    <div className="flex-grow flex flex-col mt-24 p-8">
-      <div className="w-fit self-end my-4">
-        <Link to={`/feed`} className="w-full h-full">
-          <Button variant={"secondary"} className="bg-blue-300">
-            Back
-          </Button>
-        </Link>
+    <div className="flex-grow max-h-full overflow-hidden flex flex-col mt-16 p-4">
+      <div className="flex flex-col w-full self-end items-end justify-center">
+        <div className="w-fit my-4 flex gap-4 items-end">
+          <Link to={`/games`} className="w-full h-full">
+            <Button variant={"secondary"} className="bg-blue-300">
+              Back
+            </Button>
+          </Link>
+        </div>
+        <div>Last update time: {lastUpdateTime}</div>
       </div>
 
-      <Card className="w-full max-h-[600px] overflow-auto">
+      <Card className="w-full h-[70vh] overflow-y-hidden overflow-x-auto">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl">Play-by-Play</CardTitle>
-          <CardDescription>Live events, grouped by inning</CardDescription>
+          {/* <CardDescription>Live events, grouped by inning</CardDescription> */}
         </CardHeader>
         <CardContent className="space-y-3">
-          <ScoreBug header={header ?? h} />
+          <ScoreBug header={header ?? h} gamePk={parseInt(id ?? "0")} />
           <Separator className="my-2" />
 
           {/* Filters */}
@@ -452,16 +512,15 @@ export function PlayByPlay({
             <Tabs value={tab} onValueChange={setTab} className="ml-auto">
               <TabsList>
                 <TabsTrigger value="pbp">PBP</TabsTrigger>
-                <TabsTrigger value="box">Box</TabsTrigger>
                 <TabsTrigger value="lineups">Lineups</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
 
           <Tabs value={tab} onValueChange={setTab}>
-            <TabsContent value="pbp" className="mt-0">
+            <TabsContent value="pbp" className="mt-0 overflow-clip">
               <ScrollArea className={cn("rounded-md border", maxHeightClass)}>
-                <div className="p-3">
+                <div className="p-3 max-h-72 overflow-auto">
                   {groupByInning ? (
                     <Accordion type="multiple" className="w-full">
                       {grouped.map(({ key, plays }) => {
@@ -504,13 +563,141 @@ export function PlayByPlay({
                 </div>
               </ScrollArea>
             </TabsContent>
+            <TabsContent value="lineups" className="flex flex-col">
+              <div className="mt-0 h-[300px] overflow-auto">
+                <ScrollArea>
+                  <Tabs
+                    value={lineupsTab}
+                    onValueChange={(val: string) => {
+                      if (val !== "home" && val !== "away") {
+                        setLineupsTab("home");
+                      } else {
+                        setLineupsTab(val);
+                      }
+                    }}
+                    className="ml-auto self-end"
+                  >
+                    <TabsList>
+                      <TabsTrigger value="home">Home</TabsTrigger>
+                      <TabsTrigger value="away">Away</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
 
-            <TabsContent value="box">
-              <Boxscore gamePk={parseInt(id ?? "0")}></Boxscore>
-            </TabsContent>
-            <TabsContent value="lineups">
-              <div className="text-sm text-muted-foreground p-4">
-                Hook your Lineups here.
+                  <p className="font-semibold">Batting</p>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Player</TableHead>
+                        <TableHead>AB</TableHead>
+                        <TableHead>R</TableHead>
+                        <TableHead>H</TableHead>
+                        <TableHead>BB</TableHead>
+                        <TableHead>RBI</TableHead>
+                        <TableHead>HR</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {boxscore &&
+                      boxscore.teams[lineupsTab] &&
+                      boxscore.teams[lineupsTab].battingOrder ? (
+                        boxscore?.teams[lineupsTab].battingOrder.map((id) => {
+                          const player =
+                            boxscore!.teams[lineupsTab].players[
+                              `ID${id}` as PlayerIdKey
+                            ];
+
+                          return (
+                            <TableRow key={id}>
+                              <TableCell>
+                                <div className="flex gap-3">
+                                  <div>{player.jerseyNumber}</div>
+                                  <div>{player.person.boxscoreName}</div>
+                                  <div>
+                                    &nbsp;·&nbsp;
+                                    {player.position.abbreviation}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                {player.stats.batting.atBats}
+                              </TableCell>
+                              <TableCell>{player.stats.batting.runs}</TableCell>
+                              <TableCell>{player.stats.batting.hits}</TableCell>
+                              <TableCell>
+                                {player.stats.batting.baseOnBalls}
+                              </TableCell>
+                              <TableCell>{player.stats.batting.rbi}</TableCell>
+                              <TableCell>
+                                {player.stats.batting.homeRuns}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      ) : (
+                        <div>No data</div>
+                      )}
+                    </TableBody>
+                  </Table>
+
+                  <p className="font-semibold">Pitching</p>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Player</TableHead>
+                        <TableHead>IP</TableHead>
+                        <TableHead>H</TableHead>
+                        <TableHead>ER</TableHead>
+                        <TableHead>BB</TableHead>
+                        <TableHead>SO</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {boxscore &&
+                      boxscore.teams[lineupsTab] &&
+                      boxscore.teams[lineupsTab].pitchers ? (
+                        boxscore.teams[lineupsTab].pitchers.map((id) => {
+                          const player =
+                            boxscore!.teams[lineupsTab].players[
+                              `ID${id}` as PlayerIdKey
+                            ];
+
+                          return (
+                            <TableRow key={id}>
+                              <TableCell>
+                                <div className="flex gap-3">
+                                  <div>{player.jerseyNumber}</div>
+                                  <div>{player.person.boxscoreName}</div>
+                                  <div>
+                                    &nbsp;·&nbsp;
+                                    {player.position.abbreviation}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                {player.stats.pitching.inningsPitched}
+                              </TableCell>
+                              <TableCell>
+                                {player.stats.pitching.hits}
+                              </TableCell>
+                              <TableCell>
+                                {player.stats.pitching.earnedRuns}
+                              </TableCell>
+                              <TableCell>
+                                {player.stats.pitching.baseOnBalls}
+                              </TableCell>
+                              <TableCell>{player.stats.batting.rbi}</TableCell>
+                              <TableCell>
+                                {player.stats.pitching.strikeOuts}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      ) : (
+                        <div>No data</div>
+                      )}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
               </div>
             </TabsContent>
           </Tabs>
