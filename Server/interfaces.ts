@@ -346,19 +346,19 @@ export interface BoxscoreTeam {
     franchiseName: string;
     clubName: string;
     active: boolean;
-    teamStats: BoxscoreTeamStats;
-    players: BoxscorePlayersMap;
-    batters: number[];
-    pitchers: number[];
-    bench: number[];
-    bullpen: number[];
-    battingOrder: number[];
     info: {
       title: string;
       fieldList: LabelValue[];
     }[];
     note: LabelValue[];
   };
+  players: BoxscorePlayersMap;
+  batters: number[];
+  pitchers: number[];
+  bench: number[];
+  bullpen: number[];
+  battingOrder: number[];
+  teamStats: BoxscoreTeamStats;
 }
 // 1) Define the shape of a single player’s boxscore entry
 export interface PlayerBoxscoreEntry {
