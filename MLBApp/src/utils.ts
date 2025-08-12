@@ -5,6 +5,7 @@ import {
   PlayEvent,
   TeamMeta,
 } from "./interfaces";
+import axios from "axios";
 
 export function groupPlays(plays: PlayEvent[]) {
   const map = new Map<string, PlayEvent[]>();
@@ -101,3 +102,7 @@ export function mlbGameStatus(detailedState: string): GameStatusBucket {
   if (s.includes("scheduled") || s.includes("tbd")) return "scheduled";
   return "other";
 }
+
+export const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL,
+});
