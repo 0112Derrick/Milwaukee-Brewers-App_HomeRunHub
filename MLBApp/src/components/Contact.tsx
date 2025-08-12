@@ -1,11 +1,11 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "src/@/components/ui/button";
 import { Card } from "src/@/components/ui/card";
 import { Input } from "src/@/components/ui/input";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import Dompurify from "dompurify";
 import { formDataI } from "src/interfaces";
-import { useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import {
   DropdownMenu,
@@ -17,11 +17,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
+import { api } from "src/utils";
 
 const ContactUs = () => {
-  const serverIp = "";
-  const localhost = "http://localhost:8080/contact";
-  const defaultIpAddress = serverIp || localhost;
+  const endpoint = "contact";
   const [formSubmissionInProgress, setFormSubmissionInProgress] =
     useState(false);
   const [responseMessage, setResponseMessage] = useState<string>("");
@@ -74,7 +73,7 @@ const ContactUs = () => {
         reasonForContact: Dompurify.sanitize(formData.reasonForContact),
       };
 
-      let response = await axios.post(defaultIpAddress, {
+      let response = await api.post(endpoint, {
         ...sanitizedInputs,
       });
 

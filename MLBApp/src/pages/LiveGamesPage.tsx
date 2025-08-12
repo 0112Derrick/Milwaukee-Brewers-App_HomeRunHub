@@ -8,7 +8,7 @@ import ErrorPage from "./ErrorPage";
 import { Boxscore } from "src/components/Boxscore";
 import useScreenSize from "src/hooks/useScreenSize";
 import { Table, TableBody } from "src/@/components/ui/table";
-import { teamLogoUrl } from "src/utils";
+import { api, teamLogoUrl } from "src/utils";
 import DatePicker from "src/components/DatePicker";
 import { PlayCircle } from "lucide-react";
 import { GameCard } from "src/components/GameCard";
@@ -29,19 +29,10 @@ export function LiveGames() {
     const fetchSchedule = async () => {
       setLoading(true);
       try {
-        const serverIpAddress = ""; //NOTE -  Placeholder for server IP address.
-        const localhost = "http://localhost:8080/";
-
-        //Fallback to localhost if needed
-        const defaultAddress = serverIpAddress || localhost;
-
-        let endpoint = `${defaultAddress}`;
-
-        endpoint += `mlb/schedule`;
         const currentDate = date.toLocaleDateString("en-CA");
 
-        const { data } = await axios.post<ScheduleResponse>(
-          endpoint,
+        const { data } = await api.post<ScheduleResponse>(
+          `mlb/schedule`,
           {
             startDt: currentDate,
             endDt: currentDate,
@@ -116,7 +107,7 @@ export function LiveGames() {
 
   if (gamesData) {
     const currentDayGames = gamesData.dates.find(
-      (games) => new Date(games.date) <= new Date()
+      (games) => new Date(games.date) <= date
     );
 
     if (!currentDayGames) {
@@ -129,17 +120,26 @@ export function LiveGames() {
         </div>
       );
     }
+    const currentDate = date.toLocaleDateString("en-CA");
+
     const games = currentDayGames.games.map((game) => {
+      const splitAwayName = game.teams.away.team.name.split(" ");
+      const splitHomeName = game.teams.home.team.name.split(" ");
+
+      const awayAbbr =
+        splitAwayName[splitAwayName.length - 1] ?? splitHomeName[0];
+      const homeAbbr =
+        splitHomeName[splitHomeName.length - 1] ?? splitHomeName[0];
       return (
         <Link
-          to={`/games/${game.gameDate.split("T")[0]}/${game.gamePk}`}
+          to={`/games/${currentDate}/${game.gamePk}`}
           key={`${game.gamePk}`}
         >
-          <GameCard game={game}>
+          <GameCard game={game} color="red">
             <Boxscore
               gamePk={game.gamePk}
-              homeAbbr={game.teams.home.team.name}
-              awayAbbr={game.teams.away.team.name}
+              homeAbbr={homeAbbr}
+              awayAbbr={awayAbbr}
             />
           </GameCard>
         </Link>
@@ -222,18 +222,12 @@ export function LiveGames() {
     return (
       <div className="flex flex-col gap-4 flex-grow w-full h-[80vh] overflow-hidden mt-24 sm:mt-24 md:mt-24 lg:mt-20">
         <div className="px-2 italic">
-          Games today: {currentDayGames.totalGames} | In-progress:{" "}
-          {currentDayGames.totalGamesInProgress} | {"Games ended: "}
-          {
-            currentDayGames.games.filter((game) =>
-              game.status.detailedState.toLowerCase().includes("final")
-            ).length
-          }
+          Games today: {currentDayGames.totalGames}
         </div>
         <div className="self-end px-2">
           <DatePicker date={date} setDate={setDateWrapper}></DatePicker>
         </div>
-        {screenSize.width < 768 ? (
+        {screenSize.width < 800 ? (
           <div className="w-full overflow-auto">
             <Table>
               <TableBody>
@@ -244,7 +238,7 @@ export function LiveGames() {
             </Table>
           </div>
         ) : (
-          <div className="grid gap-4 p-4 bg-gray-800 sm:grid-cols-2 lg:grid-cols-3 overflow-auto">
+          <div className="grid gap-4 p-2 bg-gray-800 sm:grid-cols-2 lg:grid-cols-3 overflow-auto">
             {games}
           </div>
         )}

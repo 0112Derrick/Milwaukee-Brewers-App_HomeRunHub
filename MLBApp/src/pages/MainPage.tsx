@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import axios, { CancelTokenSource } from "axios";
+import axios from "axios";
 import TeamCard from "../components/TeamCard";
 import SkeletonCard from "../components/SkeletonCard";
 import { MlbTeamDataI, MlbTeamDataModifiedI } from "src/interfaces";
@@ -11,6 +11,7 @@ import TeamFilterRadioButtons from "../components/TeamFilterRadioButtons";
 import { mlbTeamsDetails } from "src/data/teamData";
 import ErrorPage from "./ErrorPage";
 import Dompurify from "dompurify";
+import { api } from "src/utils";
 
 // Custom React hook for managing and fetching team data.
 const useTeams = (initialStart = 0) => {
@@ -20,11 +21,7 @@ const useTeams = (initialStart = 0) => {
   const [start, setStart] = useState<number>(initialStart);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false); // State to track user's preference for reduced motion.
   const itemsPerPage = 9; //NOTE -  Number of items to be fetched per page.
-
-  const api = axios.create(); // Instance of axios with default settings.
-
-  let cancelRequest: CancelTokenSource | null = null;
-
+  const ac = new AbortController();
   // Fetch teams from the server.
   const fetchTeams = async (
     newStart: number = 0,
@@ -34,22 +31,10 @@ const useTeams = (initialStart = 0) => {
   ) => {
     setLoading(true);
 
-    // Cancel the previous request before making a new request
-    if (cancelRequest) {
-      cancelRequest.cancel("Operation canceled due to new request.");
-    }
-
-    // Create a new CancelToken
-    cancelRequest = axios.CancelToken.source();
-
     try {
       console.log(
         `Search term: ${searchTerm} | Division: ${filterDivision} | League: ${filterLeague}`
       );
-
-      const serverIpAddress = ""; //NOTE -  Should be replaced with actual server IP if deployed.
-      const localhost = "http://localhost:8080/";
-      const defaultAddress = serverIpAddress || localhost;
 
       // Constructing query parameters based on inputs and pagination.
       let params = `start=${newStart}&limit=${itemsPerPage}`;
@@ -68,17 +53,12 @@ const useTeams = (initialStart = 0) => {
         params += `&division=${filterDivision}`;
       }
 
-      //NOTE -  Building the endpoint URL with parameters.
-      const endpoint = `${defaultAddress}teams?${params}`;
+      const endpoint = `teams?${params}`;
 
-      console.log("Endpoint: " + endpoint);
-      const response = await api.get(endpoint, {
-        cancelToken: cancelRequest.token, // Pass the cancel token to the request
-      });
+      const response = await api.get(endpoint, { signal: ac.signal });
 
       // Handle the response: setting teams state or throwing an error if something went wrong.
       if (!response.data.error) {
-        console.log(response.data);
         for (
           let i = 0;
           i < (response.data.teams as MlbTeamDataI[]).length;
@@ -132,7 +112,10 @@ const useTeams = (initialStart = 0) => {
     mediaQuery.addEventListener("change", handler);
 
     // Cleanup function to remove the event listener
-    return () => mediaQuery.removeEventListener("change", handler);
+    return () => {
+      ac.abort();
+      mediaQuery.removeEventListener("change", handler);
+    };
     //eslint-disable-next-line
   }, []);
 

@@ -8,7 +8,8 @@ import {
 import { Badge } from "src/@/components/ui/badge";
 import { StandingsResponseV2 } from "src/interfaces";
 import { Spinner } from "src/components/Spinner";
-import axios, { CancelTokenSource } from "axios";
+import { Link } from "react-router-dom";
+import { api } from "src/utils";
 
 const StandingsPage: React.FC = () => {
   const [standings, setStandings] = useState<StandingsResponseV2 | null>(null);
@@ -16,25 +17,13 @@ const StandingsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [division, setDivision] = useState<number>(105);
 
-  const serverIpAddress = "/";
-  const localhost = "http://localhost:8080/";
-  const defaultAddress = serverIpAddress || localhost;
-
-  const api = axios.create(); // Instance of axios with default settings.
-  var cancelRequest: CancelTokenSource | null = null;
+  const ac = new AbortController();
 
   const fetchStandings = async () => {
     setLoading(true);
 
-    // Cancel the previous request before making a new request
-    if (cancelRequest) {
-      cancelRequest.cancel("Operation canceled due to new request.");
-    }
-
     // Create a new CancelToken
-    const endpoint = `${defaultAddress}mlb/standings`;
-    let cancel: ReturnType<typeof axios.CancelToken.source> | null =
-      axios.CancelToken.source();
+    const endpoint = `mlb/standings`;
 
     try {
       const response = await api.post(
@@ -43,7 +32,7 @@ const StandingsPage: React.FC = () => {
           leagueId: division,
           seasonDt: new Date().toISOString().split("T")[0],
         },
-        { cancelToken: cancel!.token } 
+        { signal: ac.signal }
       );
 
       if (response.status !== 200)
@@ -61,7 +50,10 @@ const StandingsPage: React.FC = () => {
   };
 
   useEffect(() => {
-    const timeout = setTimeout(() => fetchStandings(), 300);
+    const timeout = setTimeout(() => {
+      ac.abort();
+      fetchStandings();
+    }, 300);
     return () => clearTimeout(timeout);
   }, [division]);
 
@@ -107,25 +99,29 @@ const StandingsPage: React.FC = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {division.teamRecords.map((team) => (
-                <Card key={team.team.id} className="hover:shadow-lg">
-                  <CardHeader>
-                    <CardTitle>{team.team.name}</CardTitle>
-                    <p className="text-sm text-gray-500">{team.divisionRank}</p>
-                  </CardHeader>
-                  <CardContent>
-                    <p>
-                      W: {team.wins} - L: {team.losses}
-                    </p>
-                    <p>GB: {team.gamesBack}</p>
-                    <p>
-                      RD:{" "}
-                      {team.runDifferential >= 0
-                        ? `+${team.runDifferential}`
-                        : team.runDifferential}
-                    </p>
-                    <p>Streak: {team.streak.streakCode}</p>
-                  </CardContent>
-                </Card>
+                <Link to={`/teams/${team.team.id}`}>
+                  <Card key={team.team.id} className="hover:shadow-lg">
+                    <CardHeader>
+                      <CardTitle>{team.team.name}</CardTitle>
+                      <p className="text-sm text-gray-500">
+                        {team.divisionRank}
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <p>
+                        W: {team.wins} - L: {team.losses}
+                      </p>
+                      <p>GB: {team.gamesBack}</p>
+                      <p>
+                        RD:{" "}
+                        {team.runDifferential >= 0
+                          ? `+${team.runDifferential}`
+                          : team.runDifferential}
+                      </p>
+                      <p>Streak: {team.streak.streakCode}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           </CardContent>

@@ -52,7 +52,13 @@ import {
   PlayerIdKey,
   ScheduleResponse,
 } from "src/interfaces";
-import { adaptHeader, adaptPlays, groupPlays, teamLogoUrl } from "src/utils";
+import {
+  adaptHeader,
+  adaptPlays,
+  groupPlays,
+  teamLogoUrl,
+  api,
+} from "src/utils";
 import axios from "axios";
 import { Spinner } from "src/components/Spinner";
 import { Link, useParams } from "react-router-dom";
@@ -106,8 +112,8 @@ function ScoreBug({ header, gamePk }: { header: GameHeader; gamePk: number }) {
   const splitAwayName = away.team.name.split(" ");
   const splitHomeName = home.team.name.split(" ");
 
-  const awayAbbr = away.team.abbr ?? splitAwayName[1];
-  const homeAbbr = home.team.abbr ?? splitHomeName[1];
+  const awayAbbr = away.team.abbr ?? splitAwayName[splitAwayName.length - 1];
+  const homeAbbr = home.team.abbr ?? splitHomeName[splitHomeName.length - 1];
 
   const awayLogo = away.logoUrl ?? teamLogoUrl(away.team.id);
   const homeLogo = home.logoUrl ?? teamLogoUrl(home.team.id);
@@ -301,12 +307,6 @@ export function PlayByPlay({
     [filtered, groupByInning]
   );
 
-  const serverIpAddress = "";
-  const localhost = "http://localhost:8080/";
-  const defaultAddress = serverIpAddress || localhost;
-
-  const api = axios.create();
-
   useEffect(() => {
     const run = async () => {
       try {
@@ -314,9 +314,9 @@ export function PlayByPlay({
 
         const gamePk = parseInt(id ?? "0");
         const ac = new AbortController();
-        const scheduleEndPoint = `${defaultAddress}mlb/schedule`;
+        const scheduleEndPoint = `mlb/schedule`;
 
-        const scheduleResp = await axios.post<ScheduleResponse>(
+        const scheduleResp = await api.post<ScheduleResponse>(
           scheduleEndPoint,
           {
             startDt: date,
@@ -336,8 +336,8 @@ export function PlayByPlay({
         }
 
         const tick = async () => {
-          const endpoint = `${defaultAddress}mlb/playbyplay`;
-          const boxscoreEndPoint = `${defaultAddress}mlb/boxscore`;
+          const endpoint = `mlb/playbyplay`;
+          const boxscoreEndPoint = `mlb/boxscore`;
 
           try {
             const [pbpResp, boxScoreResp] = await Promise.all([
@@ -411,8 +411,6 @@ export function PlayByPlay({
 
     run();
   }, [id, date]);
-
-  
 
   if (loading)
     return (

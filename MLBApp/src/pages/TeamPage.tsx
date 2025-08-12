@@ -18,6 +18,7 @@ import ErrorPage from "./ErrorPage";
 import { Skeleton } from "src/@/components/ui/skeleton";
 import { DataTable, RosterTable } from "src/components/Table";
 import { columns } from "src/data/columnDefs";
+import { api } from "src/utils";
 
 function TeamPage() {
   const { id } = useParams();
@@ -30,27 +31,19 @@ function TeamPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const cancelTokenSource = axios.CancelToken.source();
+    const ac = new AbortController();
 
     const fetchTeam = async () => {
       setLoading(true);
 
       console.log("ID:" + id);
       try {
-        const serverIpAddress = "/"; //NOTE -  Placeholder for server IP address.
-        const localhost = "http://localhost:8080/";
-
-        //Fallback to localhost if needed
-        const defaultAddress = serverIpAddress || localhost;
-
-        let endpoint = `${defaultAddress}`;
+        let endpoint = ``;
 
         if (page == TeamPages.Description) {
           endpoint += `teams?id=${id}`;
 
-          const response = await axios.get(endpoint, {
-            cancelToken: cancelTokenSource.token,
-          });
+          const response = await api.get(endpoint, { signal: ac.signal });
 
           if (response.data && response.data.teams) {
             const team = response.data.teams[0] as MlbTeamDataI;
@@ -60,8 +53,6 @@ function TeamPage() {
               (mlbTeam) =>
                 mlbTeam.team.toLowerCase() === team.name.toLowerCase()
             );
-
-            console.log("Team data:" + additionalTeamDetails);
 
             if (!additionalTeamDetails)
               throw new Error(
@@ -79,11 +70,14 @@ function TeamPage() {
           endpoint += `mlb/standings`;
           const division = 105;
 
-          const response = await axios.post<StandingsResponseV2>(endpoint, {
-            cancelToken: cancelTokenSource.token,
-            leagueId: division,
-            seasonDt: new Date().toISOString().split("T")[0],
-          });
+          const response = await api.post<StandingsResponseV2>(
+            endpoint,
+            {
+              leagueId: division,
+              seasonDt: new Date().toISOString().split("T")[0],
+            },
+            { signal: ac.signal }
+          );
 
           if (response.status !== 200) {
             throw new Error("Unable to get teams record.");
@@ -107,11 +101,14 @@ function TeamPage() {
         if (page == TeamPages.Roster) {
           endpoint += `mlb/roster`;
 
-          const response = await axios.post<RosterResponse>(endpoint, {
-            cancelToken: cancelTokenSource.token,
-            teamId: parseInt(id ? id : "114"),
-            seasonDt: new Date().toISOString().split("T")[0],
-          });
+          const response = await api.post<RosterResponse>(
+            endpoint,
+            {
+              teamId: parseInt(id ? id : "114"),
+              seasonDt: new Date().toISOString().split("T")[0],
+            },
+            { signal: ac.signal }
+          );
 
           if (response.status !== 200) {
             throw new Error("Unable to get teams record.");
@@ -138,7 +135,7 @@ function TeamPage() {
     fetchTeam();
 
     return () => {
-      cancelTokenSource.cancel("Component unmounted");
+      ac.abort();
     };
   }, [id, page]);
 

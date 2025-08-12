@@ -9,6 +9,7 @@ import {
   TableCell,
 } from "src/@/components/ui/table";
 import { THIRTY_SEC } from "src/interfaces";
+import { api } from "src/utils";
 
 type InningRow = { inning: number; away?: number; home?: number };
 
@@ -35,10 +36,9 @@ export function Boxscore({
 
     async function fetchBoxscore() {
       try {
-        const defaultAddress = "http://localhost:8080/";
-        const endpoint = `${defaultAddress}mlb/linescore`;
+        const endpoint = `mlb/linescore`;
 
-        const { data, status } = await axios.post(
+        const { data, status } = await api.post(
           endpoint,
           { gamePk },
           { signal: ac.signal }
