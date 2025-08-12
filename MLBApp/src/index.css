@@ -91,6 +91,15 @@
   }
 
   .card-content {
-    @apply absolute w-[calc(100%-8px)] h-[calc(100%-8px)] top-[4px] left-[4px] bg-slate-300 z-30 rounded-2xl;
+    @apply absolute w-[calc(100%-6px)] h-[calc(100%-6px)] top-[3px] left-[3px] bg-slate-200 z-30 rounded-2xl;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }

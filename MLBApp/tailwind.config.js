@@ -90,11 +90,7 @@ module.exports = {
             height: "0",
           },
         },
-        "border-spin": {
-          "100%": {
-            transform: "rotate(-360deg)",
-          },
-        },
+        "border-spin": { to: { transform: "rotate(-360deg)" } },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
