@@ -1,6 +1,6 @@
 import { constants } from "fs";
 import * as fs from "fs/promises";
-import { mlbTeams } from "./interfaces.js";
+import { mlbTeams } from "./interfaces/interfaces.js";
 import path from "path";
 import { fileURLToPath } from "url";
 

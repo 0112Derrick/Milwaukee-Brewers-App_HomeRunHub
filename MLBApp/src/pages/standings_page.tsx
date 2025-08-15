@@ -6,7 +6,7 @@ import {
   CardContent,
 } from "src/@/components/ui/card";
 import { Badge } from "src/@/components/ui/badge";
-import { StandingsResponseV2 } from "src/interfaces";
+import { StandingsResponseV2 } from "src/interfaces/interfaces";
 import { Spinner } from "src/components/Spinner";
 import { Link } from "react-router-dom";
 import { api } from "src/utils";
@@ -51,7 +51,6 @@ const StandingsPage: React.FC = () => {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      ac.abort();
       fetchStandings();
     }, 300);
     return () => clearTimeout(timeout);
@@ -63,7 +62,12 @@ const StandingsPage: React.FC = () => {
         <Spinner />
       </div>
     );
-  if (error) return <p className="text-red-500">{error}</p>;
+  if (error)
+    return (
+      <div className="flex flex-col items-center justify-center flex-grow">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
   if (!standings) return null;
 
   return (

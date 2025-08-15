@@ -1,4 +1,8 @@
-import { TeamRecord, Player, SplitRowExtended } from "src/interfaces";
+import {
+  TeamRecord,
+  Player,
+  SplitRowExtended,
+} from "src/interfaces/interfaces";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 
 export const columns: ColumnDef<TeamRecord>[] = [

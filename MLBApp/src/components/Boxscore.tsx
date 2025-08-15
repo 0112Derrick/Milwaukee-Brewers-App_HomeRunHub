@@ -8,7 +8,7 @@ import {
   TableHead,
   TableCell,
 } from "src/@/components/ui/table";
-import { THIRTY_SEC } from "src/interfaces";
+import { THIRTY_SEC } from "src/interfaces/interfaces";
 import { api } from "src/utils";
 
 type InningRow = { inning: number; away?: number; home?: number };

@@ -18,10 +18,11 @@ import {
   SportsLeagueId,
   StandingsResponse,
   StandingsResponseV2,
-} from "./interfaces.js";
+} from "./interfaces/interfaces.js";
 import expressStaticGzip from "express-static-gzip/index.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import { GameContentResponse } from "./interfaces/generated.game-content.types.js";
 const axios = axiosPkg.default;
 
 const __filenameResolved = fileURLToPath(import.meta.url);
@@ -161,6 +162,23 @@ export class Server {
       const resp = await axios.get<LiveFeedResponse>(
         `${this.mlbApiHost}/api/v1.1/game/${gamePk}/feed/live`
       );
+
+      return resp.data;
+    } catch (e) {
+      console.error(e);
+      return { copyright: "", innings: [] };
+    }
+  }
+
+  async fetchGameContent(gamePk: number): Promise<any> {
+    try {
+      const resp = await axios.get<GameContentResponse>(
+        `${this.mlbApiHost}/api/v1/game/${gamePk}/content`
+      );
+
+      if (resp.status !== 200 || !resp.data.media) {
+        return null;
+      }
 
       return resp.data;
     } catch (e) {
@@ -735,7 +753,19 @@ export class Server {
 
       res.json(respArr);
     });
+    this.app.post("/mlb/game-content", async (req, res) => {
+      console.log(req.body);
+      const { gamePk } = req.body;
 
+      if (typeof gamePk !== "number" && !gamePk) {
+        res.send("Error gamePk expected type is int.");
+        return;
+      }
+
+      const resp = await this.fetchGameContent(gamePk);
+
+      res.json(resp);
+    });
     this.app.post("/contact", (req, res) => {
       //NOTE - This is where you would add a database in order to store the contact info.
       console.log(req.body);

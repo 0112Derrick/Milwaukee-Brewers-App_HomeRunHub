@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import TeamCard from "../components/TeamCard";
 import SkeletonCard from "../components/SkeletonCard";
-import { MlbTeamDataI, MlbTeamDataModifiedI } from "src/interfaces";
+import { MlbTeamDataI, MlbTeamDataModifiedI } from "src/interfaces/interfaces";
 import { Button } from "src/@/components/ui/button";
 import TitleSection from "../components/TitleSection";
 import { PlayIcon } from "@radix-ui/react-icons";
@@ -19,7 +19,7 @@ const useTeams = (initialStart = 0) => {
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [start, setStart] = useState<number>(initialStart);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false); // State to track user's preference for reduced motion.
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const itemsPerPage = 9; //NOTE -  Number of items to be fetched per page.
   const ac = new AbortController();
   // Fetch teams from the server.
@@ -113,7 +113,6 @@ const useTeams = (initialStart = 0) => {
 
     // Cleanup function to remove the event listener
     return () => {
-      ac.abort();
       mediaQuery.removeEventListener("change", handler);
     };
     //eslint-disable-next-line

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "src/@/components/ui/button";
 import { Skeleton } from "src/@/components/ui/skeleton";
-import { ScheduleResponse, THREE_MINUTES } from "src/interfaces";
+import { ScheduleResponse, THREE_MINUTES } from "src/interfaces/interfaces";
 import ErrorPage from "./ErrorPage";
 import { Boxscore } from "src/components/Boxscore";
 import useScreenSize from "src/hooks/useScreenSize";
@@ -12,6 +12,7 @@ import { api, teamLogoUrl } from "src/utils";
 import DatePicker from "src/components/DatePicker";
 import { PlayCircle } from "lucide-react";
 import { GameCard } from "src/components/GameCard";
+import { ScrollArea } from "src/@/components/ui/scroll-area";
 
 export function LiveGames() {
   const [gamesData, setGamesData] = useState<ScheduleResponse | null>(null);
@@ -114,7 +115,11 @@ export function LiveGames() {
       return (
         <div className="flex flex-col flex-grow">
           <div className="w-full self-end">
-            <DatePicker date={date} setDate={setDateWrapper}></DatePicker>
+            <DatePicker
+              label="Search for games by date"
+              date={date}
+              setDate={setDateWrapper}
+            ></DatePicker>
           </div>
           No games
         </div>
@@ -220,15 +225,19 @@ export function LiveGames() {
     });
 
     return (
-      <div className="flex flex-col gap-4 flex-grow w-full h-[80vh] overflow-hidden mt-24 sm:mt-24 md:mt-24 lg:mt-20">
-        <div className="px-2 italic">
+      <div className="flex flex-col gap-4 flex-grow w-full h-[80vh] overflow-hidden mt-24 sm:mt-24 md:mt-24 lg:mt-16">
+        <div className="p-2 italic">
           Games today: {currentDayGames.totalGames}
         </div>
         <div className="self-end px-2">
-          <DatePicker date={date} setDate={setDateWrapper}></DatePicker>
+          <DatePicker
+            date={date}
+            setDate={setDateWrapper}
+            label="Search for games by date"
+          ></DatePicker>
         </div>
         {screenSize.width < 800 ? (
-          <div className="w-full overflow-auto">
+          <ScrollArea>
             <Table>
               <TableBody>
                 <div className="flex flex-wrap justify-center">
@@ -236,11 +245,13 @@ export function LiveGames() {
                 </div>
               </TableBody>
             </Table>
-          </div>
+          </ScrollArea>
         ) : (
-          <div className="grid gap-4 p-2 bg-gray-800 sm:grid-cols-2 lg:grid-cols-3 overflow-auto">
-            {games}
-          </div>
+          <ScrollArea>
+            <div className="grid gap-4 p-2 bg-gray-800 sm:grid-cols-2 lg:grid-cols-3">
+              {games}
+            </div>
+          </ScrollArea>
         )}
       </div>
     );

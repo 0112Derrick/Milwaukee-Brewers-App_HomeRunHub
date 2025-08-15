@@ -7,12 +7,12 @@ import {
   StandingsResponseV2,
   TeamPages,
   TeamRecord,
-} from "src/interfaces";
+} from "src/interfaces/interfaces";
 import { useParams } from "react-router-dom";
 import { Card } from "src/@/components/ui/card";
 import { Button } from "src/@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { MlbTeamDataModifiedI } from "src/interfaces";
+import { MlbTeamDataModifiedI } from "src/interfaces/interfaces";
 import { mlbTeamsDetails } from "src/data/teamData";
 import ErrorPage from "./ErrorPage";
 import { Skeleton } from "src/@/components/ui/skeleton";

@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "src/@/lib/utils";
 import { ScrollArea } from "src/@/components/ui/scroll-area";
-import { GameStatusBucket } from "src/interfaces";
+import { GameStatusBucket } from "src/interfaces/interfaces";
 import { mlbGameStatus } from "src/utils";
 
 function statusVisuals(bucket: GameStatusBucket) {
@@ -114,7 +114,7 @@ export function GameCard({ game, children, color }: GameCardProps) {
   const startLocal = new Date(game.gameDate).toLocaleString();
 
   return (
-    <div className="group relative w-[500px] aspect-video">
+    <div className="group relative w-[450px] aspect-video">
       <div
         className={cn(
           "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl overflow-hidden",

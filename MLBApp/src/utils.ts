@@ -4,7 +4,7 @@ import {
   PlayByPlayResponse,
   PlayEvent,
   TeamMeta,
-} from "./interfaces";
+} from "./interfaces/interfaces";
 import axios from "axios";
 
 export function groupPlays(plays: PlayEvent[]) {

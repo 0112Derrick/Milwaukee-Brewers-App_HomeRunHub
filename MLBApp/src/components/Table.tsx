@@ -19,7 +19,11 @@ import {
   TableCell,
 } from "src/@/components/ui/table";
 import { rosterColumns, splitColumns } from "src/data/columnDefs";
-import { DataTableProps, Player, SplitRowExtended } from "src/interfaces";
+import {
+  DataTableProps,
+  Player,
+  SplitRowExtended,
+} from "src/interfaces/interfaces";
 
 export function StatsTable<T extends object>({
   data,

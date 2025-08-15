@@ -4,7 +4,7 @@ import { Card } from "src/@/components/ui/card";
 import { Input } from "src/@/components/ui/input";
 import { AxiosError } from "axios";
 import Dompurify from "dompurify";
-import { formDataI } from "src/interfaces";
+import { formDataI } from "src/interfaces/interfaces";
 import { useNavigate } from "react-router-dom";
 
 import {
