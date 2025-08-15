@@ -22,7 +22,7 @@ function App() {
         <Route
           path="/"
           element={
-            <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+            <div className="flex flex-col h-screen bg-gray-900 text-white">
               <NavBar />
               <MainContent />
               <Footer />
@@ -32,7 +32,7 @@ function App() {
         <Route
           path="/teams/:id"
           element={
-            <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+            <div className="flex flex-col h-screen bg-gray-900 text-white">
               <NavBar />
               <TeamPage></TeamPage>
               <Footer />
@@ -42,7 +42,7 @@ function App() {
         <Route
           path="/contact"
           element={
-            <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+            <div className="flex flex-col h-screen bg-gray-900 text-white">
               <NavBar />
               <ContactUs></ContactUs>
               <Footer />
@@ -52,7 +52,7 @@ function App() {
         <Route
           path="/standings"
           element={
-            <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+            <div className="flex flex-col h-screen bg-gray-900 text-white">
               <NavBar />
               <StandingsPage></StandingsPage>
               <Footer />
@@ -62,7 +62,7 @@ function App() {
         <Route
           path="/about"
           element={
-            <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+            <div className="flex flex-col h-screen bg-gray-900 text-white">
               <NavBar />
               <About></About>
               <Footer />
@@ -82,7 +82,7 @@ function App() {
         <Route
           path="/games"
           element={
-            <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+            <div className="flex flex-col h-screen bg-gray-900 text-white">
               <NavBar />
               <LiveGames></LiveGames>
               <Footer />
