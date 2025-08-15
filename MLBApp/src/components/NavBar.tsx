@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 const NavBar = () => {
   const navigate = useNavigate();
   return (
-    <div className="flex flex-col fixed top-0 left-0 opacity-75 hover:opacity-95 z-10 backdrop-blur-lg w-full">
+    <div className="flex flex-col flex-shrink fixed top-0 left-0 opacity-75 hover:opacity-95 z-20 backdrop-blur-lg w-full">
       <nav className="flex items-center justify-between bg-gray-900 px-6 py-2 w-full text-white ">
         <div
           className="font-bold text-xl flex gap-2 items-center cursor-pointer"
@@ -60,9 +60,9 @@ const NavBar = () => {
               </DropdownMenuLabel>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant={"default"} onClick={() => navigate("/contact")}>
+          {/* <Button variant={"default"} onClick={() => navigate("/contact")}>
             Contact
-          </Button>
+          </Button> */}
         </div>
       </nav>
       <hr className="opacity-25 "></hr>
