@@ -66,7 +66,7 @@ import { Link, useParams } from "react-router-dom";
 import { Button } from "src/@/components/ui/button";
 import { Boxscore } from "src/components/Boxscore";
 import { GameContentResponse } from "src/interfaces/generated.game-content.types";
-import { getImagesFromGameContent } from "src/repository/images";
+import { getImagesFromGameContent, getVideo } from "src/repository/images";
 import ImageCarousel from "src/components/ImageCarousel";
 
 function resultBadgeVariant(result: PlayEvent["result"]) {
@@ -547,14 +547,7 @@ export function PlayByPlay({
     );
   }
 
-  const getVideo = () => {
-    const items =
-      gameContent?.media?.epgAlternate?.flatMap((item) => item.items ?? []) ??
-      [];
 
-    const video = items.find((v) => v.playbacks.length);
-    return video?.playbacks[0].url ?? "";
-  };
 
   return (
     <div className="flex-1 flex flex-col mt-16 overflow-hidden">
@@ -872,7 +865,7 @@ export function PlayByPlay({
                           hideHighlights ? "hidden" : "block"
                         }`}
                       >
-                        <source src={getVideo()} type="video/mp4"></source>
+                        <source src={getVideo(gameContent)} type="video/mp4"></source>
                         Your Browser does not support video tag.
                       </video>
                     )}
