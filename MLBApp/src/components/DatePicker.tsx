@@ -12,8 +12,10 @@ import { ChevronDownIcon } from "lucide-react";
 export default function DatePicker({
   date,
   setDate,
+  label,
 }: {
   date: Date | undefined;
+  label?: string;
   setDate: (arg: string | undefined | Date) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -21,7 +23,7 @@ export default function DatePicker({
   return (
     <div className="flex flex-col gap-3">
       <Label htmlFor="date" className="px-1 font-semibold">
-        Select a date
+        {label ?? "Select a date"}
       </Label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
