@@ -1166,6 +1166,7 @@ export interface BoxscoreCard {
 
 export const THIRTY_SEC = 30000;
 export const THREE_MINUTES = 1800000;
+export const FIVE_MINUTES = 3000000;
 
 export type GameStatusBucket =
   | "scheduled"

@@ -1436,3 +1436,206 @@ interface zoneColorTempValue {
   temp: string;
   value: string;
 }
+
+// export interface GameHighlightsResponse {
+//   copyright: string;
+//   link: string;
+//   editorial: {
+//     preview: any;
+//     articles: any;
+//     recap: {
+//       mlb: {
+//         type: string;
+//         state: string;
+//         date: string;
+//         headline: string;
+//         seoTitle: string;
+//         slug: string;
+//         blurb: string;
+//         keywordsAll: typeValueDisplayName[];
+//         keywordsDisplay: typeValueDisplayName[];
+//         image: Image;
+//         seoKeywords: string;
+//         body: string;
+//         contributors: { name: string }[];
+//         photo: Image;
+//         url: string;
+//         media: {
+//           type
+//         };
+//       };
+//     };
+//   };
+// }
+
+// interface Image {
+//   title: string;
+//   altText: string;
+//   templateUrl: string;
+//   cuts: {
+//     aspectRatio: string;
+//     width: number;
+//     height: number;
+//     src: string;
+//     at2x: string;
+//     at3x: string;
+//   }[];
+// }
+// interface typeValueDisplayName {
+//   type: string | null;
+//   value: string | null;
+//   displayName: string | null;
+// }
+
+// Root --------------------------------------------------------------
+
+export interface GameContentResponse {
+  copyright?: string;
+
+  // Narrative content (previews, recaps, articles)
+  editorial?: {
+    preview?: EditorialItemSet;
+    recap?: EditorialItemSet;
+    article?: EditorialItemSet;
+    // sometimes other buckets appear (columns, news, etc.)
+    [bucket: string]: EditorialItemSet | undefined;
+  };
+
+  // Video highlights (curated & live)
+  highlights?: {
+    highlights?: HighlightBucket;
+    live?: HighlightBucket;
+    // sometimes "onBase", "defense", etc. show up
+    [bucket: string]: HighlightBucket | undefined;
+  };
+
+  // Media channels/streams (MLBTV, audio, condensed game, etc.)
+  media?: {
+    epg?: EpgChannel[];
+    // occasionally extra arrays like "milestones"
+    [key: string]: unknown;
+  };
+
+  // One-liners / notes / promos sometimes show up here
+  summary?: unknown;
+  gameNotes?: unknown;
+
+  // Misc frequently present bits
+  keywordsAll?: Keyword[];
+  externalLinks?: Record<string, ExternalLink[] | undefined>;
+
+  // The API sometimes returns extra top-level props
+  [key: string]: unknown;
+}
+
+// Editorial ---------------------------------------------------------
+
+export interface EditorialItemSet {
+  mlb?: EditorialItem;               // common
+  // sometimes multiple networks: e.g., "ap", "espn"
+  [network: string]: EditorialItem | undefined;
+}
+
+export interface EditorialItem {
+  type?: string;                     // e.g., "article"
+  headline?: string;
+  subhead?: string;
+  slug?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  blurb?: string;
+  date?: string;                     // ISO timestamp
+  keywordsAll?: Keyword[];
+  image?: Image;                     // hero image
+  images?: Image[];                  // sometimes an array as well
+  body?: string;                     // HTML
+  // Additional editorial-specific fields can appear
+  [key: string]: unknown;
+}
+
+// Highlights / Videos -----------------------------------------------
+
+export interface HighlightBucket {
+  items?: HighlightItem[];
+  // sometimes there are additional grouping props
+  [key: string]: unknown;
+}
+
+export interface HighlightItem {
+  id?: number | string;
+  guid?: string;
+  title?: string;
+  blurb?: string;
+  description?: string;
+  duration?: number;                 // seconds (often a number)
+  date?: string;                     // ISO timestamp
+  keywordsAll?: Keyword[];
+  image?: Image;
+  images?: Image[];                  // sometimes array instead of single
+  playbacks?: Playback[];            // video URLs (mp4/m3u8)
+  // occasionally nested “svideo” or “ugcCredit”, etc.
+  [key: string]: unknown;
+}
+
+// Media / EPG -------------------------------------------------------
+
+export interface EpgChannel {
+  title?: string;                    // e.g., "MLBTV", "Audio"
+  platform?: string;                 // e.g., "desktop", "mobile"
+  items?: MediaItem[];
+  [key: string]: unknown;
+}
+
+export interface MediaItem {
+  id?: number | string;
+  guid?: string;
+  title?: string;
+  duration?: number;
+  image?: Image;
+  playbacks?: Playback[];
+  callLetters?: string;              // radio/TV
+  mediaPlaybackId?: string;
+  // sometimes has “type”, “locale”, “freeGame”, etc.
+  [key: string]: unknown;
+}
+
+// Shared bits -------------------------------------------------------
+
+export interface Keyword {
+  type?: string;                     // e.g., "team", "player"
+  value?: string;
+  displayName?: string;
+}
+
+export interface Image {
+  title?: string;
+  altText?: string;
+  // Most common: a responsive “cuts” map keyed by size name
+  cuts?: Record<
+    string,
+    {
+      src: string;
+      width: number;
+      height: number;
+      aspectRatio?: string;
+      position?: string;
+    }
+  >;
+  // Sometimes it’s just a flat src
+  src?: string;
+  [key: string]: unknown;
+}
+
+export interface Playback {
+  name: string;                      // e.g., "FLASH_192K_640X360", "HTTP_CLOUD_MOBILE"
+  url: string;                       // mp4 or m3u8
+  width?: number;
+  height?: number;
+  [key: string]: unknown;
+}
+
+export interface ExternalLink {
+  text?: string;
+  url: string;
+  [key: string]: unknown;
+}
