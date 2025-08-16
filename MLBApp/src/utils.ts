@@ -1,6 +1,7 @@
 import {
   GameHeader,
   GameStatusBucket,
+  MlbGame,
   PlayByPlayResponse,
   PlayEvent,
   TeamMeta,
@@ -124,3 +125,35 @@ export function parseYMDLocal(ymd: string): Date {
   const day = Number(m[3]);
   return new Date(year, monthIndex, day); // local time, not UTC
 }
+
+const RANK: Record<GameStatusBucket, number> = {
+  live: 0,
+  pregame: 1,
+  final: 2,
+  scheduled: 3,
+  delayed: 4,
+  suspended: 5,
+  postponed: 6,
+  other: 7,
+};
+
+export const sortGamesArr = (
+  arr: MlbGame[],
+  sort: GameStatusBucket = "live"
+) => {
+  const games = [...arr];
+  games.sort((a, b) => {
+    const stA = mlbGameStatus(a?.status?.detailedState ?? "");
+    const stB = mlbGameStatus(b?.status?.detailedState ?? "");
+
+    // Boost the selected bucket
+    const rankA = (stA === sort ? -100 : 0) + (RANK[stA] ?? 999);
+    const rankB = (stB === sort ? -100 : 0) + (RANK[stB] ?? 999);
+
+    if (rankA !== rankB) return rankA - rankB;
+
+    // tie-break: start time
+    return new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime();
+  });
+  return games;
+};

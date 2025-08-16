@@ -1168,15 +1168,18 @@ export const THIRTY_SEC = 30000;
 export const THREE_MINUTES = 1800000;
 export const FIVE_MINUTES = 3000000;
 
-export type GameStatusBucket =
-  | "scheduled"
-  | "pregame"
-  | "live"
-  | "final"
-  | "postponed"
-  | "suspended"
-  | "delayed"
-  | "other";
+export const GAME_STATUSES = [
+  "scheduled",
+  "pregame",
+  "live",
+  "final",
+  "postponed",
+  "suspended",
+  "delayed",
+  "other",
+] as const;
+
+export type GameStatusBucket = (typeof GAME_STATUSES)[number];
 
 export interface LiveFeedResponse {
   metaData: {
