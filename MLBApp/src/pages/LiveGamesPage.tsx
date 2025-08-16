@@ -164,6 +164,9 @@ export function LiveGames() {
         splitAwayName[splitAwayName.length - 1] ?? splitHomeName[0];
       const homeAbbr =
         splitHomeName[splitHomeName.length - 1] ?? splitHomeName[0];
+      const state = game?.status?.detailedState ?? "";
+      const bucket = mlbGameStatus(state);
+
       return (
         <Link
           to={`/games/${currentDate}/${game.gamePk}`}
@@ -174,6 +177,7 @@ export function LiveGames() {
               gamePk={game.gamePk}
               homeAbbr={homeAbbr}
               awayAbbr={awayAbbr}
+              gameStatus={bucket}
             />
           </GameCard>
         </Link>
@@ -183,7 +187,6 @@ export function LiveGames() {
     const gamesMiniScreen = currentDayGames.games.map((game) => {
       const state = game?.status?.detailedState ?? "";
       const bucket = mlbGameStatus(state);
-
       const isFinal = bucket === "final";
 
       const homeWinner =

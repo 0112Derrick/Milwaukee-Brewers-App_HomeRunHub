@@ -34,6 +34,7 @@ import {
   PlayerIdKey,
   ScheduleResponse,
   FIVE_MINUTES,
+  GameStatusBucket,
 } from "src/interfaces/interfaces";
 import {
   adaptPlays,
@@ -41,6 +42,7 @@ import {
   teamLogoUrl,
   api,
   adaptHeader,
+  mlbGameStatus,
 } from "src/utils";
 import axios from "axios";
 import { Spinner } from "src/components/Spinner";
@@ -55,9 +57,11 @@ import { InningPanel, PlayRow } from "src/components/InningPanel";
 export function ScoreBug({
   header,
   gamePk,
+  status,
 }: {
   header: GameHeader;
   gamePk: number;
+  status: GameStatusBucket;
 }) {
   const { away, home, statusText, count } = header;
   const splitAwayName = away.team.name.split(" ");
@@ -119,6 +123,7 @@ export function ScoreBug({
           gamePk={gamePk}
           awayAbbr={awayAbbr}
           homeAbbr={homeAbbr}
+          gameStatus={status}
         ></Boxscore>
       </div>
     </div>
@@ -163,6 +168,7 @@ export function PlayByPlay({
   const video = useRef<HTMLVideoElement>(null);
   let videoUnmuted = false;
   const date = gameDate ?? today.toLocaleString();
+  const [bucket, setBucket] = useState<GameStatusBucket>("other");
 
   const filtered = useMemo(() => {
     return plays.filter((p) => {
@@ -225,6 +231,9 @@ export function PlayByPlay({
         } else {
           setNoGameFound(false);
         }
+
+        const state = currentGame?.status?.detailedState ?? "";
+        setBucket(mlbGameStatus(state));
 
         const gameContentTick = async () => {
           try {
@@ -439,7 +448,11 @@ export function PlayByPlay({
           <CardContent className="flex-1 min-h-0 flex flex-col space-y-3">
             {/* Fixed content section */}
             <div className="flex-shrink-0">
-              <ScoreBug header={header ?? h} gamePk={parseInt(id ?? "0")} />
+              <ScoreBug
+                header={header ?? h}
+                gamePk={parseInt(id ?? "0")}
+                status={bucket}
+              />
               <Separator className="my-2" />
 
               {/* Filters */}

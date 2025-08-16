@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Trophy } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   Table,
@@ -8,19 +9,21 @@ import {
   TableHead,
   TableCell,
 } from "src/@/components/ui/table";
-import { THIRTY_SEC } from "src/interfaces/interfaces";
+import { GameStatusBucket, THIRTY_SEC } from "src/interfaces/interfaces";
 import { api } from "src/utils";
 
 type InningRow = { inning: number; away?: number; home?: number };
 
 export function Boxscore({
   gamePk,
+  gameStatus,
   homeAbbr,
   awayAbbr,
 }: {
   gamePk: number;
   homeAbbr?: string;
   awayAbbr?: string;
+  gameStatus: GameStatusBucket;
 }) {
   const [inningsData, setInningsData] = useState<InningRow[]>([]);
   const [totalsData, setTotalsData] = useState<{
@@ -30,6 +33,7 @@ export function Boxscore({
     away: { R: 0, H: 0, E: 0, abbr: "AWY" },
     home: { R: 0, H: 0, E: 0, abbr: "HOM" },
   });
+  const [winner, setWinner] = useState<"home" | "away" | "unknown">("unknown");
 
   useEffect(() => {
     const ac = new AbortController();
@@ -46,6 +50,14 @@ export function Boxscore({
         if (status !== 200) return;
 
         const ls = data?.liveData?.linescore;
+        const homeRuns = ls?.teams?.home?.runs;
+        const awayRuns = ls?.teams?.away?.runs;
+
+        const homeIsWinner = homeRuns > awayRuns && gameStatus == "final";
+        const awayIsWinner = homeRuns < awayRuns && gameStatus == "final";
+
+        if (homeIsWinner) setWinner("home");
+        if (awayIsWinner) setWinner("away");
 
         const innings: InningRow[] = (ls?.innings ?? []).map(
           (inn: any, i: number) => ({
@@ -96,7 +108,6 @@ export function Boxscore({
     return Math.max(9, maxInningsFromData || 0);
   }, [inningsData]);
 
-  // Helper to render a cell: number or '-'
   const val = (n: number | undefined) => (typeof n === "number" ? n : "−");
 
   // Special case: show 'X' in the bottom of the final inning
@@ -150,7 +161,16 @@ export function Boxscore({
             {/* Away row */}
             <TableRow>
               <TableCell className="sticky left-0 bg-background font-medium z-10">
-                {totalsData.away.abbr}
+                <div className="flex items-center gap-3">
+                  <span>{totalsData.away.abbr}</span>
+                  <span
+                    className={`${
+                      winner == "away" ? "visible" : "invisible"
+                    } scale-75`}
+                  >
+                    <Trophy className="fill-orange-300"></Trophy>
+                  </span>
+                </div>
               </TableCell>
               {Array.from({ length: displayedInnings }, (_, i) => i + 1).map(
                 (inn) => (
@@ -176,7 +196,16 @@ export function Boxscore({
             {/* Home row */}
             <TableRow>
               <TableCell className="sticky left-0 bg-background font-medium z-10">
-                {totalsData.home.abbr}
+                <div className="flex items-center gap-3">
+                  <span>{totalsData.home.abbr}</span>
+                  <span
+                    className={`${
+                      winner == "home" ? "visible" : "invisible"
+                    } scale-75`}
+                  >
+                    <Trophy className="fill-orange-300"></Trophy>
+                  </span>
+                </div>
               </TableCell>
               {Array.from({ length: displayedInnings }, (_, i) => i + 1).map(
                 (inn) => (
