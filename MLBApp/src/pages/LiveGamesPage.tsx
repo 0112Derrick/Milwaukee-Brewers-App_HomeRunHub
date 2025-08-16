@@ -309,7 +309,11 @@ export function LiveGames() {
             className="rounded text-black outline-none ring-0 h-6 w-20"
           >
             {GAME_STATUSES.map((val, indx) => {
-              return <Option key={indx}>{val}</Option>;
+              return (
+                <Option key={indx} value={val}>
+                  {val}
+                </Option>
+              );
             })}
           </Select>
         </Label>
