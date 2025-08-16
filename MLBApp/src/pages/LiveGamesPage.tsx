@@ -21,7 +21,7 @@ import {
   parseYMDLocal,
   sortGamesArr,
   teamLogoUrl,
-} from "src/utils";
+} from "src/utils/utils";
 import DatePicker from "src/components/DatePicker";
 import { PlayCircle, TriangleIcon } from "lucide-react";
 import { GameCard } from "src/components/GameCard";

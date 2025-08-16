@@ -42,7 +42,7 @@ import {
   api,
   adaptHeader,
   mlbGameStatus,
-} from "src/utils";
+} from "src/utils/utils";
 import axios from "axios";
 import { Spinner } from "src/components/Spinner";
 import { Link, useParams } from "react-router-dom";

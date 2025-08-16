@@ -18,7 +18,7 @@ import ErrorPage from "./ErrorPage";
 import { Skeleton } from "src/@/components/ui/skeleton";
 import { DataTable, RosterTable } from "src/components/Table";
 import { columns } from "src/data/columnDefs";
-import { api } from "src/utils";
+import { api } from "src/utils/utils";
 
 function TeamPage() {
   const { id } = useParams();

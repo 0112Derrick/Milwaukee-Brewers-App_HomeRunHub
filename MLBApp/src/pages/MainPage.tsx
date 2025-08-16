@@ -11,7 +11,7 @@ import TeamFilterRadioButtons from "../components/TeamFilterRadioButtons";
 import { mlbTeamsDetails } from "src/data/teamData";
 import ErrorPage from "./ErrorPage";
 import Dompurify from "dompurify";
-import { api } from "src/utils";
+import { api } from "src/utils/utils";
 
 // Custom React hook for managing and fetching team data.
 const useTeams = (initialStart = 0) => {

@@ -10,7 +10,7 @@ import {
   TableCell,
 } from "src/@/components/ui/table";
 import { GameStatusBucket, THIRTY_SEC } from "src/interfaces/interfaces";
-import { api } from "src/utils";
+import { api } from "src/utils/utils";
 
 type InningRow = { inning: number; away?: number; home?: number };
 

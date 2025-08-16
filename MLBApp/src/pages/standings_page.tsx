@@ -9,7 +9,7 @@ import { Badge } from "src/@/components/ui/badge";
 import { StandingsResponseV2 } from "src/interfaces/interfaces";
 import { Spinner } from "src/components/Spinner";
 import { Link } from "react-router-dom";
-import { api } from "src/utils";
+import { api } from "src/utils/utils";
 import { ScrollArea } from "src/@/components/ui/scroll-area";
 
 const StandingsPage: React.FC = () => {

@@ -17,7 +17,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
-import { api } from "src/utils";
+import { api } from "src/utils/utils";
 
 const ContactUs = () => {
   const endpoint = "contact";
