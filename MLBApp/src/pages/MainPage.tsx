@@ -279,7 +279,7 @@ const MainContent = () => {
   }
 
   return (
-    <div className="p-4 px-8 flex flex-col flex-grow">
+    <div className="p-4 px-8 flex flex-col flex-grow bg-inherit">
       <TitleSection forwardRef={teamSection}></TitleSection>
 
       <div className="p-4 px-8 flex flex-col flex-grow items-center justify-center">

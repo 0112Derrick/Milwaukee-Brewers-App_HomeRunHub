@@ -8,9 +8,15 @@ import ErrorPage from "./ErrorPage";
 import { Boxscore } from "src/components/Boxscore";
 import useScreenSize from "src/hooks/useScreenSize";
 import { Table, TableBody } from "src/@/components/ui/table";
-import { api, formatYMDLocal, parseYMDLocal, teamLogoUrl } from "src/utils";
+import {
+  api,
+  formatYMDLocal,
+  mlbGameStatus,
+  parseYMDLocal,
+  teamLogoUrl,
+} from "src/utils";
 import DatePicker from "src/components/DatePicker";
-import { PlayCircle } from "lucide-react";
+import { PlayCircle, TriangleIcon } from "lucide-react";
 import { GameCard } from "src/components/GameCard";
 import { ScrollArea } from "src/@/components/ui/scroll-area";
 import { isDate } from "date-fns";
@@ -175,6 +181,17 @@ export function LiveGames() {
     });
 
     const gamesMiniScreen = currentDayGames.games.map((game) => {
+      const state = game?.status?.detailedState ?? "";
+      const bucket = mlbGameStatus(state);
+
+      const isFinal = bucket === "final";
+
+      const homeWinner =
+        isFinal && game.teams.home.score > game.teams.away.score;
+
+      const awayWinner =
+        isFinal && game.teams.away.score > game.teams.home.score;
+
       const awayLogo = teamLogoUrl(game.teams.away.team.id);
       const homeLogo = teamLogoUrl(game.teams.home.team.id);
       const ymd = formatYMDLocal(new Date(game.gameDate));
@@ -214,7 +231,12 @@ export function LiveGames() {
                 />
                 <p>{awayAbbr}</p>
               </div>
-              <div>{game.teams.away.score ?? "-"}</div>
+              <div className="flex items-center">
+                {game.teams.away.score ?? "-"}{" "}
+                <span className={`${awayWinner ? "visible" : "invisible"}`}>
+                  <TriangleIcon className="-rotate-90 scale-50 fill-black"></TriangleIcon>
+                </span>
+              </div>
 
               <div className="flex justify-self-start gap-2 items-center">
                 <img
@@ -224,7 +246,12 @@ export function LiveGames() {
                 />
                 <p>{homeAbbr}</p>
               </div>
-              <div>{game.teams.home.score ?? "-"}</div>
+              <div className="flex items-center">
+                {game.teams.home.score ?? "-"}
+                <span className={`${homeWinner ? "visible" : "invisible"}`}>
+                  <TriangleIcon className="-rotate-90 scale-50 fill-black"></TriangleIcon>
+                </span>
+              </div>
             </div>
 
             <div className="flex-shrink px-2">

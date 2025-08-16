@@ -1,3 +1,4 @@
+import { ArrowBigRight } from "lucide-react";
 import React, { useState } from "react";
 import { Button } from "src/@/components/ui/button";
 
@@ -26,7 +27,7 @@ function TitleSection({
 
         <Button
           variant={"default"}
-          className="bg-blue-600 hover:bg-blue-500 p-6 rounded-full text-sm sm:text-base"
+          className="outline outline-white p-6 w-fit rounded-full text-sm sm:text-base hover:shadow-md hover:shadow-white"
           onClick={() => {
             if (forwardRef && forwardRef.current)
               forwardRef.current?.scrollIntoView({
@@ -41,20 +42,16 @@ function TitleSection({
             setButtonIsHovered(false);
           }}
         >
-          {!buttonIsHovered ? (
-            <span>
-              View Teams{" "}
-              <span className="inline-block p-1 scale-150">&#8250;</span>
-            </span>
-          ) : (
+          <span className="flex items-center justify-center w-fit p-1 gap-3 flex-nowrap">
+            <p className="font-semibold">View Teams</p>
             <div>
-              View Teams{" "}
-              <span className="inline-block rotate-90 p-1 text-green-300 scale-150">
-                {" "}
-                &#8250;
-              </span>
+              <ArrowBigRight
+                className={`fill-white ${
+                  buttonIsHovered ? "rotate-90 fill-blue-400" : ""
+                }`}
+              ></ArrowBigRight>
             </div>
-          )}
+          </span>
         </Button>
       </div>
     </>
