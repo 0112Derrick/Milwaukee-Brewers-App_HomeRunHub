@@ -1,12 +1,12 @@
 import axios from "axios";
-import { PlayEvent } from "./interfaces/baseballField.types";
+import { PlayEvent } from "../interfaces/baseballField.types";
 import {
   GameHeader,
   GameStatusBucket,
   MlbGame,
   PlayByPlayResponse,
   TeamMeta,
-} from "./interfaces/interfaces";
+} from "../interfaces/interfaces";
 
 export const capitalizeFirstLetter = (str: string) => {
   return str.slice(0, 1).toUpperCase() + str.slice(1);

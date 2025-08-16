@@ -56,11 +56,11 @@ import {
   BaseballFieldHandle,
   PlayEvent,
 } from "src/interfaces/baseballField.types";
+import { BaseballField } from "src/components/BaseBallField";
 import {
-  BaseballField,
   outsRecordedOnPlay,
   toRunnerMovements,
-} from "src/components/BaseBallField";
+} from "src/repository/baseballField";
 
 export function ScoreBug({
   header,
