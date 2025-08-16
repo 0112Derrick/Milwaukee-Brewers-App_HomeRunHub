@@ -298,7 +298,7 @@ export function LiveGames() {
   });
 
   return (
-    <div className="flex flex-col gap-4 flex-grow w-full h-[80vh] overflow-hidden mt-24 sm:mt-24 md:mt-24 lg:mt-16">
+    <div className="flex flex-col gap-2 flex-grow w-full h-[80vh] overflow-hidden">
       <div className="p-2 italic">Games today: {gamesData?.totalGames}</div>
       <div className="flex items-end gap-4 self-end px-2">
         <Label className="flex flex-col gap-3">
