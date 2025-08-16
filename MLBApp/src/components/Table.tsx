@@ -9,7 +9,6 @@ import {
 } from "@tanstack/react-table";
 import { useState } from "react";
 import { Fragment } from "react/jsx-runtime";
-import { ScrollArea } from "src/@/components/ui/scroll-area";
 import {
   Table,
   TableHeader,
@@ -49,48 +48,41 @@ export function StatsTable<T extends object>({
   );
 
   return (
-    <ScrollArea className="w-full rounded border overflow-auto">
-      <div className="min-w-full">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((hg) => (
-              <TableRow key={hg.id}>
-                {hg.headers
-                  .filter((header) =>
-                    visibleLeafCols.some((c) => c.id === header.id)
-                  )
-                  .map((h) => (
-                    <TableHead key={h.id} colSpan={h.colSpan}>
-                      {h.isPlaceholder
-                        ? null
-                        : flexRender(h.column.columnDef.header, h.getContext())}
-                    </TableHead>
-                  ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row
-                  .getVisibleCells()
-                  .filter((cell) =>
-                    visibleLeafCols.some((c) => c.id === cell.column.id)
-                  )
-                  .map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </ScrollArea>
+    <Table className="min-w-max">
+      <TableHeader>
+        {table.getHeaderGroups().map((hg) => (
+          <TableRow key={hg.id}>
+            {hg.headers
+              .filter((header) =>
+                visibleLeafCols.some((c) => c.id === header.id)
+              )
+              .map((h) => (
+                <TableHead key={h.id} colSpan={h.colSpan}>
+                  {h.isPlaceholder
+                    ? null
+                    : flexRender(h.column.columnDef.header, h.getContext())}
+                </TableHead>
+              ))}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {table.getRowModel().rows.map((row) => (
+          <TableRow key={row.id}>
+            {row
+              .getVisibleCells()
+              .filter((cell) =>
+                visibleLeafCols.some((c) => c.id === cell.column.id)
+              )
+              .map((cell) => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -106,42 +98,40 @@ export function RosterTable({ data }: { data: Player[] }) {
   });
 
   return (
-    <div className="overflow-x-auto w-full">
-      <div className="max-h-[70vh] w-full overflow-y-auto overscroll-contain">
-        <Table className="min-w-full">
-          <TableHeader>
-            {table.getHeaderGroups().map((hg) => (
-              <TableRow key={hg.id}>
-                {hg.headers.map((h) => (
-                  <TableHead key={h.id} colSpan={h.colSpan}>
-                    {h.isPlaceholder
-                      ? null
-                      : flexRender(h.column.columnDef.header, h.getContext())}
-                  </TableHead>
+    <div className="w-full overflow-x-auto">
+      <Table className="min-w-max">
+        <TableHeader>
+          {table.getHeaderGroups().map((hg) => (
+            <TableRow key={hg.id}>
+              {hg.headers.map((h) => (
+                <TableHead key={h.id} colSpan={h.colSpan}>
+                  {h.isPlaceholder
+                    ? null
+                    : flexRender(h.column.columnDef.header, h.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row) => (
+            <Fragment key={row.id}>
+              <TableRow>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id} className="whitespace-nowrap">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
                 ))}
               </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <Fragment key={row.id}>
-                <TableRow>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
 
-                {row.getIsExpanded() && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={row.getVisibleCells().length}
-                      className="p-4"
-                    >
+              {row.getIsExpanded() && (
+                <TableRow>
+                  <TableCell
+                    colSpan={row.getVisibleCells().length}
+                    className="p-0"
+                  >
+                    {/* Single scroll area - stats table will be part of main table width */}
+                    <div className="bg-muted/30 p-4">
                       {(() => {
                         const flattened: SplitRowExtended[] =
                           row.original.person.stats.flatMap((ps) =>
@@ -151,21 +141,24 @@ export function RosterTable({ data }: { data: Player[] }) {
                               ...split,
                             }))
                           );
+
                         return (
-                          <StatsTable
-                            data={flattened}
-                            columnDefs={splitColumns}
-                          />
+                          <div className="min-w-max">
+                            <StatsTable
+                              data={flattened}
+                              columnDefs={splitColumns}
+                            />
+                          </div>
                         );
                       })()}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </Fragment>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </Fragment>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }
