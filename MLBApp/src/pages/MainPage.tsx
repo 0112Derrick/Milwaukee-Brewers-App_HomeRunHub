@@ -20,7 +20,7 @@ const useTeams = (initialStart = 0) => {
   const [loading, setLoading] = useState(false);
   const [start, setStart] = useState<number>(initialStart);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const itemsPerPage = 9; //NOTE -  Number of items to be fetched per page.
+  const itemsPerPage = 9;
   const ac = new AbortController();
   // Fetch teams from the server.
   const fetchTeams = async (
