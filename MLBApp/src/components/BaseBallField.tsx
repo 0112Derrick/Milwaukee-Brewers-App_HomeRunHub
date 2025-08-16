@@ -58,16 +58,12 @@ export function normalizeBase(value: unknown): Base | undefined {
   return undefined;
 }
 
-function BaseMarker({
-  base,
-  active,
-  label,
-}: {
-  base: Base;
-  active?: boolean;
-  label?: string;
-}) {
+function BaseMarker({ base, label }: { base: Base; label?: string }) {
   const { x, y } = BASEBALL_FIELD_COORDS[base];
+
+  // Adjust label position to prevent cutoff
+  const labelOffset = base === "2B" ? -12 : -8;
+
   return (
     <g transform={`translate(${x} ${y})`}>
       <rect
@@ -76,14 +72,14 @@ function BaseMarker({
         width={8}
         height={8}
         transform="rotate(45)"
-        fill={active ? "#22c55e" : "transparent"}
+        fill="transparent"
         stroke="white"
         strokeWidth={1}
       />
       {!!label && (
         <text
           x={0}
-          y={-8}
+          y={labelOffset}
           textAnchor="middle"
           fontSize={6}
           fill="#e5e7eb"
@@ -99,44 +95,67 @@ function BaseMarker({
 export function RunnerPin({
   x,
   y,
-  label,
+  fromX,
+  fromY,
+  runnerId,
   color = "#0ea5e9",
+  isAnimating = false,
 }: {
   x: number;
   y: number;
-  label?: string;
+  fromX?: number;
+  fromY?: number;
+  runnerId: string;
   color?: string;
+  isAnimating?: boolean;
 }) {
   return (
-    <g>
+    <motion.g
+      key={runnerId}
+      initial={
+        fromX !== undefined && fromY !== undefined
+          ? { x: fromX, y: fromY, scale: 0.8, opacity: 0.9 }
+          : { x, y, scale: 0.8, opacity: 0.9 }
+      }
+      animate={{
+        x,
+        y,
+        scale: 1,
+        opacity: 1,
+      }}
+      exit={{
+        scale: 0.6,
+        opacity: 0,
+        transition: { duration: 0.3 },
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 120,
+        damping: 15,
+        duration: isAnimating ? 1.2 : 0.5,
+      }}
+    >
       <motion.circle
-        layout
-        cx={x}
-        cy={y}
-        r={7}
+        cx={0}
+        cy={0}
+        r={6}
         fill={color}
         stroke="white"
         strokeWidth={2}
-        initial={{ scale: 0.8, opacity: 0.9 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 240, damping: 16 }}
       />
-      {label ? (
-        <motion.text
-          layout
-          x={x}
-          y={y - 12}
-          textAnchor="middle"
-          fontSize={8}
-          fill="#0f172a"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          style={{ userSelect: "none" }}
-        >
-          {label}
-        </motion.text>
-      ) : null}
-    </g>
+      {/* Runner number inside the pin */}
+      <motion.text
+        x={0}
+        y={2}
+        textAnchor="middle"
+        fontSize={7}
+        fill="white"
+        fontWeight="bold"
+        style={{ userSelect: "none" }}
+      >
+        {runnerId.slice(-1)} {/* Show last character of runner ID */}
+      </motion.text>
+    </motion.g>
   );
 }
 
@@ -147,21 +166,44 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
   const [strikes, setStrikes] = useState<number>(0);
   const [score, setScore] = useState<{ away?: number; home?: number }>({});
   const [runners, setRunners] = useState<RunnersState>({});
-  const [occupied, setOccupied] = useState({
-    "1B": false,
-    "2B": false,
-    "3B": false,
-  });
-  const animTimer = useRef<number | null>(null);
+  const [previousRunners, setPreviousRunners] = useState<RunnersState>({});
+  const [isAnimating, setIsAnimating] = useState(false);
+  const animTimer = useRef<NodeJS.Timeout | null>(null);
 
   const hardReset = () => {
-    if (animTimer.current) cancelAnimationFrame(animTimer.current);
+    if (animTimer.current) {
+      clearTimeout(animTimer.current);
+      animTimer.current = null;
+    }
     setOuts(0);
     setBalls(0);
     setStrikes(0);
     setScore({});
     setRunners({});
-    setOccupied({ "1B": false, "2B": false, "3B": false });
+    setPreviousRunners({});
+    setIsAnimating(false);
+  };
+
+  const animateRunnerMovements = (
+    moves: RunnerMovement[],
+    nextRunners: RunnersState,
+    gameState: any
+  ) => {
+    setIsAnimating(true);
+    setPreviousRunners({ ...runners });
+
+    // Start the animation
+    setRunners(nextRunners);
+
+    // Update game state after animation starts
+    animTimer.current = setTimeout(() => {
+      setOuts(gameState.outsRecorded ?? 0);
+      setBalls(gameState.balls ?? 0);
+      setStrikes(gameState.strikes ?? 0);
+      setScore({ away: gameState.awayScore, home: gameState.homeScore });
+      setIsAnimating(false);
+      setPreviousRunners({});
+    }, 1300); // Slightly longer than animation duration
   };
 
   useImperativeHandle(ref, () => ({
@@ -174,49 +216,88 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
       awayScore,
       homeScore,
     }) => {
-      hardReset();
-
       const nextRunners: RunnersState = {};
-      const nextOcc = { "1B": false, "2B": false, "3B": false };
 
+      // Only add runners who end up on base (not out, not scored)
       for (const m of moves) {
         if (!m.out && m.to !== "home") {
           nextRunners[m.id] = m.to as "1B" | "2B" | "3B";
-          nextOcc[m.to as "1B" | "2B" | "3B"] = true;
         }
       }
 
-      animTimer.current = requestAnimationFrame(() => {
-        setRunners(nextRunners);
-        setOccupied(nextOcc);
-        setOuts(outsRecorded ?? 0);
-        setBalls(balls ?? 0);
-        setStrikes(strikes ?? 0);
-        setScore({ away: awayScore, home: homeScore });
+      // Animate the movements
+      animateRunnerMovements(moves, nextRunners, {
+        outsRecorded,
+        balls,
+        strikes,
+        awayScore,
+        homeScore,
       });
     },
   }));
 
+  // Get current and previous positions for animation
+  const getRunnerPositions = () => {
+    const positions: Array<{
+      runnerId: string;
+      x: number;
+      y: number;
+      fromX?: number;
+      fromY?: number;
+    }> = [];
+
+    // Add current runners
+    Object.entries(runners).forEach(([runnerId, base]) => {
+      const { x, y } = BASEBALL_FIELD_COORDS[base];
+      const previousBase = previousRunners[runnerId];
+      let fromX, fromY;
+
+      if (previousBase && previousBase !== base) {
+        const prevCoords = BASEBALL_FIELD_COORDS[previousBase];
+        fromX = prevCoords.x;
+        fromY = prevCoords.y;
+      }
+
+      positions.push({ runnerId, x, y, fromX, fromY });
+    });
+
+    return positions;
+  };
+
+  const runnerPositions = getRunnerPositions();
+
   return (
     <div className="relative w-full max-w-md aspect-square rounded-lg bg-emerald-900/40 border">
-      {/* diamond */}
+      {/* Diamond */}
       <div className="absolute inset-0 grid place-items-center">
-        <svg viewBox="0 0 100 100" className="w-4/5">
+        <svg viewBox="0 0 100 100" className="w-4/5 h-4/5">
+          {/* Field outline */}
           <polygon
             points="50,10 90,50 50,90 10,50"
             fill="none"
             stroke="white"
             strokeWidth={1}
           />
+
+          {/* Base markers - no longer highlight when occupied */}
           <BaseMarker base="home" label="Home" />
-          <BaseMarker base="1B" active={occupied["1B"]} label="1B" />
-          <BaseMarker base="2B" active={occupied["2B"]} label="2B" />
-          <BaseMarker base="3B" active={occupied["3B"]} label="3B" />
-          <AnimatePresence initial={false}>
-            {Object.entries(runners).map(([id, base]) => {
-              const { x, y } = BASEBALL_FIELD_COORDS[base];
-              return <RunnerPin key={id} x={x} y={y} label={base} />;
-            })}
+          <BaseMarker base="1B" label="1B" />
+          <BaseMarker base="2B" label="2B" />
+          <BaseMarker base="3B" label="3B" />
+
+          {/* Runner pins with animation */}
+          <AnimatePresence mode="popLayout">
+            {runnerPositions.map(({ runnerId, x, y, fromX, fromY }) => (
+              <RunnerPin
+                key={runnerId}
+                x={x}
+                y={y}
+                fromX={fromX}
+                fromY={fromY}
+                runnerId={runnerId}
+                isAnimating={isAnimating}
+              />
+            ))}
           </AnimatePresence>
         </svg>
       </div>
@@ -227,12 +308,19 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
           Outs: {outs}
         </span>
         <span className="text-xs bg-black/60 text-white px-2 py-1 rounded">
-          Count: B {balls ?? "-"} • S {strikes ?? "-"}
+          Count: {balls ?? "-"}-{strikes ?? "-"}
         </span>
       </div>
       <div className="absolute right-2 top-2 text-xs bg-black/60 text-white px-2 py-1 rounded">
-        Score: {score.away ?? "-"}–{score.home ?? "-"}
+        Score: {score.away ?? "-"} - {score.home ?? "-"}
       </div>
+
+      {/* Animation indicator */}
+      {isAnimating && (
+        <div className="absolute bottom-2 left-2 text-xs bg-blue-600/80 text-white px-2 py-1 rounded">
+          ⚾ Play in progress...
+        </div>
+      )}
     </div>
   );
 });
