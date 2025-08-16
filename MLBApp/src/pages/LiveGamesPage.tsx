@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button } from "src/@/components/ui/button";
 import { Skeleton } from "src/@/components/ui/skeleton";
 import { ScheduleResponse, THREE_MINUTES } from "src/interfaces/interfaces";
@@ -8,21 +8,30 @@ import ErrorPage from "./ErrorPage";
 import { Boxscore } from "src/components/Boxscore";
 import useScreenSize from "src/hooks/useScreenSize";
 import { Table, TableBody } from "src/@/components/ui/table";
-import { api, teamLogoUrl } from "src/utils";
+import { api, formatYMDLocal, parseYMDLocal, teamLogoUrl } from "src/utils";
 import DatePicker from "src/components/DatePicker";
 import { PlayCircle } from "lucide-react";
 import { GameCard } from "src/components/GameCard";
 import { ScrollArea } from "src/@/components/ui/scroll-area";
+import { isDate } from "date-fns";
 
 export function LiveGames() {
+  const { gameDate } = useParams();
   const [gamesData, setGamesData] = useState<ScheduleResponse | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>(null);
-  const [date, setDate] = useState<Date>(new Date());
+  const [date, setDate] = useState<Date>(() =>
+    gameDate ? parseYMDLocal(gameDate) : new Date()
+  );
 
   const navigate = useNavigate();
   const screenSize = useScreenSize();
+
+  useEffect(() => {
+    if (!gameDate) return;
+    setDate(parseYMDLocal(gameDate));
+  }, [gameDate]);
 
   useEffect(() => {
     const ac = new AbortController();
@@ -30,7 +39,7 @@ export function LiveGames() {
     const fetchSchedule = async () => {
       setLoading(true);
       try {
-        const currentDate = date.toLocaleDateString("en-CA");
+        const currentDate = formatYMDLocal(date);
 
         const { data } = await api.post<ScheduleResponse>(
           `mlb/schedule`,
@@ -66,8 +75,22 @@ export function LiveGames() {
     };
   }, [date]);
 
-  const setDateWrapper = (arg: string | undefined | Date) => {
-    if (arg) setDate(new Date(arg));
+  const setDateWrapper = (d: string | undefined | Date) => {
+    if (!d) {
+      d = date;
+    }
+
+    if (isDate(d)) {
+      setDate(new Date(d));
+    }
+
+    if (d && typeof d == "string") {
+      setDate(parseYMDLocal(d));
+    }
+
+    if (!d) return;
+    const next = typeof d === "string" ? d : formatYMDLocal(d);
+    navigate(`/games/${next}`, { replace: false });
   };
 
   if (loading) {
@@ -125,7 +148,7 @@ export function LiveGames() {
         </div>
       );
     }
-    const currentDate = date.toLocaleDateString("en-CA");
+    const currentDate = formatYMDLocal(date);
 
     const games = currentDayGames.games.map((game) => {
       const splitAwayName = game.teams.away.team.name.split(" ");
@@ -154,6 +177,7 @@ export function LiveGames() {
     const gamesMiniScreen = currentDayGames.games.map((game) => {
       const awayLogo = teamLogoUrl(game.teams.away.team.id);
       const homeLogo = teamLogoUrl(game.teams.home.team.id);
+      const ymd = formatYMDLocal(new Date(game.gameDate));
 
       const awayAbbr =
         game.teams.away.team.name.split(" ")[1] ??
@@ -162,7 +186,7 @@ export function LiveGames() {
         game.teams.home.team.name.split(" ")[1] ??
         game.teams.home.team.name.split(" ")[0];
 
-      const gameHref = `/games/${game.gameDate.split("T")[0]}/${game.gamePk}`;
+      const gameHref = `/games/${ymd}/${game.gamePk}`;
       const videoHref = `https://www.mlb.com/stories/game/${game.gamePk}`;
 
       return (

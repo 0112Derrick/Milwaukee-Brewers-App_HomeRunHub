@@ -106,3 +106,21 @@ export function mlbGameStatus(detailedState: string): GameStatusBucket {
 export const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
 });
+
+export function formatYMDLocal(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Parse "YYYY-MM-DD" as a local Date at local midnight. */
+export function parseYMDLocal(ymd: string): Date {
+  // Basic guard
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+  if (!m) throw new Error(`Invalid YMD: ${ymd}`);
+  const year = Number(m[1]);
+  const monthIndex = Number(m[2]) - 1; // 0-based
+  const day = Number(m[3]);
+  return new Date(year, monthIndex, day); // local time, not UTC
+}

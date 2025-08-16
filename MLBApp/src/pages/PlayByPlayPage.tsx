@@ -14,12 +14,7 @@ import {
 import { ScrollArea } from "src/@/components/ui/scroll-area";
 import { Badge } from "src/@/components/ui/badge";
 import { Separator } from "src/@/components/ui/separator";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "src/@/components/ui/accordion";
+import { Accordion } from "src/@/components/ui/accordion";
 import { ToggleGroup, ToggleGroupItem } from "src/@/components/ui/toggle-group";
 import {
   Table,
@@ -29,19 +24,6 @@ import {
   TableHeader,
   TableRow,
 } from "src/@/components/ui/table";
-import { cn } from "src/@/lib/utils"; // optional shadcn helper – remove or swap for your own
-import {
-  ChevronDown,
-  ChevronRight,
-  CircleDot,
-  Flag,
-  Trophy,
-  Drill,
-  Ban,
-  AlertTriangle,
-  Play as PlayIcon,
-  SquareGanttChart,
-} from "lucide-react";
 import {
   PlayEvent,
   GameHeader,
@@ -68,49 +50,15 @@ import { Boxscore } from "src/components/Boxscore";
 import { GameContentResponse } from "src/interfaces/generated.game-content.types";
 import { getImagesFromGameContent, getVideo } from "src/repository/images";
 import ImageCarousel from "src/components/ImageCarousel";
+import { InningPanel, PlayRow } from "src/components/InningPanel";
 
-function resultBadgeVariant(result: PlayEvent["result"]) {
-  switch (result) {
-    case "Home Run":
-      return "destructive" as const;
-    case "Triple":
-    case "Double":
-    case "Single":
-      return "default" as const;
-    case "Walk":
-    case "Hit By Pitch":
-      return "secondary" as const;
-    case "Strikeout":
-    case "Out":
-      return "outline" as const;
-    default:
-      return "outline" as const;
-  }
-}
-
-function ResultIcon({ result }: { result: PlayEvent["result"] }) {
-  switch (result) {
-    case "Home Run":
-      return <Trophy className="h-4 w-4" />;
-    case "Triple":
-      return <SquareGanttChart className="h-4 w-4" />;
-    case "Double":
-      return <Drill className="h-4 w-4" />;
-    case "Single":
-      return <CircleDot className="h-4 w-4" />;
-    case "Walk":
-      return <Flag className="h-4 w-4" />;
-    case "Hit By Pitch":
-      return <AlertTriangle className="h-4 w-4" />;
-    case "Strikeout":
-      return <Ban className="h-4 w-4" />;
-    case "Out":
-    default:
-      return <PlayIcon className="h-4 w-4" />;
-  }
-}
-
-function ScoreBug({ header, gamePk }: { header: GameHeader; gamePk: number }) {
+export function ScoreBug({
+  header,
+  gamePk,
+}: {
+  header: GameHeader;
+  gamePk: number;
+}) {
   const { away, home, statusText, count } = header;
   const splitAwayName = away.team.name.split(" ");
   const splitHomeName = home.team.name.split(" ");
@@ -177,102 +125,6 @@ function ScoreBug({ header, gamePk }: { header: GameHeader; gamePk: number }) {
   );
 }
 
-function PlayRow({
-  play,
-  onClick,
-}: {
-  play: PlayEvent; // see updated type below
-  onClick?: (p: PlayEvent) => void;
-}) {
-  const scoring = play.isScoringPlay;
-  const batterName = play.matchup?.batter?.fullName ?? "";
-  const rbi = play.resultObj?.rbi ?? 0;
-
-  return (
-    <TableRow
-      className={cn(
-        "hover:bg-muted/50 transition-colors",
-        scoring && "bg-amber-50 dark:bg-amber-900/20"
-      )}
-      onClick={() => onClick?.(play)}
-    >
-      <TableCell className="w-[44px] text-muted-foreground tabular-nums text-xs">
-        {play.count ?? ""}
-      </TableCell>
-      <TableCell className="w-[44px] text-muted-foreground tabular-nums text-xs">
-        {play.outsAfter ?? ""}
-      </TableCell>
-      <TableCell className="w-[140px]">
-        <div className="flex items-center gap-2">
-          <ResultIcon result={play.result} />
-          <Badge variant={resultBadgeVariant(play.result)}>{play.result}</Badge>
-        </div>
-      </TableCell>
-      <TableCell>
-        <div className="leading-tight">
-          <div className="font-medium">{play.description}</div>
-          <div className="text-xs text-muted-foreground">
-            {batterName}
-            {rbi > 0 ? ` • ${rbi} RBI` : ""}
-          </div>
-        </div>
-      </TableCell>
-      <TableCell className="w-[80px] text-right tabular-nums">
-        {play.awayScore != null && play.homeScore != null ? (
-          <span>
-            {play.awayScore}-{play.homeScore}
-          </span>
-        ) : null}
-      </TableCell>
-    </TableRow>
-  );
-}
-
-function InningPanel({
-  title,
-  plays,
-  onPlayClick,
-}: {
-  title: string;
-  plays: PlayEvent[];
-  onPlayClick?: (p: PlayEvent) => void;
-}) {
-  return (
-    <AccordionItem value={title} className="border-none">
-      <AccordionTrigger className="px-0 text-left hover:no-underline">
-        <div className="flex items-center gap-2">
-          <ChevronRight className="h-4 w-4 data-[state=open]:hidden" />
-          <ChevronDown className="h-4 w-4 hidden data-[state=open]:block" />
-          <span className="font-semibold">{title}</span>
-          <Badge variant="outline" className="ml-2">
-            {plays.length} plays
-          </Badge>
-        </div>
-      </AccordionTrigger>
-      <AccordionContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[44px]">Ct</TableHead>
-                <TableHead className="w-[44px]">Out</TableHead>
-                <TableHead className="w-[140px]">Result</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Score</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {plays.map((p) => (
-                <PlayRow key={p.id} play={p} onClick={onPlayClick} />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </AccordionContent>
-    </AccordionItem>
-  );
-}
-
 export function PlayByPlay({
   groupByInning = true,
   initialFilter = "all",
@@ -287,6 +139,7 @@ export function PlayByPlay({
     initialFilter
   );
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const prmRef = useRef(prefersReducedMotion);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -309,7 +162,7 @@ export function PlayByPlay({
 
   const video = useRef<HTMLVideoElement>(null);
   let videoUnmuted = false;
-  const date = gameDate ?? today;
+  const date = gameDate ?? today.toLocaleString();
 
   const filtered = useMemo(() => {
     return plays.filter((p) => {
@@ -326,9 +179,26 @@ export function PlayByPlay({
   );
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
+    prmRef.current = prefersReducedMotion;
+  }, [prefersReducedMotion]);
 
+  useEffect(() => {
+    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handler = (e: MediaQueryListEvent | MediaQueryList) =>
+      setPrefersReducedMotion(
+        "matches" in e ? e.matches : (e as MediaQueryList).matches
+      );
+
+    handler(mql);
+    mql.addEventListener?.("change", handler);
+
+    return () => {
+      mql.removeEventListener?.("change", handler);
+      // mql.removeListener && mql.removeListener(handler);
+    };
+  }, []);
+
+  useEffect(() => {
     const run = async () => {
       try {
         setLoading(true);
@@ -381,11 +251,11 @@ export function PlayByPlay({
             if (
               !gameContentResp.data ||
               (!imagesExist && !videoExist) ||
-              (!imagesExist && videoExist && prefersReducedMotion)
+              (!imagesExist && videoExist && prmRef.current)
             ) {
               setHideHighlights(true);
             } else {
-              if (!videoExist || prefersReducedMotion) {
+              if (!videoExist || prmRef.current) {
                 setHideVideoHighlights(true);
               }
               setHideHighlights(false);
@@ -467,6 +337,7 @@ export function PlayByPlay({
           ac.abort();
           window.clearInterval(tickId);
           window.clearInterval(gameContentTickId);
+          // Cleanup function to remove the event listener
         };
       } catch (err: any) {
         if (!axios.isCancel(err))
@@ -524,7 +395,7 @@ export function PlayByPlay({
         <div className="flex-shrink-0 mt-16 p-4">
           <div className="flex flex-col w-full items-center justify-center">
             <div className="w-fit my-4 flex gap-4 items-center">
-              <Link to={`/games`} className="w-full h-full">
+              <Link to={`/games/${date}`} className="w-full h-full">
                 <Button variant={"secondary"} className="bg-blue-300">
                   Back
                 </Button>
@@ -547,21 +418,19 @@ export function PlayByPlay({
     );
   }
 
-
-
   return (
     <div className="flex-1 flex flex-col mt-16 overflow-hidden">
       {/* Main content - takes remaining space */}
       <div className="flex-1 pt-0 min-h-0">
         <Card className="w-full h-full flex flex-col rounded-none">
           <div className="flex-shrink-0 p-4">
-            <div className="w-full my-4 flex gap-4 items-end">
-              <Link to={`/games`} className="w-full h-full">
+            <div className="w-full my-4 gap-4 flex flex-col justify-center items-end">
+              <Link to={`/games/${date}`}>
                 <Button variant={"secondary"} className="bg-blue-300">
                   Back
                 </Button>
               </Link>
-              <div>Last update time: {lastUpdateTime}</div>
+              <p className="text-xs">Last update time: {lastUpdateTime}</p>
             </div>
           </div>
           <CardHeader className="flex-shrink-0 pb-4">
@@ -838,9 +707,11 @@ export function PlayByPlay({
                     {hideVideoHighlights ? (
                       <ImageCarousel
                         images={gameImages}
-                        autoPlay={{ delay: 5000 }}
+                        autoPlay={{
+                          delay: prmRef.current ? 10000 : 5000,
+                        }}
                         classN="basis-3/4"
-                        opts={{ align: "center", loop: true }}
+                        opts={{ align: "center", dragFree: true, loop: true }}
                       ></ImageCarousel>
                     ) : (
                       <video
@@ -865,7 +736,10 @@ export function PlayByPlay({
                           hideHighlights ? "hidden" : "block"
                         }`}
                       >
-                        <source src={getVideo(gameContent)} type="video/mp4"></source>
+                        <source
+                          src={getVideo(gameContent)}
+                          type="video/mp4"
+                        ></source>
                         Your Browser does not support video tag.
                       </video>
                     )}

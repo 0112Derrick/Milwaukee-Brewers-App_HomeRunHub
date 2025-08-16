@@ -80,7 +80,7 @@ function App() {
           }
         ></Route>
         <Route
-          path="/games"
+          path="/games/:gameDate?"
           element={
             <div className="flex flex-col h-screen bg-gray-900 text-white">
               <NavBar />
