@@ -9,7 +9,7 @@ import {
   TeamRecord,
 } from "src/interfaces/interfaces";
 import { useParams } from "react-router-dom";
-import { Card } from "src/@/components/ui/card";
+import { Card, CardContent, CardHeader } from "src/@/components/ui/card";
 import { Button } from "src/@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { MlbTeamDataModifiedI } from "src/interfaces/interfaces";
@@ -141,7 +141,7 @@ function TeamPage() {
 
   const InnerNav = () => {
     return (
-      <div className="flex self-end gap-4 p-4 text-black">
+      <div className="flex flex-shrink self-end gap-4 p-4 text-black">
         <Button
           variant={"outline"}
           className="bg-blue-500 hover:bg-blue-600 text-lg text-white hover:text-white"
@@ -206,127 +206,145 @@ function TeamPage() {
   if (team) {
     if (page == TeamPages.Description) {
       return (
-        <div className="flex flex-grow flex-col w-full h-full mt-24 items-center justify-center">
-          <InnerNav></InnerNav>
-          <Card className="flex items-center flex-wrap justify-evenly gap-8 sm:gap-12 h-fit px-2 py-8 sm:p-24 border-0 md:border-2 space-y-4 bg-inherit rounded-md">
-            <div className="flex flex-col gap-8">
+        <div className="flex flex-col flex-grow items-center w-full pb-6 overflow-auto">
+          <div className="w-full self-end flex flex-col">
+            <InnerNav></InnerNav>
+          </div>
+          <Card className="flex items-center flex-wrap justify-evenly flex-1 p-4 gap-4 border-0 sm:border-0 sm:gap-12 sm:p-24 md:p-4 lg:border-2 bg-inherit rounded-md">
+            <CardContent className="flex flex-wrap gap-8">
               <img
                 src={team.logo}
                 alt={`${team.name} Logo`}
-                className="w-28 h-28 sm:w-48 sm:h-48 object-contain"
+                className="w-20 h-20 sm:w-48 sm:h-48 md:h-20 md:w-20 justify-self-center self-center object-contain"
               />
-            </div>
-            <div className="flex flex-col items-center bg-gray-800 text-white text-center px-4 py-8 sm:p-8 rounded-lg shadow-lg">
-              <h1 className="text-2xl sm:text-4xl py-4">
-                <span
-                  className="shadow-md bg-white rounded-md p-1"
-                  style={{
-                    color: team.color,
-                    boxShadow: `${team.color} 1px 1px 3px`,
-                  }}
-                >
-                  {team.name}
-                </span>
-                <span className="text-xl"> , affectionately known as </span>
-                {team.nickname}
-              </h1>
-              <p className="text-xl">
-                Proud members of the {team.league} and dominating the{" "}
-                <strong>{team.division} Division.</strong>
-              </p>
-              <p className="text-lg sm:text-xl py-2">
-                {team.hallOfFamePlayers > 1 ? (
-                  <span>
-                    Founded in {team.founded}, our team has a rich history with{" "}
-                    <strong>{team.hallOfFamePlayers}</strong> Hall of Fame
-                    players.
+
+              <div className="flex flex-col items-center bg-gray-800 text-white text-center px-4 py-8 sm:p-8 rounded-lg shadow-lg">
+                <h1 className="text-2xl sm:text-4xl py-4">
+                  <span
+                    className="shadow-md bg-white rounded-md p-1"
+                    style={{
+                      color: team.color,
+                      boxShadow: `${team.color} 1px 1px 3px`,
+                    }}
+                  >
+                    {team.name}
                   </span>
-                ) : team.hallOfFamePlayers === 1 ? (
-                  <span>
-                    Founded in {team.founded}, our team has{" "}
-                    <strong>{team.hallOfFamePlayers}</strong> Hall of Fame
-                    player.
-                  </span>
-                ) : (
-                  <span>
-                    Founded in {team.founded}, our team is building our current{" "}
-                    players to be hall of famers.
-                  </span>
-                )}
-              </p>
-              <p className="text-lg sm:text-xl py-2 max-w-[85%]">
-                {team.name === "New York Yankees" ? (
-                  <span>
-                    With a record{" "}
-                    <strong>
-                      {team.worldSeriesTitles} World Series victories
-                    </strong>
-                    , the Yankees stand as a monumental franchise in sports
-                    history, epitomizing baseball excellence.
-                  </span>
-                ) : team.worldSeriesTitles === 0 ? (
-                  <span>
-                    While we're still chasing our first World Series title, our
-                    passion and determination remain unwavering. Join us as we
-                    strive for greatness.
-                  </span>
-                ) : team.worldSeriesTitles >= 5 ? (
-                  <span>
-                    With{" "}
-                    <strong>
-                      {team.worldSeriesTitles} World Series titles
-                    </strong>{" "}
-                    under our belt, we're a team with a storied legacy of
-                    triumphs. Come experience the excellence.
-                  </span>
-                ) : (
-                  <span>
-                    We've won the World Series{" "}
-                    <strong>{team.worldSeriesTitles} times</strong>, a testament
-                    to our enduring excellence.
-                  </span>
-                )}
-              </p>
-              <p className="text-lg sm:text-xl py-2">
-                Join us in {team.city}, {team.state} for thrilling games and
-                unforgettable memories.
-              </p>
-              <div className="mt-8">
-                <a
-                  href={`${team.url}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-lg bg-blue-600 hover:bg-blue-700 shadow-md shadow-black hover:shadow-none text-white font-bold py-2 px-2 sm:px-4 rounded-full"
-                >
-                  Learn More About Us
-                </a>
+                  <span className="text-xl"> , affectionately known as </span>
+                  {team.nickname}
+                </h1>
+                <p className="text-xl">
+                  Proud members of the {team.league} and dominating the{" "}
+                  <strong>{team.division} Division.</strong>
+                </p>
+                <p className="text-lg sm:text-xl py-2">
+                  {team.hallOfFamePlayers > 1 ? (
+                    <span>
+                      Founded in {team.founded}, our team has a rich history
+                      with <strong>{team.hallOfFamePlayers}</strong> Hall of
+                      Fame players.
+                    </span>
+                  ) : team.hallOfFamePlayers === 1 ? (
+                    <span>
+                      Founded in {team.founded}, our team has{" "}
+                      <strong>{team.hallOfFamePlayers}</strong> Hall of Fame
+                      player.
+                    </span>
+                  ) : (
+                    <span>
+                      Founded in {team.founded}, our team is building our
+                      current players to be hall of famers.
+                    </span>
+                  )}
+                </p>
+                <p className="text-lg sm:text-xl py-2 max-w-[85%]">
+                  {team.name === "New York Yankees" ? (
+                    <span>
+                      With a record{" "}
+                      <strong>
+                        {team.worldSeriesTitles} World Series victories
+                      </strong>
+                      , the Yankees stand as a monumental franchise in sports
+                      history, epitomizing baseball excellence.
+                    </span>
+                  ) : team.worldSeriesTitles === 0 ? (
+                    <span>
+                      While we're still chasing our first World Series title,
+                      our passion and determination remain unwavering. Join us
+                      as we strive for greatness.
+                    </span>
+                  ) : team.worldSeriesTitles >= 5 ? (
+                    <span>
+                      With{" "}
+                      <strong>
+                        {team.worldSeriesTitles} World Series titles
+                      </strong>{" "}
+                      under our belt, we're a team with a storied legacy of
+                      triumphs. Come experience the excellence.
+                    </span>
+                  ) : (
+                    <span>
+                      We've won the World Series{" "}
+                      <strong>{team.worldSeriesTitles} times</strong>, a
+                      testament to our enduring excellence.
+                    </span>
+                  )}
+                </p>
+                <p className="text-lg sm:text-xl py-2">
+                  Join us in {team.city}, {team.state} for thrilling games and
+                  unforgettable memories.
+                </p>
+                <div className="mt-8">
+                  <a
+                    href={`${team.url}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-lg bg-blue-600 hover:bg-blue-700 shadow-md shadow-black hover:shadow-none text-white font-bold py-2 px-2 sm:px-4 rounded-full"
+                  >
+                    Learn More About Us
+                  </a>
+                </div>
               </div>
-            </div>
+            </CardContent>
           </Card>
         </div>
       );
     }
     if (page == TeamPages.DivisionRanking) {
       return (
-        <div className="flex flex-grow flex-col w-full h-full p-8 mt-24">
+        <div className="flex flex-col flex-grow items-center flex-1 gap-4">
           <InnerNav></InnerNav>
-          <Card className="w-full pb-12 rounded-md">
-            <div className="h-[50%]">
+          <Card className="flex-1 w-full rounded-none">
+            <CardHeader>
+              <span className="font-semibold text-lg text-card-foreground">
+                {team.name}
+              </span>
+            </CardHeader>
+            <CardContent className="p-0">
               <DataTable columns={columns} data={divisionData}></DataTable>
-            </div>
+            </CardContent>
           </Card>
         </div>
       );
     }
     if (page == TeamPages.Roster) {
       return (
-        <div className="flex flex-grow flex-col w-full h-full mt-24 items-center justify-center">
-          <InnerNav></InnerNav>
-          <Card className="w-[95%] rounded-md">
-            <div className="min-w-full overflow-hidden">
-              <RosterTable data={rosterData}></RosterTable>
-            </div>
-          </Card>
+        <div className="flex-1 min-h-0 w-full flex flex-col">
+          <div className="flex-shrink-0 self-end">
+            <InnerNav />
+          </div>
+
+          <div className="flex-1 min-h-0">
+            <Card className="h-full flex flex-col overflow-hidden rounded-none">
+              <CardHeader className="flex-shrink-0">
+                <span className="font-semibold text-lg text-card-foreground">
+                  {team.name}
+                </span>
+              </CardHeader>
+              <CardContent className="flex-1 min-h-0 min-w-full overflow-x-hidden p-0">
+                <RosterTable data={rosterData} />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       );
     }
