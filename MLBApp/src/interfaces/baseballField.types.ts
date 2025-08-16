@@ -10,6 +10,11 @@ export type FieldSimArgs = {
   runners: RunnerMovement[];
   outsRecorded: number;
   rbi?: number;
+
+  balls?: number; // 0–3
+  strikes?: number; // 0–2
+  awayScore?: number; // snapshot at time of play
+  homeScore?: number; // snapshot at time of play
 };
 
 export type BaseballFieldHandle = {
@@ -18,6 +23,7 @@ export type BaseballFieldHandle = {
 
 export type Base = "home" | "1B" | "2B" | "3B";
 export type TeamSide = "home" | "away";
+export type RunnersState = Record<string, Base>;
 
 export type PlayEvent = {
   id: string;
@@ -39,16 +45,11 @@ export type PlayEvent = {
   runnersRaw?: PlayByPlayRunners[];
 };
 
-export const BASEBALL_FIELD_COORDS = {
-  H: { x: 200, y: 340 },
-  "1B": { x: 320, y: 220 },
-  "2B": { x: 200, y: 100 },
-  "3B": { x: 80, y: 220 },
-  P: { x: 200, y: 210 },
-  // some simple OF spots
-  LF: { x: 70, y: 40 },
-  CF: { x: 200, y: 20 },
-  RF: { x: 330, y: 40 },
+export const BASEBALL_FIELD_COORDS: Record<Base, { x: number; y: number }> = {
+  home: { x: 50, y: 90 },
+  "1B": { x: 90, y: 50 },
+  "2B": { x: 50, y: 10 },
+  "3B": { x: 10, y: 50 },
 };
 
 export type RunnerMovement = {

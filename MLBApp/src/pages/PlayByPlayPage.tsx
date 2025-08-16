@@ -204,6 +204,10 @@ export function PlayByPlay({
       runners,
       outsRecorded: outs,
       rbi: play.resultObj?.rbi,
+      balls: play.count ? Number(play.count.split("-")[0]) : undefined, // if you encode like "3-2"
+      strikes: play.count ? Number(play.count.split("-")[1]) : undefined,
+      awayScore: play.awayScore,
+      homeScore: play.homeScore,
     });
   };
 
