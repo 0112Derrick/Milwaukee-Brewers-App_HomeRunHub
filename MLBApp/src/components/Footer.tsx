@@ -1,7 +1,6 @@
 const Footer = () => {
   return (
-    <footer className="flex-shrink text-center py-4 mb-2 bg-gray-900 text-white w-full">
-      <hr className="opacity-25 p-4 w-full"></hr>
+    <footer className="flex-shrink flex flex-col items-center p-4 justify-center bg-gray-900 text-white w-full border-t-2 border-t-white">
       <span>© 2024 Home Run Hub. All rights reserved.</span>
     </footer>
   );
