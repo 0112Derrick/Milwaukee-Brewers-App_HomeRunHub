@@ -1,4 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
+import { PlayEvent } from "./baseballField.types";
 
 export interface Link {
   link: string;
@@ -419,25 +420,6 @@ export type PbPTeamInfo = {
   abbr: string;
   logoUrl?: string;
   score: number;
-};
-
-export type TeamSide = "home" | "away";
-export type PlayEvent = {
-  id: string;
-  inning: number;
-  half: "top" | "bottom";
-  team: "home" | "away";
-  result: string; // e.g. "single", "strikeout"
-  description: string;
-  count?: string; // like "3-2"
-  outsAfter?: number;
-  awayScore?: number;
-  homeScore?: number;
-  isScoringPlay: boolean;
-
-  // carry raw objects so the row can read what it needs:
-  resultObj?: PlayByPlayResult;
-  matchup?: Pick<PlayByPlayMatchup, "batter">;
 };
 
 // Reuse your existing PlayByPlayCount from the server types

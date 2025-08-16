@@ -25,7 +25,7 @@ import {
   Table,
 } from "src/@/components/ui/table";
 import { cn } from "src/@/lib/utils";
-import { PlayEvent } from "src/interfaces/interfaces";
+import { PlayEvent } from "src/interfaces/baseballField.types";
 
 export function resultBadgeVariant(result: PlayEvent["result"]) {
   switch (result) {
@@ -72,7 +72,7 @@ export function PlayRow({
   play,
   onClick,
 }: {
-  play: PlayEvent; // see updated type below
+  play: PlayEvent;
   onClick?: (p: PlayEvent) => void;
 }) {
   const scoring = play.isScoringPlay;

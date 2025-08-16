@@ -1,12 +1,23 @@
+import axios from "axios";
+import { PlayEvent } from "./interfaces/baseballField.types";
 import {
   GameHeader,
   GameStatusBucket,
   MlbGame,
   PlayByPlayResponse,
-  PlayEvent,
   TeamMeta,
 } from "./interfaces/interfaces";
-import axios from "axios";
+
+export const capitalizeFirstLetter = (str: string) => {
+  return str.slice(0, 1).toUpperCase() + str.slice(1);
+};
+
+// Optional helper to derive a team logo if you don’t pass one
+export const teamLogoUrl = (
+  teamId: number,
+  theme: "dark" | "light" = "dark",
+  variant: "cap" | "primary" = "cap"
+) => `https://www.mlbstatic.com/team-logos/${teamId}.svg`;
 
 export function groupPlays(plays: PlayEvent[]) {
   const map = new Map<string, PlayEvent[]>();
@@ -43,6 +54,11 @@ export function adaptPlays(resp: PlayByPlayResponse): PlayEvent[] {
     isScoringPlay: p.about.isScoringPlay,
     resultObj: p.result,
     matchup: { batter: p.matchup?.batter },
+    runnersRaw: Array.isArray(p.runners)
+      ? p.runners
+      : p.runners
+      ? [p.runners]
+      : [],
   }));
 }
 
@@ -77,17 +93,6 @@ export function adaptHeader(
     count: last?.count ?? { balls: 0, strikes: 0, outs: 0 },
   };
 }
-
-export const capitalizeFirstLetter = (str: string) => {
-  return str.slice(0, 1).toUpperCase() + str.slice(1);
-};
-
-// Optional helper to derive a team logo if you don’t pass one
-export const teamLogoUrl = (
-  teamId: number,
-  theme: "dark" | "light" = "dark",
-  variant: "cap" | "primary" = "cap"
-) => `https://www.mlbstatic.com/team-logos/${teamId}.svg`;
 
 export function mlbGameStatus(detailedState: string): GameStatusBucket {
   const s = detailedState.toLowerCase();
