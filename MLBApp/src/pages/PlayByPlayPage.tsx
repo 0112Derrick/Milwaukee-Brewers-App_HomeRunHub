@@ -401,7 +401,7 @@ export function PlayByPlay({
   if (noGameFound) {
     return (
       <div className="h-screen overflow-hidden flex flex-col">
-        <div className="flex-shrink-0 mt-16 p-4">
+        <div className="flex-shrink-0 p-4">
           <div className="flex flex-col w-full items-center justify-center">
             <div className="w-fit my-4 flex gap-4 items-center">
               <Link to={`/games/${date}`} className="w-full h-full">
@@ -428,164 +428,159 @@ export function PlayByPlay({
   }
 
   return (
-    <div className="flex-1 flex flex-col mt-16 overflow-hidden">
-      {/* Main content - takes remaining space */}
-      <div className="flex-1 pt-0 min-h-0">
-        <Card className="w-full h-full flex flex-col rounded-none">
-          <div className="flex-shrink-0 p-4">
-            <div className="w-full my-4 gap-4 flex flex-col justify-center items-end">
-              <Link to={`/games/${date}`}>
-                <Button variant={"secondary"} className="bg-blue-300">
-                  Back
-                </Button>
-              </Link>
-              <p className="text-xs">Last update time: {lastUpdateTime}</p>
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <Card className="w-full flex-grow flex flex-col rounded-none">
+        <div className="flex-shrink-0 p-4">
+          <div className="w-full my-4 gap-4 flex flex-col justify-center items-end">
+            <Link to={`/games/${date}`}>
+              <Button variant={"secondary"} className="bg-blue-300">
+                Back
+              </Button>
+            </Link>
+            <p className="text-xs">Last update time: {lastUpdateTime}</p>
+          </div>
+        </div>
+        <CardHeader className="flex-shrink-0 pb-4">
+          <CardTitle className="text-xl">Play-by-Play</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 min-h-0 flex flex-col space-y-3">
+          {/* Fixed content section */}
+          <div className="flex-shrink-0">
+            <ScoreBug
+              header={header ?? h}
+              gamePk={parseInt(id ?? "0")}
+              status={bucket}
+            />
+            <Separator className="my-2" />
+
+            {/* Filters */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <ToggleGroup
+                type="single"
+                value={filter}
+                onValueChange={(v) => v && setFilter(v as any)}
+              >
+                <ToggleGroupItem value="all">All plays</ToggleGroupItem>
+                <ToggleGroupItem value="scoring">Scoring</ToggleGroupItem>
+                <ToggleGroupItem value="home">Home batting</ToggleGroupItem>
+                <ToggleGroupItem value="away">Away batting</ToggleGroupItem>
+              </ToggleGroup>
+
+              <Tabs value={tab} onValueChange={setTab} className="ml-auto">
+                <TabsList>
+                  <TabsTrigger value="pbp">PBP</TabsTrigger>
+                  <TabsTrigger value="lineups">Lineups</TabsTrigger>
+                  <TabsTrigger
+                    value="highlights"
+                    className={`${hideHighlights ? "hidden" : "block"}`}
+                  >
+                    Highlights
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
           </div>
-          <CardHeader className="flex-shrink-0 pb-4">
-            <CardTitle className="text-xl">Play-by-Play</CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 min-h-0 flex flex-col space-y-3">
-            {/* Fixed content section */}
-            <div className="flex-shrink-0">
-              <ScoreBug
-                header={header ?? h}
-                gamePk={parseInt(id ?? "0")}
-                status={bucket}
-              />
-              <Separator className="my-2" />
 
-              {/* Filters */}
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <ToggleGroup
-                  type="single"
-                  value={filter}
-                  onValueChange={(v) => v && setFilter(v as any)}
-                >
-                  <ToggleGroupItem value="all">All plays</ToggleGroupItem>
-                  <ToggleGroupItem value="scoring">Scoring</ToggleGroupItem>
-                  <ToggleGroupItem value="home">Home batting</ToggleGroupItem>
-                  <ToggleGroupItem value="away">Away batting</ToggleGroupItem>
-                </ToggleGroup>
-
-                <Tabs value={tab} onValueChange={setTab} className="ml-auto">
-                  <TabsList>
-                    <TabsTrigger value="pbp">PBP</TabsTrigger>
-                    <TabsTrigger value="lineups">Lineups</TabsTrigger>
-                    <TabsTrigger
-                      value="highlights"
-                      className={`${hideHighlights ? "hidden" : "block"}`}
-                    >
-                      Highlights
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
-            </div>
-
-            {/* Scrollable content section */}
-            <div className="flex-1 min-h-0">
-              <Tabs value={tab} onValueChange={setTab} className="h-full">
-                <TabsContent value="pbp" className="h-full mt-0">
-                  <div className="h-full rounded-md border">
-                    <ScrollArea className="h-full">
-                      <div className="p-3">
-                        {groupByInning ? (
-                          <Accordion type="multiple" className="w-full">
-                            {grouped.map(({ key, plays }) => {
-                              const [inning, half] = key.split("-");
-                              const title = `${half} ${inning}`;
-                              return (
-                                <InningPanel
-                                  key={key}
-                                  title={title}
-                                  plays={plays}
-                                  onPlayClick={onPlayClick}
+          {/* Scrollable content section */}
+          <div className="flex-1 min-h-0">
+            <Tabs value={tab} onValueChange={setTab} className="h-full">
+              <TabsContent value="pbp" className="h-full mt-0">
+                <div className="h-full rounded-md border">
+                  <ScrollArea className="h-full">
+                    <div className="p-3">
+                      {groupByInning ? (
+                        <Accordion type="multiple" className="w-full">
+                          {grouped.map(({ key, plays }) => {
+                            const [inning, half] = key.split("-");
+                            const title = `${half} ${inning}`;
+                            return (
+                              <InningPanel
+                                key={key}
+                                title={title}
+                                plays={plays}
+                                onPlayClick={onPlayClick}
+                              />
+                            );
+                          })}
+                        </Accordion>
+                      ) : (
+                        <div className="rounded-md border">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="w-[44px]">Ct</TableHead>
+                                <TableHead className="w-[44px]">Out</TableHead>
+                                <TableHead className="w-[140px]">
+                                  Result
+                                </TableHead>
+                                <TableHead>Description</TableHead>
+                                <TableHead className="text-right">
+                                  Score
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {filtered.map((p) => (
+                                <PlayRow
+                                  key={p.id}
+                                  play={p}
+                                  onClick={onPlayClick}
                                 />
-                              );
-                            })}
-                          </Accordion>
-                        ) : (
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="lineups" className="h-full mt-0">
+                <div className="h-full flex flex-col">
+                  <div className="flex-shrink-0 mb-4">
+                    <Tabs
+                      value={lineupsTab}
+                      onValueChange={(val: string) => {
+                        if (val !== "home" && val !== "away") {
+                          setLineupsTab("home");
+                        } else {
+                          setLineupsTab(val);
+                        }
+                      }}
+                      className="ml-auto self-end"
+                    >
+                      <TabsList>
+                        <TabsTrigger value="home">Home</TabsTrigger>
+                        <TabsTrigger value="away">Away</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                  </div>
+
+                  <div className="flex-1 min-h-0 rounded-md border">
+                    <ScrollArea className="h-full">
+                      <div className="p-4 space-y-6">
+                        <div>
+                          <p className="font-semibold mb-2">Batting</p>
                           <div className="rounded-md border">
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead className="w-[44px]">Ct</TableHead>
-                                  <TableHead className="w-[44px]">
-                                    Out
-                                  </TableHead>
-                                  <TableHead className="w-[140px]">
-                                    Result
-                                  </TableHead>
-                                  <TableHead>Description</TableHead>
-                                  <TableHead className="text-right">
-                                    Score
-                                  </TableHead>
+                                  <TableHead>Player</TableHead>
+                                  <TableHead>AB</TableHead>
+                                  <TableHead>R</TableHead>
+                                  <TableHead>H</TableHead>
+                                  <TableHead>BB</TableHead>
+                                  <TableHead>RBI</TableHead>
+                                  <TableHead>HR</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {filtered.map((p) => (
-                                  <PlayRow
-                                    key={p.id}
-                                    play={p}
-                                    onClick={onPlayClick}
-                                  />
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </div>
-                        )}
-                      </div>
-                    </ScrollArea>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="lineups" className="h-full mt-0">
-                  <div className="h-full flex flex-col">
-                    <div className="flex-shrink-0 mb-4">
-                      <Tabs
-                        value={lineupsTab}
-                        onValueChange={(val: string) => {
-                          if (val !== "home" && val !== "away") {
-                            setLineupsTab("home");
-                          } else {
-                            setLineupsTab(val);
-                          }
-                        }}
-                        className="ml-auto self-end"
-                      >
-                        <TabsList>
-                          <TabsTrigger value="home">Home</TabsTrigger>
-                          <TabsTrigger value="away">Away</TabsTrigger>
-                        </TabsList>
-                      </Tabs>
-                    </div>
-
-                    <div className="flex-1 min-h-0 rounded-md border">
-                      <ScrollArea className="h-full">
-                        <div className="p-4 space-y-6">
-                          <div>
-                            <p className="font-semibold mb-2">Batting</p>
-                            <div className="rounded-md border">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead>Player</TableHead>
-                                    <TableHead>AB</TableHead>
-                                    <TableHead>R</TableHead>
-                                    <TableHead>H</TableHead>
-                                    <TableHead>BB</TableHead>
-                                    <TableHead>RBI</TableHead>
-                                    <TableHead>HR</TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {boxscore &&
-                                  boxscore.teams[lineupsTab] &&
-                                  boxscore.teams[lineupsTab].battingOrder ? (
-                                    boxscore?.teams[
-                                      lineupsTab
-                                    ].battingOrder.map((id) => {
+                                {boxscore &&
+                                boxscore.teams[lineupsTab] &&
+                                boxscore.teams[lineupsTab].battingOrder ? (
+                                  boxscore?.teams[lineupsTab].battingOrder.map(
+                                    (id) => {
                                       const player =
                                         boxscore!.teams[lineupsTab].players[
                                           `ID${id}` as PlayerIdKey
@@ -625,144 +620,141 @@ export function PlayByPlay({
                                           </TableCell>
                                         </TableRow>
                                       );
-                                    })
-                                  ) : (
-                                    <TableRow>
-                                      <TableCell colSpan={7}>No data</TableCell>
-                                    </TableRow>
-                                  )}
-                                </TableBody>
-                              </Table>
-                            </div>
-                          </div>
-
-                          <div>
-                            <p className="font-semibold mb-2">Pitching</p>
-                            <div className="rounded-md border">
-                              <Table>
-                                <TableHeader>
+                                    }
+                                  )
+                                ) : (
                                   <TableRow>
-                                    <TableHead>Player</TableHead>
-                                    <TableHead>IP</TableHead>
-                                    <TableHead>H</TableHead>
-                                    <TableHead>ER</TableHead>
-                                    <TableHead>BB</TableHead>
-                                    <TableHead>SO</TableHead>
+                                    <TableCell colSpan={7}>No data</TableCell>
                                   </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {boxscore &&
-                                  boxscore.teams[lineupsTab] &&
-                                  boxscore.teams[lineupsTab].pitchers ? (
-                                    boxscore.teams[lineupsTab].pitchers.map(
-                                      (id) => {
-                                        const player =
-                                          boxscore!.teams[lineupsTab].players[
-                                            `ID${id}` as PlayerIdKey
-                                          ];
-
-                                        return (
-                                          <TableRow key={id}>
-                                            <TableCell>
-                                              <div className="flex gap-3">
-                                                <div>{player.jerseyNumber}</div>
-                                                <div>
-                                                  {player.person.boxscoreName}
-                                                </div>
-                                                <div>
-                                                  &nbsp;·&nbsp;
-                                                  {player.position.abbreviation}
-                                                </div>
-                                              </div>
-                                            </TableCell>
-                                            <TableCell>
-                                              {
-                                                player.stats.pitching
-                                                  .inningsPitched
-                                              }
-                                            </TableCell>
-                                            <TableCell>
-                                              {player.stats.pitching.hits}
-                                            </TableCell>
-                                            <TableCell>
-                                              {player.stats.pitching.earnedRuns}
-                                            </TableCell>
-                                            <TableCell>
-                                              {
-                                                player.stats.pitching
-                                                  .baseOnBalls
-                                              }
-                                            </TableCell>
-                                            <TableCell>
-                                              {player.stats.pitching.strikeOuts}
-                                            </TableCell>
-                                          </TableRow>
-                                        );
-                                      }
-                                    )
-                                  ) : (
-                                    <TableRow>
-                                      <TableCell colSpan={6}>No data</TableCell>
-                                    </TableRow>
-                                  )}
-                                </TableBody>
-                              </Table>
-                            </div>
+                                )}
+                              </TableBody>
+                            </Table>
                           </div>
                         </div>
-                      </ScrollArea>
-                    </div>
-                  </div>
-                </TabsContent>
 
-                <TabsContent value="highlights" className={`h-full mt-0`}>
-                  <div className="h-full flex flex-col items-center justify-center rounded-md">
-                    {hideVideoHighlights ? (
-                      <ImageCarousel
-                        images={gameImages}
-                        autoPlay={{
-                          delay: prmRef.current ? 10000 : 5000,
-                        }}
-                        classN="basis-3/4"
-                        opts={{ align: "center", dragFree: true, loop: true }}
-                      ></ImageCarousel>
-                    ) : (
-                      <video
-                        ref={video}
-                        muted={true}
-                        onVolumeChange={() => {
-                          if (
-                            video &&
-                            video.current &&
-                            video.current.volume === 1 &&
-                            !videoUnmuted
-                          ) {
-                            video.current.volume = 0.1;
-                            videoUnmuted = true;
-                          }
-                        }}
-                        controls
-                        preload={"true"}
-                        autoPlay={true}
-                        loop={true}
-                        className={`rounded-md min-w-[150px] max-w-[80%] scale-150 px-4 sm:scale-100 sm:mt-12 sm:max-w-[80%] ${
-                          hideHighlights ? "hidden" : "block"
-                        }`}
-                      >
-                        <source
-                          src={getVideo(gameContent)}
-                          type="video/mp4"
-                        ></source>
-                        Your Browser does not support video tag.
-                      </video>
-                    )}
+                        <div>
+                          <p className="font-semibold mb-2">Pitching</p>
+                          <div className="rounded-md border">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Player</TableHead>
+                                  <TableHead>IP</TableHead>
+                                  <TableHead>H</TableHead>
+                                  <TableHead>ER</TableHead>
+                                  <TableHead>BB</TableHead>
+                                  <TableHead>SO</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {boxscore &&
+                                boxscore.teams[lineupsTab] &&
+                                boxscore.teams[lineupsTab].pitchers ? (
+                                  boxscore.teams[lineupsTab].pitchers.map(
+                                    (id) => {
+                                      const player =
+                                        boxscore!.teams[lineupsTab].players[
+                                          `ID${id}` as PlayerIdKey
+                                        ];
+
+                                      return (
+                                        <TableRow key={id}>
+                                          <TableCell>
+                                            <div className="flex gap-3">
+                                              <div>{player.jerseyNumber}</div>
+                                              <div>
+                                                {player.person.boxscoreName}
+                                              </div>
+                                              <div>
+                                                &nbsp;·&nbsp;
+                                                {player.position.abbreviation}
+                                              </div>
+                                            </div>
+                                          </TableCell>
+                                          <TableCell>
+                                            {
+                                              player.stats.pitching
+                                                .inningsPitched
+                                            }
+                                          </TableCell>
+                                          <TableCell>
+                                            {player.stats.pitching.hits}
+                                          </TableCell>
+                                          <TableCell>
+                                            {player.stats.pitching.earnedRuns}
+                                          </TableCell>
+                                          <TableCell>
+                                            {player.stats.pitching.baseOnBalls}
+                                          </TableCell>
+                                          <TableCell>
+                                            {player.stats.pitching.strikeOuts}
+                                          </TableCell>
+                                        </TableRow>
+                                      );
+                                    }
+                                  )
+                                ) : (
+                                  <TableRow>
+                                    <TableCell colSpan={6}>No data</TableCell>
+                                  </TableRow>
+                                )}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </div>
+                      </div>
+                    </ScrollArea>
                   </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="highlights" className={`h-full mt-0`}>
+                <div className="h-full flex flex-col items-center justify-center rounded-md">
+                  {hideVideoHighlights ? (
+                    <ImageCarousel
+                      images={gameImages}
+                      autoPlay={{
+                        delay: prmRef.current ? 10000 : 5000,
+                      }}
+                      classN="basis-3/4"
+                      opts={{ align: "center", dragFree: true, loop: true }}
+                    ></ImageCarousel>
+                  ) : (
+                    <video
+                      ref={video}
+                      muted={true}
+                      onVolumeChange={() => {
+                        if (
+                          video &&
+                          video.current &&
+                          video.current.volume === 1 &&
+                          !videoUnmuted
+                        ) {
+                          video.current.volume = 0.1;
+                          videoUnmuted = true;
+                        }
+                      }}
+                      controls
+                      preload={"true"}
+                      autoPlay={true}
+                      loop={true}
+                      className={`rounded-md min-w-[150px] max-w-[80%] scale-150 px-4 sm:scale-100 sm:mt-12 sm:max-w-[80%] ${
+                        hideHighlights ? "hidden" : "block"
+                      }`}
+                    >
+                      <source
+                        src={getVideo(gameContent)}
+                        type="video/mp4"
+                      ></source>
+                      Your Browser does not support video tag.
+                    </video>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
