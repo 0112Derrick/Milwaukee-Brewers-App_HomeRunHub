@@ -15,6 +15,7 @@ import {
   PlayIcon,
   Trophy,
 } from "lucide-react";
+import { useState } from "react";
 import { Badge } from "src/@/components/ui/badge";
 import {
   TableHeader,
@@ -64,7 +65,9 @@ export function ResultIcon({ result }: { result: PlayEvent["result"] }) {
       return <Ban className="h-4 w-4" />;
     case "Out":
     default:
-      return <PlayIcon className="h-4 w-4" />;
+      return (
+        <PlayIcon className="h-4 w-4 hover:stroke-green-400 hover:fill-green-400" />
+      );
   }
 }
 
@@ -94,7 +97,7 @@ export function PlayRow({
         {play.outsAfter ?? ""}
       </TableCell>
       <TableCell className="w-[140px]">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 cursor-pointer group">
           <ResultIcon result={play.result} />
           <Badge variant={resultBadgeVariant(play.result)}>{play.result}</Badge>
         </div>
@@ -128,12 +131,17 @@ export function InningPanel({
   plays: PlayEvent[];
   onPlayClick?: (p: PlayEvent) => void;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
   return (
-    <AccordionItem value={title} className="border-none">
+    <AccordionItem
+      value={title}
+      className="border-none"
+      onClick={() => setIsOpen(!isOpen)}
+    >
       <AccordionTrigger className="px-0 text-left hover:no-underline">
         <div className="flex items-center gap-2">
-          <ChevronRight className="h-4 w-4 data-[state=open]:hidden" />
-          <ChevronDown className="h-4 w-4 hidden data-[state=open]:block" />
+          <ChevronDown className={`h-4 w-4 ${isOpen ? "block" : "hidden"}`} />
+          <ChevronRight className={`h-4 w-4 ${isOpen ? "hidden" : "block"}`} />
           <span className="font-semibold">{title}</span>
           <Badge variant="outline" className="ml-2">
             {plays.length} plays
