@@ -72,7 +72,7 @@ function App() {
         <Route
           path="/games/:gameDate/:id"
           element={
-            <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+            <div className="flex flex-col h-screen bg-gray-900 text-white">
               <NavBar />
               <PlayByPlay></PlayByPlay>
               <Footer />

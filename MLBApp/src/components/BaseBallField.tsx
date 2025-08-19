@@ -117,7 +117,7 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
   const runnerPositions = getRunnerPositions();
 
   return (
-    <div className="relative w-full max-w-md aspect-square rounded-lg bg-emerald-900/40 border">
+    <div className="relative w-full max-w-md aspect-square bg-emerald-900/40 border">
       {/* Diamond */}
       <div className="absolute inset-0 grid place-items-center">
         <svg viewBox="0 0 100 100" className="w-4/5 h-4/5">

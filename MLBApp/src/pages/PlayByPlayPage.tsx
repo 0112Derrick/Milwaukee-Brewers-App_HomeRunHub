@@ -455,9 +455,9 @@ export function PlayByPlay({
   }
 
   return (
-    <div className="flex flex-1 flex-wrap overflow-hidden">
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Card className="w-full flex-grow flex flex-col rounded-none">
+    <div className="flex flex-1 flex-wrap overflow-hidden bg-white">
+      <div className="h-full w-3/5 flex flex-col overflow-hidden">
+        <Card className="flex flex-col w-full h-full rounded-none overflow-scroll">
           <div className="flex-shrink-0 p-4">
             <div className="w-full my-4 gap-4 flex flex-col justify-center items-end">
               <Link to={`/games/${date}`}>
@@ -471,7 +471,7 @@ export function PlayByPlay({
           <CardHeader className="flex-shrink-0 pb-4">
             <CardTitle className="text-xl">Play-by-Play</CardTitle>
           </CardHeader>
-          <CardContent className="flex-1 min-h-0 flex flex-col space-y-3">
+          <CardContent className="min-h-full flex flex-col space-y-3">
             {/* Fixed content section */}
             <div className="flex-shrink-0">
               <ScoreBug
@@ -510,14 +510,17 @@ export function PlayByPlay({
             </div>
 
             {/* Scrollable content section */}
-            <div className="flex-1 min-h-0">
-              <Tabs value={tab} onValueChange={setTab} className="h-full">
-                <TabsContent value="pbp" className="h-full mt-0">
-                  <div className="h-full rounded-md border">
-                    <ScrollArea className="h-full">
-                      <div className="p-3">
+            <div className="min-h-full">
+              <Tabs value={tab} onValueChange={setTab} className="min-h-full">
+                <TabsContent value="pbp" className="min-h-full mt-0">
+                  <div className="min-h-full rounded-md border">
+                    <ScrollArea className="min-h-full">
+                      <div className="p-3 min-h-full">
                         {groupByInning ? (
-                          <Accordion type="multiple" className="w-full">
+                          <Accordion
+                            type="multiple"
+                            className="w-full min-h-full"
+                          >
                             {grouped.map(({ key, plays }) => {
                               const [inning, half] = key.split("-");
                               const title = `${half} ${inning}`;
@@ -532,8 +535,8 @@ export function PlayByPlay({
                             })}
                           </Accordion>
                         ) : (
-                          <div className="rounded-md border">
-                            <Table>
+                          <div className="rounded-md border min-h-full">
+                            <Table className="min-h-full">
                               <TableHeader>
                                 <TableRow>
                                   <TableHead className="w-[44px]">Ct</TableHead>
@@ -549,7 +552,7 @@ export function PlayByPlay({
                                   </TableHead>
                                 </TableRow>
                               </TableHeader>
-                              <TableBody>
+                              <TableBody className="min-h-full">
                                 {filtered.map((p) => (
                                   <PlayRow
                                     key={p.id}
@@ -566,8 +569,8 @@ export function PlayByPlay({
                   </div>
                 </TabsContent>
 
-                <TabsContent value="lineups" className="h-full mt-0">
-                  <div className="h-full flex flex-col">
+                <TabsContent value="lineups" className="min-h-full mt-0">
+                  <div className="h-8 flex flex-col">
                     <div className="flex-shrink-0 mb-4">
                       <Tabs
                         value={lineupsTab}
@@ -587,13 +590,13 @@ export function PlayByPlay({
                       </Tabs>
                     </div>
 
-                    <div className="flex-1 min-h-0 rounded-md border">
-                      <ScrollArea className="h-full">
-                        <div className="p-4 space-y-6">
-                          <div>
+                    <div className="min-h-full rounded-md border">
+                      <ScrollArea className="min-h-full">
+                        <div className="p-4 space-y-6 min-h-full">
+                          <div className="min-h-full">
                             <p className="font-semibold mb-2">Batting</p>
                             <div className="rounded-md border">
-                              <Table>
+                              <Table className="min-h-full">
                                 <TableHeader>
                                   <TableRow>
                                     <TableHead>Player</TableHead>
@@ -605,7 +608,7 @@ export function PlayByPlay({
                                     <TableHead>HR</TableHead>
                                   </TableRow>
                                 </TableHeader>
-                                <TableBody>
+                                <TableBody className="min-h-full">
                                   {boxscore &&
                                   boxscore.teams[lineupsTab] &&
                                   boxscore.teams[lineupsTab].battingOrder ? (
@@ -618,7 +621,10 @@ export function PlayByPlay({
                                         ];
 
                                       return (
-                                        <TableRow key={id}>
+                                        <TableRow
+                                          key={id}
+                                          className="min-h-full"
+                                        >
                                           <TableCell>
                                             <div className="flex gap-3">
                                               <div>{player.jerseyNumber}</div>
@@ -662,10 +668,10 @@ export function PlayByPlay({
                             </div>
                           </div>
 
-                          <div>
+                          <div className="min-h-full m-0">
                             <p className="font-semibold mb-2">Pitching</p>
-                            <div className="rounded-md border">
-                              <Table>
+                            <div className="rounded-md border min-h-full">
+                              <Table className="h-36 overflow-auto">
                                 <TableHeader>
                                   <TableRow>
                                     <TableHead>Player</TableHead>
@@ -676,7 +682,7 @@ export function PlayByPlay({
                                     <TableHead>SO</TableHead>
                                   </TableRow>
                                 </TableHeader>
-                                <TableBody>
+                                <TableBody className="min-h-full">
                                   {boxscore &&
                                   boxscore.teams[lineupsTab] &&
                                   boxscore.teams[lineupsTab].pitchers ? (
@@ -688,7 +694,10 @@ export function PlayByPlay({
                                           ];
 
                                         return (
-                                          <TableRow key={id}>
+                                          <TableRow
+                                            key={id}
+                                            className="min-h-full"
+                                          >
                                             <TableCell>
                                               <div className="flex gap-3">
                                                 <div>{player.jerseyNumber}</div>
@@ -789,6 +798,7 @@ export function PlayByPlay({
           </CardContent>
         </Card>
       </div>
+
       <BaseballField ref={fieldRef}></BaseballField>
     </div>
   );

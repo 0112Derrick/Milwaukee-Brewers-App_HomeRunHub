@@ -85,7 +85,7 @@ export function PlayRow({
   return (
     <TableRow
       className={cn(
-        "hover:bg-muted/50 transition-colors",
+        "min-h-full hover:bg-muted/50 transition-colors",
         scoring && "bg-amber-50 dark:bg-amber-900/20"
       )}
       onClick={() => onClick?.(play)}
@@ -135,7 +135,7 @@ export function InningPanel({
   return (
     <AccordionItem
       value={title}
-      className="border-none"
+      className="border-none min-h-full"
       onClick={() => setIsOpen(!isOpen)}
     >
       <AccordionTrigger className="px-0 text-left hover:no-underline">
@@ -148,9 +148,9 @@ export function InningPanel({
           </Badge>
         </div>
       </AccordionTrigger>
-      <AccordionContent>
-        <div className="rounded-md border">
-          <Table>
+      <AccordionContent className="min-h-full">
+        <div className="rounded-md border min-h-full">
+          <Table className="min-h-full">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[44px]">Ct</TableHead>
@@ -160,7 +160,7 @@ export function InningPanel({
                 <TableHead className="text-right">Score</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="min-h-full">
               {plays.map((p) => (
                 <PlayRow key={p.id} play={p} onClick={onPlayClick} />
               ))}
