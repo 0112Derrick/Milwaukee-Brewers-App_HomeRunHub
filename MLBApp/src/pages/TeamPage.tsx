@@ -36,7 +36,6 @@ function TeamPage() {
     const fetchTeam = async () => {
       setLoading(true);
 
-      console.log("ID:" + id);
       try {
         let endpoint = ``;
 
@@ -66,7 +65,6 @@ function TeamPage() {
           }
         }
         if (page == TeamPages.DivisionRanking) {
-          //FIXME - Fix table height. Add more columns
           endpoint += `mlb/standings`;
           const division = 105;
 
