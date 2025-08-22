@@ -2,15 +2,22 @@ import {
   PlayEvent,
   RunnerMovement,
   Base,
+  BASES,
 } from "src/interfaces/baseballField.types";
+import { BoxscoreTeam, PlayerIdKey } from "src/interfaces/interfaces";
 
-export function toRunnerMovements(play: PlayEvent): RunnerMovement[] {
+export function toRunnerMovements(
+  play: PlayEvent,
+  lineups: { home: BoxscoreTeam | undefined; away: BoxscoreTeam | undefined }
+): RunnerMovement[] {
   const raw = play.runnersRaw ?? [];
+
   const arr = Array.isArray(raw) ? raw : [raw];
   if (!arr.length) return [];
 
   return arr.map((r): RunnerMovement => {
     const id = String(r.details.runner.id);
+    const player = lineups[play.team]?.players[`ID${id}` as PlayerIdKey];
     const m = r.movement;
     m.start = m.start ?? "home";
     const from = normalizeBase(m.start ?? m.originBase);
@@ -24,7 +31,7 @@ export function toRunnerMovements(play: PlayEvent): RunnerMovement[] {
       from ??
       "home";
 
-    return { id, from, to, out };
+    return { id, from, to, out, player };
   });
 }
 
@@ -52,4 +59,20 @@ export function normalizeBase(value: unknown): Base | undefined {
     if (value === 3) return "3B";
   }
   return undefined;
+}
+
+export function advancePath(fromBase: Base, toBase: Base): Base[] {
+  // Walk forward around the diamond until we include 'toBase'
+  const path: Base[] = [];
+  let i = BASES.indexOf(fromBase);
+  if (i < 0) i = 0; // default to home
+  if (fromBase) {
+    path.push(fromBase);
+  }
+  // Always move at least one hop (so home->1B animates)
+  do {
+    i = (i + 1) % BASES.length;
+    path.push(BASES[i]);
+  } while (path[path.length - 1] !== toBase);
+  return path;
 }

@@ -1,10 +1,13 @@
-import { Base, BASEBALL_FIELD_COORDS } from "src/interfaces/baseballField.types";
+import {
+  Base,
+  BASEBALL_FIELD_COORDS,
+} from "src/interfaces/baseballField.types";
 
 export function BaseMarker({ base, label }: { base: Base; label?: string }) {
   const { x, y } = BASEBALL_FIELD_COORDS[base];
 
   // Adjust label position to prevent cutoff
-  const labelOffset = base === "2B" ? -12 : -8;
+  const labelOffset = base === "2B" ? -10 : -8;
 
   return (
     <g transform={`translate(${x} ${y})`}>

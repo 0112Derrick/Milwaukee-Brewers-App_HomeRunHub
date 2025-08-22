@@ -58,8 +58,8 @@ import {
 } from "src/interfaces/baseballField.types";
 import { BaseballField } from "src/components/BaseBallField";
 import {
-  outsRecordedOnPlay,
   toRunnerMovements,
+  outsRecordedOnPlay,
 } from "src/repository/baseballField";
 
 export function ScoreBug({
@@ -153,6 +153,7 @@ export function PlayByPlay({
   );
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const prmRef = useRef(prefersReducedMotion);
+  const [refreshScreen, setRefreshScreen] = useState(false);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -195,20 +196,32 @@ export function PlayByPlay({
   const fieldRef = useRef<BaseballFieldHandle>(null);
 
   const handlePlayClick = (play: PlayEvent) => {
-    const runners = toRunnerMovements(play);
-    const outs = outsRecordedOnPlay(play);
+    fieldRef.current?.setIsFieldDisplayed(true);
+    setRefreshScreen(!refreshScreen);
 
-    fieldRef.current?.simulate({
-      team: play.team,
-      description: play.description,
-      runners,
-      outsRecorded: outs,
-      rbi: play.resultObj?.rbi,
-      balls: play.count ? Number(play.count.split("-")[0]) : undefined, // if you encode like "3-2"
-      strikes: play.count ? Number(play.count.split("-")[1]) : undefined,
-      awayScore: play.awayScore,
-      homeScore: play.homeScore,
-    });
+    fieldRef.current?.reset();
+
+    window.setTimeout(() => {
+      const lineups = {
+        home: boxscore?.teams.home,
+        away: boxscore?.teams.away,
+      };
+
+      const runners = toRunnerMovements(play, lineups);
+      const outs = outsRecordedOnPlay(play);
+
+      fieldRef.current?.simulate({
+        team: play.team,
+        description: play.description,
+        runners,
+        outsRecorded: outs,
+        rbi: play.resultObj?.rbi,
+        balls: play.count ? Number(play.count.split("-")[0]) : undefined, // if you encode like "3-2"
+        strikes: play.count ? Number(play.count.split("-")[1]) : undefined,
+        awayScore: play.awayScore,
+        homeScore: play.homeScore,
+      });
+    }, 200);
   };
 
   useEffect(() => {
@@ -455,16 +468,27 @@ export function PlayByPlay({
   }
 
   return (
-    <div className="flex flex-1 flex-wrap overflow-hidden bg-white">
-      <div className="h-full w-3/5 flex flex-col overflow-hidden">
+    <div className={`flex w-full overflow-hidden sm:flex-col lg:flex-row`}>
+      <div className="flex-1 h-full flex flex-col overflow-hidden">
         <Card className="flex flex-col w-full h-full rounded-none overflow-scroll">
           <div className="flex-shrink-0 p-4">
             <div className="w-full my-4 gap-4 flex flex-col justify-center items-end">
-              <Link to={`/games/${date}`}>
-                <Button variant={"secondary"} className="bg-blue-300">
-                  Back
+              <div className="flex flex-wrap gap-4">
+                <Link to={`/games/${date}`}>
+                  <Button variant={"secondary"} className="bg-blue-300">
+                    Back
+                  </Button>
+                </Link>
+                <Button
+                  variant={"secondary"}
+                  className={`bg-blue-300 ${
+                    fieldRef.current?.isFieldDisplayed ? "block" : "hidden"
+                  }`}
+                >
+                  Close
                 </Button>
-              </Link>
+              </div>
+
               <p className="text-xs">Last update time: {lastUpdateTime}</p>
             </div>
           </div>
@@ -494,7 +518,14 @@ export function PlayByPlay({
                   <ToggleGroupItem value="away">Away batting</ToggleGroupItem>
                 </ToggleGroup>
 
-                <Tabs value={tab} onValueChange={setTab} className="ml-auto">
+                <Tabs
+                  value={tab}
+                  onValueChange={(e) => {
+                    setTab(e);
+                    fieldRef.current?.setIsFieldDisplayed(false);
+                  }}
+                  className="ml-auto"
+                >
                   <TabsList>
                     <TabsTrigger value="pbp">PBP</TabsTrigger>
                     <TabsTrigger value="lineups">Lineups</TabsTrigger>
@@ -569,8 +600,8 @@ export function PlayByPlay({
                   </div>
                 </TabsContent>
 
-                <TabsContent value="lineups" className="min-h-full mt-0">
-                  <div className="h-8 flex flex-col">
+                <TabsContent value="lineups" className="min-h-full h-full mt-0">
+                  <div className="min-h-full flex flex-col">
                     <div className="flex-shrink-0 mb-4">
                       <Tabs
                         value={lineupsTab}

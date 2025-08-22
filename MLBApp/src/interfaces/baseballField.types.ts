@@ -2,7 +2,29 @@ import {
   PlayByPlayMatchup,
   PlayByPlayResult,
   PlayByPlayRunners,
+  PlayerBoxscoreEntry,
 } from "./interfaces";
+
+export type RunnerPinProps = {
+  x: number;
+  y: number;
+  runnerId: string;
+  delay?: number;
+  label?: string;
+  color?: string;
+  isAnimating?: boolean;
+};
+
+export const BASE_PRIORITY: Record<Base, number> = {
+  home: 0,
+  "1B": 1,
+  "2B": 2,
+  "3B": 3,
+};
+// tune this – 80ms is a nice, visible nudge without feeling laggy
+export const HOP_STAGGER_MS = 80;
+// duration of each hop animation (tweak to taste)
+export const HOP_DURATION_MS = 420;
 
 export type FieldSimArgs = {
   team: "home" | "away";
@@ -19,9 +41,13 @@ export type FieldSimArgs = {
 
 export type BaseballFieldHandle = {
   simulate: (args: FieldSimArgs) => void;
+  reset: () => void;
+  setIsFieldDisplayed: (arg: boolean) => void;
+  isFieldDisplayed: boolean;
 };
 
-export type Base = "home" | "1B" | "2B" | "3B";
+export const BASES = ["home", "1B", "2B", "3B", "home"] as const;
+export type Base = (typeof BASES)[number];
 export type TeamSide = "home" | "away";
 export type RunnersState = Record<string, Base>;
 
@@ -57,6 +83,7 @@ export type RunnerMovement = {
   from?: Base | null;
   to: Base | "home";
   out?: boolean;
+  player?: PlayerBoxscoreEntry;
 };
 
 export type PitchEvent =
@@ -100,4 +127,11 @@ export type BaseballFieldProps = {
    * Animate a single play. You can call this from parent via ref, or pass the play via props and change key.
    */
   onAfterAnimate?: (next: FieldState) => void;
+};
+
+export type PlannedRunner = {
+  id: string;
+  path: Base[];
+  removeOnFinish: boolean;
+  jersey?: string;
 };
