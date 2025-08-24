@@ -9,10 +9,15 @@ import {
   BASE_PRIORITY,
   HOP_STAGGER_MS,
   HOP_DURATION_MS,
+  BASE_DRAW_ORDER,
 } from "src/interfaces/baseballField.types";
 import { BaseMarker } from "./BaseMarker";
 import { RunnerPin } from "./RunnerPin";
-import { advancePath, normalizeBase } from "src/repository/baseballField";
+import {
+  advancePath,
+  consolidatePlannedPaths,
+  normalizeBase,
+} from "src/repository/baseballField";
 
 // BaseballField.tsx
 export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
@@ -24,6 +29,9 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isFieldDisplayed, setIsFieldDisplayed] = useState(false);
   const [runnerDelays, setRunnerDelays] = useState<Record<string, number>>({});
+  const [playId, setPlayId] = useState("");
+  const initialPositions: RunnersState = {};
+  const START_SEED_MS = 500;
 
   const animTimer = useRef<number | null>(null);
 
@@ -37,6 +45,7 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
     setStrikes(0);
     setScore({});
     setRunners({});
+    setRunnerDelays({});
     setIsAnimating(false);
   };
 
@@ -49,6 +58,7 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
       strikes,
       awayScore,
       homeScore,
+      playId,
     }) => {
       if (!moves?.length) {
         setOuts(outsRecorded ?? 0);
@@ -58,6 +68,7 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
         return;
       }
 
+      setPlayId(playId);
       // Build a planned path per runner
       const planned: PlannedRunner[] = moves.map((m) => {
         const start: Base = normalizeBase(m.from) ?? "home"; // if unknown, start from home (batter)
@@ -78,6 +89,8 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
         };
       });
 
+      const consolidated = consolidatePlannedPaths(planned);
+
       setIsAnimating(true);
 
       // Start with runners at their *starting* bases (if they’re already on base)
@@ -89,30 +102,25 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
       );
 
       const step = () => {
-        // Collect current positions for this frame
         const framePositions: RunnersState = {};
         const delays: Record<string, number> = {};
         let anyRemaining = false;
+        const finishedThisStep: PlannedRunner[] = [];
 
-        for (const r of planned) {
+        for (const r of consolidated) {
           const curIdx = Math.min(stepIndex, r.path.length - 1);
           const nextIdx = Math.min(stepIndex + 1, r.path.length - 1);
+          const toBase = r.path[nextIdx];
 
+          // Place runner at the destination for this hop.
+          framePositions[r.jersey ?? r.id] = toBase;
+
+          // Stagger by where they are leaving FROM this hop
           const fromBase = r.path[curIdx];
-          // const toBase = r.path[nextIdx];
-          const isMovingThisStep = nextIdx > curIdx;
+          delays[r.jersey ?? r.id] = BASE_PRIORITY[fromBase] * HOP_STAGGER_MS;
 
-          if (isMovingThisStep) {
-            anyRemaining = true;
-            framePositions[r.jersey ?? r.id] = fromBase;
-            delays[r.jersey ?? r.id] = BASE_PRIORITY[fromBase] * HOP_STAGGER_MS;
-          } else {
-            // finished all hops
-            const finalBase = r.path[r.path.length - 1];
-            if (!r.removeOnFinish && finalBase) {
-              framePositions[r.jersey ?? r.id] = finalBase; // keep on base if not out/scored
-            }
-          }
+          if (nextIdx > curIdx) anyRemaining = true;
+          if (nextIdx === r.path.length - 1) finishedThisStep.push(r);
         }
 
         setRunnerDelays(delays);
@@ -126,19 +134,41 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
             step();
           }, totalMs);
         } else {
-          // done animating this play; update outs/count/score a tick after final motion
+          // done animating this play
+          const lingerMs = 220;
+
+          // Ensure final positions are displayed (including scorers/outs)
+          setRunners(framePositions);
+
           animTimer.current = window.setTimeout(() => {
+            setRunners((prev) => {
+              const copy = { ...prev };
+              for (const r of finishedThisStep) {
+                if (r.removeOnFinish) delete copy[r.jersey ?? r.id];
+              }
+              return copy;
+            });
             setOuts(outsRecorded ?? 0);
             setBalls(balls ?? 0);
             setStrikes(strikes ?? 0);
             setScore({ away: awayScore, home: homeScore });
             setIsAnimating(false);
-          }, 120);
+          }, lingerMs);
         }
       };
 
-      // Kick off the loop
-      step();
+      for (const r of planned) {
+        initialPositions[r.jersey ?? r.id] = r.path[0]; // show where they start
+      }
+      setRunners(initialPositions);
+
+      setRunners(initialPositions);
+
+      // Kick the step loop *after* the seed has painted
+      window.setTimeout(() => {
+        stepIndex = 0;
+        step();
+      }, START_SEED_MS);
     },
     setIsFieldDisplayed,
     isFieldDisplayed,
@@ -168,21 +198,23 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
 
           {/* runner pins */}
           <AnimatePresence mode="popLayout">
-            {Object.entries(runners).map(([runnerId, base]) => {
-              const { x, y } = BASEBALL_FIELD_COORDS[base];
-              return (
-                <RunnerPin
-                  key={runnerId}
-                  runnerId={runnerId}
-                  label={runnerId.length > 2 ? runnerId.slice(1) : runnerId}
-                  delay={runnerDelays[runnerId] ?? 0}
-                  x={x}
-                  y={y}
-                  isAnimating={isAnimating}
-                  color={isAnimating ? "#f59e0b" : "#0ea5e9"}
-                />
-              );
-            })}
+            {Object.entries(runners)
+              .sort(([, a], [, b]) => BASE_DRAW_ORDER[a] - BASE_DRAW_ORDER[b])
+              .map(([runnerId, base]) => {
+                const { x, y } = BASEBALL_FIELD_COORDS[base];
+                return (
+                  <RunnerPin
+                    key={`${playId}-${runnerId}`}
+                    runnerId={runnerId}
+                    label={runnerId.length > 2 ? runnerId.slice(1) : runnerId}
+                    delay={runnerDelays[runnerId] ?? 0}
+                    x={x}
+                    y={y}
+                    isAnimating={isAnimating}
+                    color={isAnimating ? "#f59e0b" : "#0ea5e9"}
+                  />
+                );
+              })}
           </AnimatePresence>
         </svg>
       </div>

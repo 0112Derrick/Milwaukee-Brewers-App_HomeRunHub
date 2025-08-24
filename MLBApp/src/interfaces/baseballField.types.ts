@@ -28,6 +28,7 @@ export const HOP_DURATION_MS = 420;
 
 export type FieldSimArgs = {
   team: "home" | "away";
+  playId: string;
   description: string;
   runners: RunnerMovement[];
   outsRecorded: number;
@@ -50,6 +51,12 @@ export const BASES = ["home", "1B", "2B", "3B", "home"] as const;
 export type Base = (typeof BASES)[number];
 export type TeamSide = "home" | "away";
 export type RunnersState = Record<string, Base>;
+export const BASE_DRAW_ORDER: Record<Base, number> = {
+  home: 0,
+  "1B": 1,
+  "2B": 2,
+  "3B": 3,
+};
 
 export type PlayEvent = {
   id: string;

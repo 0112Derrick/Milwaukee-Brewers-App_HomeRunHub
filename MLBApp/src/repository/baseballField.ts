@@ -3,6 +3,7 @@ import {
   RunnerMovement,
   Base,
   BASES,
+  PlannedRunner,
 } from "src/interfaces/baseballField.types";
 import { BoxscoreTeam, PlayerIdKey } from "src/interfaces/interfaces";
 
@@ -47,6 +48,7 @@ export function normalizeBase(value: unknown): Base | undefined {
   if (typeof value === "string") {
     const v = value.toUpperCase();
     if (v.includes("HOME")) return "home";
+    if (v.includes("SCORE")) return "home";
     if (v.includes("1")) return "1B";
     if (v.includes("2")) return "2B";
     if (v.includes("3")) return "3B";
@@ -75,4 +77,31 @@ export function advancePath(fromBase: Base, toBase: Base): Base[] {
     path.push(BASES[i]);
   } while (path[path.length - 1] !== toBase);
   return path;
+}
+
+// In your baseballField.ts or wherever you generate planned paths
+export function consolidatePlannedPaths(
+  planned: PlannedRunner[]
+): PlannedRunner[] {
+  const consolidated = new Map<string, PlannedRunner>();
+
+  for (const runner of planned) {
+    const key = runner.jersey || runner.id;
+
+    if (consolidated.has(key)) {
+      // Merge paths for the same runner
+      const existing = consolidated.get(key)!;
+      // Remove the last base from existing path to avoid duplication
+      const mergedPath = [...existing.path.slice(0, -1), ...runner.path];
+      consolidated.set(key, {
+        ...existing,
+        path: mergedPath,
+        removeOnFinish: runner.removeOnFinish, // Use the latest removeOnFinish value
+      });
+    } else {
+      consolidated.set(key, runner);
+    }
+  }
+
+  return Array.from(consolidated.values());
 }
