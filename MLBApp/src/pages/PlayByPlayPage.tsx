@@ -201,27 +201,26 @@ export function PlayByPlay({
 
     fieldRef.current?.reset();
 
-    window.setTimeout(() => {
-      const lineups = {
-        home: boxscore?.teams.home,
-        away: boxscore?.teams.away,
-      };
+    const lineups = {
+      home: boxscore?.teams.home,
+      away: boxscore?.teams.away,
+    };
 
-      const runners = toRunnerMovements(play, lineups);
-      const outs = outsRecordedOnPlay(play);
+    const runners = toRunnerMovements(play, lineups);
+    const outs = outsRecordedOnPlay(play);
 
-      fieldRef.current?.simulate({
-        team: play.team,
-        description: play.description,
-        runners,
-        outsRecorded: outs,
-        rbi: play.resultObj?.rbi,
-        balls: play.count ? Number(play.count.split("-")[0]) : undefined, // if you encode like "3-2"
-        strikes: play.count ? Number(play.count.split("-")[1]) : undefined,
-        awayScore: play.awayScore,
-        homeScore: play.homeScore,
-      });
-    }, 200);
+    fieldRef.current?.simulate({
+      team: play.team,
+      description: play.description,
+      runners,
+      outsRecorded: outs,
+      rbi: play.resultObj?.rbi,
+      balls: play.count ? Number(play.count.split("-")[0]) : undefined, // if you encode like "3-2"
+      strikes: play.count ? Number(play.count.split("-")[1]) : undefined,
+      awayScore: play.awayScore,
+      homeScore: play.homeScore,
+      playId: play.id,
+    });
   };
 
   useEffect(() => {
