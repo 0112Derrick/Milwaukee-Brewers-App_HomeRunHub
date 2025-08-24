@@ -30,8 +30,10 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
   const [isFieldDisplayed, setIsFieldDisplayed] = useState(false);
   const [runnerDelays, setRunnerDelays] = useState<Record<string, number>>({});
   const [playId, setPlayId] = useState("");
-  const initialPositions: RunnersState = {};
-  const START_SEED_MS = 500;
+
+  const START_SEED_MS = 1000;
+  const PHASE_LEAD_MS = 600; // show FROM snapshot briefly each hop
+  const LINGER_FINAL_MS = 220; // show final before removing scorers/outs
 
   const animTimer = useRef<number | null>(null);
 
@@ -71,7 +73,7 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
       setPlayId(playId);
       // Build a planned path per runner
       const planned: PlannedRunner[] = moves.map((m) => {
-        const start: Base = normalizeBase(m.from) ?? "home"; // if unknown, start from home (batter)
+        const start: Base = normalizeBase(m.from) ?? "home";
         const endRaw: Base | undefined = normalizeBase(m.to);
 
         const end: Base =
@@ -79,90 +81,87 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
             ? (m as any).outBase
             : endRaw ?? "home";
 
-        const path = advancePath(start, end);
-        const removeOnFinish = m.out === true || end === "home";
         return {
           id: m.id,
-          path,
           jersey: m.player?.jerseyNumber,
-          removeOnFinish,
+          path: advancePath(start, end), 
+          removeOnFinish: m.out === true || end === "home",
         };
       });
 
+      setIsAnimating(true);
+      const initialPositions: RunnersState = {};
+      for (const r of planned) initialPositions[r.jersey ?? r.id] = r.path[0];
+      setRunners(initialPositions);
+
       const consolidated = consolidatePlannedPaths(planned);
 
-      setIsAnimating(true);
-
-      // Start with runners at their *starting* bases (if they’re already on base)
-      // We only render pins for runners who haven't finished. During animation, keep them visible.
       let stepIndex = 0;
       const maxSteps = Math.max(
-        ...planned.map((r) => Math.max(0, r.path.length - 1)),
+        ...consolidated.map((r) => Math.max(0, r.path.length - 1)),
         0
       );
 
       const step = () => {
-        const framePositions: RunnersState = {};
+        const fromPositions: RunnersState = {};
+        const toPositions: RunnersState = {};
         const delays: Record<string, number> = {};
-        let anyRemaining = false;
         const finishedThisStep: PlannedRunner[] = [];
+        let anyRemaining = false;
 
         for (const r of consolidated) {
           const curIdx = Math.min(stepIndex, r.path.length - 1);
           const nextIdx = Math.min(stepIndex + 1, r.path.length - 1);
+
+          const fromBase = r.path[curIdx];
           const toBase = r.path[nextIdx];
 
-          // Place runner at the destination for this hop.
-          framePositions[r.jersey ?? r.id] = toBase;
+          const key = r.jersey ?? r.id;
+          fromPositions[key] = fromBase;
+          toPositions[key] = toBase;
 
-          // Stagger by where they are leaving FROM this hop
-          const fromBase = r.path[curIdx];
-          delays[r.jersey ?? r.id] = BASE_PRIORITY[fromBase] * HOP_STAGGER_MS;
+          // stagger by the base they are LEAVING
+          delays[key] = BASE_PRIORITY[fromBase] * HOP_STAGGER_MS;
 
           if (nextIdx > curIdx) anyRemaining = true;
           if (nextIdx === r.path.length - 1) finishedThisStep.push(r);
         }
 
-        setRunnerDelays(delays);
-        setRunners(framePositions);
+        // show the FROM snapshot briefly so you never “jump” onto the next base
+        setRunners(fromPositions);
 
-        if (anyRemaining && stepIndex < maxSteps) {
-          const maxDelay = Math.max(0, ...Object.values(delays));
-          const totalMs = maxDelay + HOP_DURATION_MS;
-          animTimer.current = window.setTimeout(() => {
-            stepIndex += 1;
-            step();
-          }, totalMs);
-        } else {
-          // done animating this play
-          const lingerMs = 220;
+        // 2) after a short lead, move them to the TO snapshot (with your per-runner delays)
+        animTimer.current = window.setTimeout(() => {
+          setRunnerDelays(delays);
+          setRunners(toPositions);
 
-          // Ensure final positions are displayed (including scorers/outs)
-          setRunners(framePositions);
-
-          animTimer.current = window.setTimeout(() => {
-            setRunners((prev) => {
-              const copy = { ...prev };
-              for (const r of finishedThisStep) {
-                if (r.removeOnFinish) delete copy[r.jersey ?? r.id];
-              }
-              return copy;
-            });
-            setOuts(outsRecorded ?? 0);
-            setBalls(balls ?? 0);
-            setStrikes(strikes ?? 0);
-            setScore({ away: awayScore, home: homeScore });
-            setIsAnimating(false);
-          }, lingerMs);
-        }
+          // schedule next step or wrap up
+          if (anyRemaining && stepIndex < maxSteps) {
+            const maxDelay = Math.max(0, ...Object.values(delays));
+            const totalMs = maxDelay + HOP_DURATION_MS;
+            animTimer.current = window.setTimeout(() => {
+              stepIndex += 1;
+              step();
+            }, totalMs);
+          } else {
+            // Linger at final positions so scorers/out calls are visible at home/outBase
+            animTimer.current = window.setTimeout(() => {
+              setRunners((prev) => {
+                const copy = { ...prev };
+                for (const r of finishedThisStep) {
+                  if (r.removeOnFinish) delete copy[r.jersey ?? r.id];
+                }
+                return copy;
+              });
+              setOuts(outsRecorded ?? 0);
+              setBalls(balls ?? 0);
+              setStrikes(strikes ?? 0);
+              setScore({ away: awayScore, home: homeScore });
+              setIsAnimating(false);
+            }, LINGER_FINAL_MS);
+          }
+        }, PHASE_LEAD_MS);
       };
-
-      for (const r of planned) {
-        initialPositions[r.jersey ?? r.id] = r.path[0]; // show where they start
-      }
-      setRunners(initialPositions);
-
-      setRunners(initialPositions);
 
       // Kick the step loop *after* the seed has painted
       window.setTimeout(() => {
