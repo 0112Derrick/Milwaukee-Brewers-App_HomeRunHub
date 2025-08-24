@@ -1,4 +1,5 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { AnimatePresence } from "framer-motion";
 import {
   BaseballFieldHandle,
@@ -29,6 +30,7 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isFieldDisplayed, setIsFieldDisplayed] = useState(false);
   const [runnerDelays, setRunnerDelays] = useState<Record<string, number>>({});
+  const playCounterRef = useRef(0);
   const [playId, setPlayId] = useState("");
 
   const START_SEED_MS = 1000;
@@ -60,7 +62,6 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
       strikes,
       awayScore,
       homeScore,
-      playId,
     }) => {
       if (!moves?.length) {
         setOuts(outsRecorded ?? 0);
@@ -70,7 +71,6 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
         return;
       }
 
-      setPlayId(playId);
       // Build a planned path per runner
       const planned: PlannedRunner[] = moves.map((m) => {
         const start: Base = normalizeBase(m.from) ?? "home";
@@ -84,7 +84,7 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
         return {
           id: m.id,
           jersey: m.player?.jerseyNumber,
-          path: advancePath(start, end), 
+          path: advancePath(start, end),
           removeOnFinish: m.out === true || end === "home",
         };
       });
@@ -92,82 +92,86 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
       setIsAnimating(true);
       const initialPositions: RunnersState = {};
       for (const r of planned) initialPositions[r.jersey ?? r.id] = r.path[0];
-      setRunners(initialPositions);
+      // 1) force unmount of all pins (prevents tween from *previous play's* last position)
+      flushSync(() => {
+        setRunnerDelays({});
+        setRunners({});
+        playCounterRef.current += 1;
+        setPlayId(String(playCounterRef.current));
+      });
 
-      const consolidated = consolidatePlannedPaths(planned);
+      // 2) paint the seed frame (FROM positions) on the very next frame
+      requestAnimationFrame(() => {
+        flushSync(() => setRunners(initialPositions));
 
-      let stepIndex = 0;
-      const maxSteps = Math.max(
-        ...consolidated.map((r) => Math.max(0, r.path.length - 1)),
-        0
-      );
+        // 3) one more frame to ensure the seed actually hit the DOM, then start stepping
+        requestAnimationFrame(() => {
+          let stepIndex = 0;
+          const consolidated = consolidatePlannedPaths(planned);
+          const maxSteps = Math.max(
+            ...consolidated.map((r) => Math.max(0, r.path.length - 1)),
+            0
+          );
 
-      const step = () => {
-        const fromPositions: RunnersState = {};
-        const toPositions: RunnersState = {};
-        const delays: Record<string, number> = {};
-        const finishedThisStep: PlannedRunner[] = [];
-        let anyRemaining = false;
+          const step = () => {
+            // FROM and TO snapshots for this hop
+            const fromPositions: RunnersState = {};
+            const toPositions: RunnersState = {};
+            const delays: Record<string, number> = {};
+            const finishedThisStep: PlannedRunner[] = [];
+            let anyRemaining = false;
 
-        for (const r of consolidated) {
-          const curIdx = Math.min(stepIndex, r.path.length - 1);
-          const nextIdx = Math.min(stepIndex + 1, r.path.length - 1);
+            for (const r of consolidated) {
+              const curIdx = Math.min(stepIndex, r.path.length - 1);
+              const nextIdx = Math.min(stepIndex + 1, r.path.length - 1);
 
-          const fromBase = r.path[curIdx];
-          const toBase = r.path[nextIdx];
+              const fromBase = r.path[curIdx];
+              const toBase = r.path[nextIdx];
 
-          const key = r.jersey ?? r.id;
-          fromPositions[key] = fromBase;
-          toPositions[key] = toBase;
+              const key = r.jersey ?? r.id;
+              fromPositions[key] = fromBase;
+              toPositions[key] = toBase;
+              delays[key] = BASE_PRIORITY[fromBase] * HOP_STAGGER_MS;
 
-          // stagger by the base they are LEAVING
-          delays[key] = BASE_PRIORITY[fromBase] * HOP_STAGGER_MS;
+              if (nextIdx > curIdx) anyRemaining = true;
+              if (nextIdx === r.path.length - 1) finishedThisStep.push(r);
+            }
 
-          if (nextIdx > curIdx) anyRemaining = true;
-          if (nextIdx === r.path.length - 1) finishedThisStep.push(r);
-        }
+            // show FROM snapshot briefly
+            setRunners(fromPositions);
 
-        // show the FROM snapshot briefly so you never “jump” onto the next base
-        setRunners(fromPositions);
+            // then animate TO (with per-runner delay)
+            setTimeout(() => {
+              setRunnerDelays(delays);
+              setRunners(toPositions);
 
-        // 2) after a short lead, move them to the TO snapshot (with your per-runner delays)
-        animTimer.current = window.setTimeout(() => {
-          setRunnerDelays(delays);
-          setRunners(toPositions);
-
-          // schedule next step or wrap up
-          if (anyRemaining && stepIndex < maxSteps) {
-            const maxDelay = Math.max(0, ...Object.values(delays));
-            const totalMs = maxDelay + HOP_DURATION_MS;
-            animTimer.current = window.setTimeout(() => {
-              stepIndex += 1;
-              step();
-            }, totalMs);
-          } else {
-            // Linger at final positions so scorers/out calls are visible at home/outBase
-            animTimer.current = window.setTimeout(() => {
-              setRunners((prev) => {
-                const copy = { ...prev };
-                for (const r of finishedThisStep) {
-                  if (r.removeOnFinish) delete copy[r.jersey ?? r.id];
-                }
-                return copy;
-              });
-              setOuts(outsRecorded ?? 0);
-              setBalls(balls ?? 0);
-              setStrikes(strikes ?? 0);
-              setScore({ away: awayScore, home: homeScore });
-              setIsAnimating(false);
-            }, LINGER_FINAL_MS);
-          }
-        }, PHASE_LEAD_MS);
-      };
-
-      // Kick the step loop *after* the seed has painted
-      window.setTimeout(() => {
-        stepIndex = 0;
-        step();
-      }, START_SEED_MS);
+              if (anyRemaining && stepIndex < maxSteps) {
+                const maxDelay = Math.max(0, ...Object.values(delays));
+                setTimeout(() => {
+                  stepIndex += 1;
+                  step();
+                }, maxDelay + HOP_DURATION_MS);
+              } else {
+                setTimeout(() => {
+                  setRunners((prev) => {
+                    const copy = { ...prev };
+                    for (const r of finishedThisStep) {
+                      if (r.removeOnFinish) delete copy[r.jersey ?? r.id];
+                    }
+                    return copy;
+                  });
+                  setOuts(outsRecorded ?? 0);
+                  setBalls(balls ?? 0);
+                  setStrikes(strikes ?? 0);
+                  setScore({ away: awayScore, home: homeScore });
+                  setIsAnimating(false);
+                }, LINGER_FINAL_MS);
+              }
+            }, PHASE_LEAD_MS);
+          };
+          step();
+        });
+      });
     },
     setIsFieldDisplayed,
     isFieldDisplayed,
