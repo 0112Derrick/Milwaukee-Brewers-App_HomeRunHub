@@ -10,7 +10,7 @@ import {
   TableCell,
 } from "src/@/components/ui/table";
 import { GameStatusBucket, THIRTY_SEC } from "src/interfaces/interfaces";
-import { api } from "src/utils/utils";
+import { getLinescoreResp } from "src/repository/playByPlay";
 
 type InningRow = { inning: number; away?: number; home?: number };
 
@@ -40,16 +40,14 @@ export function Boxscore({
 
     async function fetchBoxscore() {
       try {
-        const endpoint = `mlb/linescore`;
+        const resp = await getLinescoreResp(ac, gamePk);
+        if (!resp) {
+          return;
+        }
 
-        const { data, status } = await api.post(
-          endpoint,
-          { gamePk },
-          { signal: ac.signal }
-        );
-        if (status !== 200) return;
+        if (resp.status !== 200) return;
 
-        const ls = data?.liveData?.linescore;
+        const ls = resp.data?.liveData?.linescore;
         const homeRuns = ls?.teams?.home?.runs;
         const awayRuns = ls?.teams?.away?.runs;
 

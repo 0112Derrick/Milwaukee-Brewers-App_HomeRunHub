@@ -9,8 +9,8 @@ import { Badge } from "src/@/components/ui/badge";
 import { StandingsResponseV2 } from "src/interfaces/interfaces";
 import { Spinner } from "src/components/Spinner";
 import { Link } from "react-router-dom";
-import { api } from "src/utils/utils";
 import { ScrollArea } from "src/@/components/ui/scroll-area";
+import { getStandingsResp } from "src/repository/schedules";
 
 const StandingsPage: React.FC = () => {
   const [standings, setStandings] = useState<StandingsResponseV2 | null>(null);
@@ -24,21 +24,25 @@ const StandingsPage: React.FC = () => {
     setLoading(true);
 
     // Create a new CancelToken
-    const endpoint = `mlb/standings`;
 
     try {
-      const response = await api.post(
-        endpoint,
-        {
-          leagueId: division,
-          seasonDt: new Date().toISOString().split("T")[0],
-        },
-        { signal: ac.signal }
+      const response = await getStandingsResp(
+        ac,
+        new Date().toISOString().split("T")[0],
+        division
       );
 
-      if (response.status !== 200)
-        throw new Error(`Fetch error: ${response.statusText}`);
-      const data: StandingsResponseV2 = await response.data;
+      if (!response || response.status !== 200) {
+        if (!response) {
+          return;
+        }
+        
+        if (typeof response == "object") {
+          throw new Error(`Fetch error: ${response.statusText}`);
+        }
+      }
+
+      const data: StandingsResponseV2 = response.data;
 
       setStandings(data);
     } catch (err: any) {
