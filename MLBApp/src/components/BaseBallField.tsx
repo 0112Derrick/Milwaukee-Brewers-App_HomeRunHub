@@ -11,6 +11,7 @@ import {
   HOP_STAGGER_MS,
   HOP_DURATION_MS,
   BASE_DRAW_ORDER,
+  BaseballFieldProps,
 } from "src/interfaces/baseballField.types";
 import { BaseMarker } from "./BaseMarker";
 import { RunnerPin } from "./RunnerPin";
@@ -21,21 +22,23 @@ import {
 } from "src/repository/baseballField";
 
 // BaseballField.tsx
-export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
+export const BaseballField = forwardRef<
+  BaseballFieldHandle,
+  BaseballFieldProps
+>((props, ref) => {
   const [outs, setOuts] = useState(0);
   const [balls, setBalls] = useState<number>(0);
   const [strikes, setStrikes] = useState<number>(0);
   const [score, setScore] = useState<{ away?: number; home?: number }>({});
   const [runners, setRunners] = useState<RunnersState>({});
   const [isAnimating, setIsAnimating] = useState(false);
-  const [isFieldDisplayed, setIsFieldDisplayed] = useState(false);
+
   const [runnerDelays, setRunnerDelays] = useState<Record<string, number>>({});
   const playCounterRef = useRef(0);
   const [playId, setPlayId] = useState("");
 
-  const START_SEED_MS = 1000;
-  const PHASE_LEAD_MS = 600; // show FROM snapshot briefly each hop
-  const LINGER_FINAL_MS = 220; // show final before removing scorers/outs
+  const PHASE_LEAD_MS = 600;
+  const LINGER_FINAL_MS = 220;
 
   const animTimer = useRef<number | null>(null);
 
@@ -173,14 +176,12 @@ export const BaseballField = forwardRef<BaseballFieldHandle>((_, ref) => {
         });
       });
     },
-    setIsFieldDisplayed,
-    isFieldDisplayed,
   }));
 
   return (
     <div
       className={`relative ${
-        isFieldDisplayed ? "block" : "hidden"
+        props.displayField ? "block" : "hidden"
       } w-full bg-emerald-900/40 border sm:self-center md:max-w-md md:aspect-square lg:self-auto `}
     >
       <div className="absolute inset-0 grid place-items-center">
