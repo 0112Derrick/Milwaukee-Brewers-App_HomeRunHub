@@ -43,8 +43,19 @@ export type FieldSimArgs = {
 export type BaseballFieldHandle = {
   simulate: (args: FieldSimArgs) => void;
   reset: () => void;
-  setIsFieldDisplayed: (arg: boolean) => void;
-  isFieldDisplayed: boolean;
+};
+
+export type BaseballFieldProps = {
+  displayField: boolean;
+  className?: string;
+  /**
+   * Controlled-ish current field state. You can keep this in parent or let this component mutate local state.
+   */
+  initialState?: FieldState;
+  /**
+   * Animate a single play. You can call this from parent via ref, or pass the play via props and change key.
+   */
+  onAfterAnimate?: (next: FieldState) => void;
 };
 
 export const BASES = ["home", "1B", "2B", "3B", "home"] as const;
@@ -122,18 +133,6 @@ export type FieldState = {
   balls?: number;
   strikes?: number;
   outs?: number;
-};
-
-export type BaseballFieldProps = {
-  className?: string;
-  /**
-   * Controlled-ish current field state. You can keep this in parent or let this component mutate local state.
-   */
-  initialState?: FieldState;
-  /**
-   * Animate a single play. You can call this from parent via ref, or pass the play via props and change key.
-   */
-  onAfterAnimate?: (next: FieldState) => void;
 };
 
 export type PlannedRunner = {
