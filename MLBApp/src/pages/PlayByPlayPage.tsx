@@ -27,11 +27,9 @@ import {
 import {
   GameHeader,
   PlayByPlayProps,
-  PlayByPlayResponse,
   THIRTY_SEC,
   BoxscoreResponse,
   PlayerIdKey,
-  ScheduleResponse,
   FIVE_MINUTES,
   GameStatusBucket,
 } from "src/interfaces/interfaces";
@@ -39,7 +37,6 @@ import {
   adaptPlays,
   groupPlays,
   teamLogoUrl,
-  api,
   adaptHeader,
   mlbGameStatus,
 } from "src/utils/utils";
@@ -61,6 +58,9 @@ import {
   toRunnerMovements,
   outsRecordedOnPlay,
 } from "src/repository/baseballField";
+import { getScheduleResp } from "src/repository/schedules";
+import { getGameContentResp } from "src/repository/gameContent";
+import { getBoxscoreResp, getPlayByPlayResp } from "src/repository/playByPlay";
 
 export function ScoreBug({
   header,
@@ -143,17 +143,19 @@ export function PlayByPlay({
   initialFilter = "all",
   onPlayClick,
 }: PlayByPlayProps) {
-  const today = new Date();
-
   const { id, gameDate } = useParams();
+
+  const today = new Date();
+  let videoUnmuted = false;
+  const date = gameDate ?? today.toLocaleString();
+
   const [tab, setTab] = useState<string>("pbp");
   const [lineupsTab, setLineupsTab] = useState<"home" | "away">("home");
+  const [bucket, setBucket] = useState<GameStatusBucket>("other");
   const [filter, setFilter] = useState<"all" | "scoring" | "home" | "away">(
     initialFilter
   );
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const prmRef = useRef(prefersReducedMotion);
-  const [refreshScreen, setRefreshScreen] = useState(false);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -173,11 +175,11 @@ export function PlayByPlay({
   const [lastUpdateTime, setLastUpdateTime] = useState<string>(
     today.toLocaleString()
   );
+  const [displayPlayByPlay, setDisplayPlayByPlay] = useState<boolean>(false);
 
+  const fieldRef = useRef<BaseballFieldHandle>(null);
   const video = useRef<HTMLVideoElement>(null);
-  let videoUnmuted = false;
-  const date = gameDate ?? today.toLocaleString();
-  const [bucket, setBucket] = useState<GameStatusBucket>("other");
+  const prmRef = useRef(prefersReducedMotion);
 
   const filtered = useMemo(() => {
     return plays.filter((p) => {
@@ -193,13 +195,8 @@ export function PlayByPlay({
     [filtered, groupByInning]
   );
 
-  const fieldRef = useRef<BaseballFieldHandle>(null);
-
   const handlePlayClick = (play: PlayEvent) => {
-    fieldRef.current?.setIsFieldDisplayed(true);
-    setRefreshScreen(!refreshScreen);
-
-    fieldRef.current?.reset();
+    setDisplayPlayByPlay(true);
 
     const lineups = {
       home: boxscore?.teams.home,
@@ -250,15 +247,9 @@ export function PlayByPlay({
 
         const gamePk = parseInt(id ?? "0");
         const ac = new AbortController();
-        const scheduleEndPoint = `mlb/schedule`;
 
-        const scheduleResp = await api.post<ScheduleResponse>(
-          scheduleEndPoint,
-          {
-            startDt: date,
-            endDt: date,
-          }
-        );
+        const scheduleResp = await getScheduleResp(ac, date);
+        if (!scheduleResp) return;
 
         const currentGame = scheduleResp.data.dates[0].games.find((game) => {
           return game.gamePk === gamePk;
@@ -276,15 +267,14 @@ export function PlayByPlay({
 
         const gameContentTick = async () => {
           try {
-            const gameContentEndPoint = `mlb/game-content`;
-
-            const gameContentResp = await api.post<GameContentResponse>(
-              gameContentEndPoint,
-              {
-                gamePk: currentGame?.gamePk,
-              },
-              { signal: ac.signal }
+            const gameContentResp = await getGameContentResp(
+              ac,
+              currentGame.gamePk
             );
+
+            if (!gameContentResp) {
+              return;
+            }
 
             const images = getImagesFromGameContent(gameContentResp.data, {
               variant: "different",
@@ -317,29 +307,17 @@ export function PlayByPlay({
         };
 
         const scoreTick = async () => {
-          const endpoint = `mlb/playbyplay`;
-          const boxscoreEndPoint = `mlb/boxscore`;
-
           try {
+            const pk = currentGame.gamePk;
+            const dt = currentGame.gameDate;
             const [pbpResp, boxScoreResp] = await Promise.all([
-              api.post<PlayByPlayResponse>(
-                endpoint,
-                {
-                  gameDt: currentGame?.gameDate,
-                  gamePk: currentGame?.gamePk,
-                },
-                { signal: ac.signal }
-              ),
-
-              api.post<BoxscoreResponse>(
-                boxscoreEndPoint,
-                {
-                  gamePk: currentGame?.gamePk,
-                  gameDt: currentGame?.gameDate,
-                },
-                { signal: ac.signal }
-              ),
+              getPlayByPlayResp(ac, pk, dt),
+              getBoxscoreResp(ac, pk, dt),
             ]);
+
+            if (!pbpResp || !boxScoreResp) {
+              return;
+            }
 
             const data = pbpResp.data;
             const bxsData = boxScoreResp.data;
@@ -481,8 +459,11 @@ export function PlayByPlay({
                 <Button
                   variant={"secondary"}
                   className={`bg-blue-300 ${
-                    fieldRef.current?.isFieldDisplayed ? "block" : "hidden"
+                    displayPlayByPlay ? "block" : "hidden"
                   }`}
+                  onClick={() => {
+                    setDisplayPlayByPlay(false);
+                  }}
                 >
                   Close
                 </Button>
@@ -521,7 +502,7 @@ export function PlayByPlay({
                   value={tab}
                   onValueChange={(e) => {
                     setTab(e);
-                    fieldRef.current?.setIsFieldDisplayed(false);
+                    setDisplayPlayByPlay(false);
                   }}
                   className="ml-auto"
                 >
@@ -829,7 +810,10 @@ export function PlayByPlay({
         </Card>
       </div>
 
-      <BaseballField ref={fieldRef}></BaseballField>
+      <BaseballField
+        ref={fieldRef}
+        displayField={displayPlayByPlay}
+      ></BaseballField>
     </div>
   );
 }
