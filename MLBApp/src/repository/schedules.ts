@@ -1,7 +1,7 @@
 import {
   ScheduleResponse,
   StandingsResponseV2,
-} from "src/interfaces/interfaces";
+} from "src/interfaces/teams.types";
 import { api } from "src/utils/utils";
 
 export async function getScheduleResp(
@@ -27,6 +27,25 @@ export async function getScheduleResp(
       },
       { signal: ac.signal }
     );
+
+    return scheduleResp;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
+export async function getTeamScheduleResp(
+  ac: AbortController,
+  teamId: number = 158,
+  season: number = new Date().getFullYear()
+) {
+  try {
+    const scheduleEndPoint = `mlb/schedule?teamId=${teamId}&season=${season}`;
+
+    const scheduleResp = await api.get<ScheduleResponse>(scheduleEndPoint, {
+      signal: ac.signal,
+    });
 
     return scheduleResp;
   } catch (e) {
