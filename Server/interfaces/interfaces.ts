@@ -1437,56 +1437,6 @@ interface zoneColorTempValue {
   value: string;
 }
 
-// export interface GameHighlightsResponse {
-//   copyright: string;
-//   link: string;
-//   editorial: {
-//     preview: any;
-//     articles: any;
-//     recap: {
-//       mlb: {
-//         type: string;
-//         state: string;
-//         date: string;
-//         headline: string;
-//         seoTitle: string;
-//         slug: string;
-//         blurb: string;
-//         keywordsAll: typeValueDisplayName[];
-//         keywordsDisplay: typeValueDisplayName[];
-//         image: Image;
-//         seoKeywords: string;
-//         body: string;
-//         contributors: { name: string }[];
-//         photo: Image;
-//         url: string;
-//         media: {
-//           type
-//         };
-//       };
-//     };
-//   };
-// }
-
-// interface Image {
-//   title: string;
-//   altText: string;
-//   templateUrl: string;
-//   cuts: {
-//     aspectRatio: string;
-//     width: number;
-//     height: number;
-//     src: string;
-//     at2x: string;
-//     at3x: string;
-//   }[];
-// }
-// interface typeValueDisplayName {
-//   type: string | null;
-//   value: string | null;
-//   displayName: string | null;
-// }
-
 // Root --------------------------------------------------------------
 
 export interface GameContentResponse {
@@ -1531,24 +1481,24 @@ export interface GameContentResponse {
 // Editorial ---------------------------------------------------------
 
 export interface EditorialItemSet {
-  mlb?: EditorialItem;               // common
+  mlb?: EditorialItem; // common
   // sometimes multiple networks: e.g., "ap", "espn"
   [network: string]: EditorialItem | undefined;
 }
 
 export interface EditorialItem {
-  type?: string;                     // e.g., "article"
+  type?: string; // e.g., "article"
   headline?: string;
   subhead?: string;
   slug?: string;
   seoTitle?: string;
   seoDescription?: string;
   blurb?: string;
-  date?: string;                     // ISO timestamp
+  date?: string; // ISO timestamp
   keywordsAll?: Keyword[];
-  image?: Image;                     // hero image
-  images?: Image[];                  // sometimes an array as well
-  body?: string;                     // HTML
+  image?: Image; // hero image
+  images?: Image[]; // sometimes an array as well
+  body?: string; // HTML
   // Additional editorial-specific fields can appear
   [key: string]: unknown;
 }
@@ -1567,12 +1517,12 @@ export interface HighlightItem {
   title?: string;
   blurb?: string;
   description?: string;
-  duration?: number;                 // seconds (often a number)
-  date?: string;                     // ISO timestamp
+  duration?: number; // seconds (often a number)
+  date?: string; // ISO timestamp
   keywordsAll?: Keyword[];
   image?: Image;
-  images?: Image[];                  // sometimes array instead of single
-  playbacks?: Playback[];            // video URLs (mp4/m3u8)
+  images?: Image[]; // sometimes array instead of single
+  playbacks?: Playback[]; // video URLs (mp4/m3u8)
   // occasionally nested “svideo” or “ugcCredit”, etc.
   [key: string]: unknown;
 }
@@ -1580,8 +1530,8 @@ export interface HighlightItem {
 // Media / EPG -------------------------------------------------------
 
 export interface EpgChannel {
-  title?: string;                    // e.g., "MLBTV", "Audio"
-  platform?: string;                 // e.g., "desktop", "mobile"
+  title?: string; // e.g., "MLBTV", "Audio"
+  platform?: string; // e.g., "desktop", "mobile"
   items?: MediaItem[];
   [key: string]: unknown;
 }
@@ -1593,7 +1543,7 @@ export interface MediaItem {
   duration?: number;
   image?: Image;
   playbacks?: Playback[];
-  callLetters?: string;              // radio/TV
+  callLetters?: string; // radio/TV
   mediaPlaybackId?: string;
   // sometimes has “type”, “locale”, “freeGame”, etc.
   [key: string]: unknown;
@@ -1602,7 +1552,7 @@ export interface MediaItem {
 // Shared bits -------------------------------------------------------
 
 export interface Keyword {
-  type?: string;                     // e.g., "team", "player"
+  type?: string; // e.g., "team", "player"
   value?: string;
   displayName?: string;
 }
@@ -1627,8 +1577,8 @@ export interface Image {
 }
 
 export interface Playback {
-  name: string;                      // e.g., "FLASH_192K_640X360", "HTTP_CLOUD_MOBILE"
-  url: string;                       // mp4 or m3u8
+  name: string; // e.g., "FLASH_192K_640X360", "HTTP_CLOUD_MOBILE"
+  url: string; // mp4 or m3u8
   width?: number;
   height?: number;
   [key: string]: unknown;
@@ -1639,3 +1589,5 @@ export interface ExternalLink {
   url: string;
   [key: string]: unknown;
 }
+
+export const mlbApiHost = "https://statsapi.mlb.com";
