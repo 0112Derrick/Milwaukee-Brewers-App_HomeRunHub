@@ -145,6 +145,24 @@ export async function fetchPlayByPlay(
   }
 }
 
+export async function checkMlbStory(gamePk: number) {
+  const videoHref = `https://www.mlb.com/stories/game/${gamePk}`;
+  let result = false;
+  try {
+    const apiRes = await axios.get(videoHref);
+    console.log(`Status: ${apiRes.status} | Result: ${apiRes.data}`);
+    if (apiRes.status < 400) {
+      result = true;
+    } else {
+      result = false;
+    }
+  } catch (e) {
+    result = false;
+  }
+
+  return result;
+}
+
 export function findGameByGamePk(
   schedule: ScheduleResponse,
   gamePk: number

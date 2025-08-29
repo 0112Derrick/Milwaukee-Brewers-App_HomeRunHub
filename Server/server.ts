@@ -15,6 +15,7 @@ import {
   fetchGameLineScore,
   fetchPlayByPlay,
   fetchBoxScores,
+  checkMlbStory,
 } from "./services/games.js";
 import {
   fetchSchedule,
@@ -224,6 +225,18 @@ export class Server {
         });
         return;
       }
+    });
+    this.app.get("/check-mlb-story/:gamePk", async (req, res) => {
+      const gamePk = parseInt(String(req.params.gamePk)) || 0;
+
+      if (typeof gamePk !== "number" || isNaN(gamePk)) {
+        res.send({ exists: false });
+        return;
+      }
+
+      const results = await checkMlbStory(gamePk);
+
+      res.send({ exists: results });
     });
     this.app.post("/mlb/standings", async (req, res) => {
       const { leagueId, seasonDt, divisionId } = req.body;
