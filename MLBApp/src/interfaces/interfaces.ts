@@ -52,6 +52,8 @@ export interface DataTableProps<TData, TValue> {
   data: TData[];
   showDateRange: boolean;
   date?: Date;
+  dateId?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 export interface RosterResponse {
