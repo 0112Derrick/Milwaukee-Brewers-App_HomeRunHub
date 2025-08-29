@@ -1,33 +1,43 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import {
-  MlbTeamDataI,
-  Player,
-  RosterResponse,
-  StandingsResponseV2,
-  TeamPages,
-  TeamRecord,
-} from "src/interfaces/interfaces";
+import { MlbGame, Player } from "src/interfaces/interfaces";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "src/@/components/ui/card";
 import { Button } from "src/@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { MlbTeamDataModifiedI } from "src/interfaces/interfaces";
-import { mlbTeamsDetails } from "src/data/teamData";
 import ErrorPage from "./ErrorPage";
 import { Skeleton } from "src/@/components/ui/skeleton";
 import { DataTable, RosterTable } from "src/components/Table";
-import { columns } from "src/data/columnDefs";
-import { api } from "src/utils/utils";
+import { columns, gamesColumns } from "src/data/columnDefs";
+import { getRosterResp, getTeamsResp } from "src/repository/teams";
+import {
+  getStandingsResp,
+  getTeamScheduleResp,
+} from "src/repository/schedules";
+import {
+  MlbTeamDataModifiedI,
+  TeamPages,
+  TeamRecord,
+} from "src/interfaces/teams.types";
+import { ScrollArea } from "src/@/components/ui/scroll-area";
+import { mlbTeamsDetails } from "src/data/teamData";
+import { Label } from "src/@/components/ui/label";
 
 function TeamPage() {
   const { id } = useParams();
-  const [team, setTeam] = useState<MlbTeamDataModifiedI | null>(null);
-  const [divisionData, setDivisionData] = useState<TeamRecord[]>([]);
-  const [rosterData, setRosterData] = useState<Player[]>([]);
+
   const [page, setPage] = useState<TeamPages>(TeamPages.Description);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>(null);
+
+  const [team, setTeam] = useState<MlbTeamDataModifiedI | null>(null);
+  const [divisionData, setDivisionData] = useState<TeamRecord[]>([]);
+  const [rosterData, setRosterData] = useState<Player[]>([]);
+  const [games, setGames] = useState<MlbGame[]>([]);
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const [season, setSeason] = useState(today.getFullYear());
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,15 +47,18 @@ function TeamPage() {
       setLoading(true);
 
       try {
-        let endpoint = ``;
+        let day = today.getDate().toString().padStart(2, "0");
+        let month = (today.getMonth() + 1).toString().padStart(2, "0");
 
-        if (page == TeamPages.Description) {
-          endpoint += `teams?id=${id}`;
+        const dt = `${season}-${month}-${day}`;
+        const intId = parseInt(id ? id : "114");
 
-          const response = await api.get(endpoint, { signal: ac.signal });
+        const getTeamData = async () => {
+          const response = await getTeamsResp(ac, intId);
+          if (!response) return;
 
           if (response.data && response.data.teams) {
-            const team = response.data.teams[0] as MlbTeamDataI;
+            const team = response.data.teams[0];
 
             // Adds in additional team data from /data/teamData this adds in info about world series won and hall of fame players that was not provided with the brewers api.
             let additionalTeamDetails = mlbTeamsDetails.find(
@@ -63,21 +76,16 @@ function TeamPage() {
           } else {
             throw new Error("No data returned");
           }
-        }
-        if (page == TeamPages.DivisionRanking) {
-          endpoint += `mlb/standings`;
+        };
+
+        if (page == TeamPages.Description) {
+          getTeamData();
+        } else if (page == TeamPages.DivisionRanking) {
           const division = 105;
+          getTeamData();
+          const response = await getStandingsResp(ac, dt, division);
 
-          const response = await api.post<StandingsResponseV2>(
-            endpoint,
-            {
-              leagueId: division,
-              seasonDt: new Date().toISOString().split("T")[0],
-            },
-            { signal: ac.signal }
-          );
-
-          if (response.status !== 200) {
+          if (!response || response.status !== 200) {
             throw new Error("Unable to get teams record.");
           }
 
@@ -95,26 +103,34 @@ function TeamPage() {
             }
           }
           setDivisionData(foundDivision);
-        }
-        if (page == TeamPages.Roster) {
-          endpoint += `mlb/roster`;
+        } else if (page == TeamPages.Roster) {
+          const response = await getRosterResp(ac, intId, dt);
 
-          const response = await api.post<RosterResponse>(
-            endpoint,
-            {
-              teamId: parseInt(id ? id : "114"),
-              seasonDt: new Date().toISOString().split("T")[0],
-            },
-            { signal: ac.signal }
-          );
-
-          if (response.status !== 200) {
+          if (!response || response.status !== 200) {
             throw new Error("Unable to get teams record.");
           }
 
           const data = response.data;
 
           setRosterData(data.roster);
+        } else if (page == TeamPages.Games) {
+          try {
+            const response = await getTeamScheduleResp(ac, intId, season);
+
+            if (!response || response.status !== 200) {
+              throw new Error("Unable to get teams record.");
+            }
+
+            const games: MlbGame[] = [];
+            response.data.dates.forEach((date) => {
+              games.push(...date.games);
+            });
+
+            setGames(games);
+          } catch (e) {
+            console.error("Error fetching games.");
+            setError(e);
+          }
         }
       } catch (error) {
         if (axios.isCancel(error)) {
@@ -135,11 +151,62 @@ function TeamPage() {
     return () => {
       ac.abort();
     };
-  }, [id, page]);
+  }, [id, page, season]);
+
+  const years: number[] = [];
+  for (let i = 0; i < 41; i++) {
+    years.push(currentYear - i);
+  }
 
   const InnerNav = () => {
     return (
-      <div className="flex flex-shrink self-end gap-4 p-4 text-black">
+      <div className="flex flex-shrink items-center justify-between w-full p-4">
+        <div className="flex gap-2">
+          <div className="flex flex-col gap-3">
+            <Label htmlFor="page" className="px-1 font-semibold">
+              Page
+            </Label>
+
+            <select
+              className="ring-0 border-none outline-none text-black w-32 h-6 rounded-md"
+              defaultValue={page}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                setPage(val);
+              }}
+            >
+              <option value={TeamPages.Description}>Description</option>
+              <option value={TeamPages.DivisionRanking}>Standings</option>
+              <option value={TeamPages.Games}>Schedule</option>
+              <option value={TeamPages.Roster}>Roster</option>
+            </select>
+          </div>
+          <div
+            className={
+              page !== TeamPages.Description ? "block text-white" : "hidden"
+            }
+          >
+            <div className="flex flex-col gap-3">
+              <Label htmlFor="season" className="px-1 font-semibold">
+                Season
+              </Label>
+              <select
+                className="ring-0 border-none outline-none text-black w-32 h-6 rounded-md"
+                defaultValue={season}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  setSeason(val);
+                }}
+              >
+                {years.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
         <Button
           variant={"outline"}
           className="bg-blue-500 hover:bg-blue-600 text-lg text-white hover:text-white"
@@ -149,18 +216,6 @@ function TeamPage() {
         >
           Back to home
         </Button>
-        <select
-          className="ring-0 border-none rounded"
-          defaultValue={page}
-          onChange={(e) => {
-            const val = parseInt(e.target.value, 10);
-            setPage(val);
-          }}
-        >
-          <option value={TeamPages.Description}>Description</option>
-          <option value={TeamPages.DivisionRanking}>Division Ranking</option>
-          <option value={TeamPages.Roster}>Roster</option>
-        </select>
       </div>
     );
   };
@@ -198,7 +253,14 @@ function TeamPage() {
   }
 
   if (error) {
-    return <ErrorPage pageError={error}></ErrorPage>;
+    return (
+      <div className="flex flex-col flex-grow w-full overflow-auto">
+        <div className="w-full self-end flex flex-col">
+          <InnerNav></InnerNav>
+        </div>
+        <ErrorPage pageError={error}></ErrorPage>
+      </div>
+    );
   }
 
   if (team) {
@@ -208,7 +270,7 @@ function TeamPage() {
           <div className="w-full self-end flex flex-col">
             <InnerNav></InnerNav>
           </div>
-          <Card className="flex items-center flex-wrap justify-evenly flex-1 p-4 gap-4 border-0 sm:border-0 sm:gap-12 sm:p-24 md:p-4 lg:border-2 bg-inherit rounded-md">
+          <Card className="flex items-center flex-wrap justify-evenly flex-1 p-4 gap-4 border-0 sm:border-0 sm:gap-12 sm:p-24 md:w-4/5 md:p-4 lg:border-2 bg-inherit rounded-md">
             <CardContent className="flex flex-wrap gap-8">
               <img
                 src={team.logo}
@@ -318,7 +380,11 @@ function TeamPage() {
               </span>
             </CardHeader>
             <CardContent className="p-0">
-              <DataTable columns={columns} data={divisionData}></DataTable>
+              <DataTable
+                columns={columns}
+                data={divisionData}
+                showDateRange={false}
+              ></DataTable>
             </CardContent>
           </Card>
         </div>
@@ -327,9 +393,7 @@ function TeamPage() {
     if (page == TeamPages.Roster) {
       return (
         <div className="flex-1 min-h-0 w-full flex flex-col">
-          <div className="flex-shrink-0 self-end">
-            <InnerNav />
-          </div>
+          <InnerNav />
 
           <div className="flex-1 min-h-0">
             <Card className="h-full flex flex-col overflow-hidden rounded-none">
@@ -346,11 +410,49 @@ function TeamPage() {
         </div>
       );
     }
+    if (page == TeamPages.Games) {
+      return (
+        <div className="flex flex-col flex-grow items-center flex-1 gap-4 overflow-hidden">
+          <InnerNav></InnerNav>
+          <Card className="flex-1 w-full rounded-none overflow-y-auto">
+            <CardHeader>
+              <span className="font-semibold text-lg text-card-foreground">
+                {team.name}
+              </span>
+            </CardHeader>
+            <CardContent className="p-0 overflow-y-auto">
+              <ScrollArea className="overflow-y-auto">
+                <DataTable
+                  columns={gamesColumns}
+                  data={games}
+                  showDateRange={true}
+                  date={
+                    new Date(
+                      `${season}-${(today.getMonth() + 1)
+                        .toString()
+                        .padStart(2, "0")}-${today
+                        .getDate()
+                        .toString()
+                        .padStart(2, "0")}`
+                    )
+                  }
+                ></DataTable>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
   }
 
   return (
-    <div className="flex flex-grow items-center justify-center">
-      Unable to find team data.
+    <div className="flex flex-col flex-grow w-full overflow-auto">
+      <div className="w-full self-end flex flex-col">
+        <InnerNav></InnerNav>
+      </div>
+      <div className="flex flex-grow items-center justify-center">
+        Unable to find team data.
+      </div>
     </div>
   );
 }
