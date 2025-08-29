@@ -13,12 +13,14 @@ import { getStandingsResp } from "src/repository/schedules";
 import { StandingsResponseV2 } from "src/interfaces/teams.types";
 import { DataTable } from "src/components/Table";
 import { columns } from "src/data/columnDefs";
+import { Label } from "src/@/components/ui/label";
 
 const StandingsPage: React.FC = () => {
   const [standings, setStandings] = useState<StandingsResponseV2 | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [division, setDivision] = useState<number>(105);
+  const [league, setLeague] = useState<number>(105);
+  const [division, setDivision] = useState<number>(0);
 
   const ac = new AbortController();
 
@@ -29,11 +31,13 @@ const StandingsPage: React.FC = () => {
       const response = await getStandingsResp(
         ac,
         new Date().toISOString().split("T")[0],
+        league,
         division
       );
 
       if (!response || response.status !== 200) {
         if (!response) {
+          setStandings(null);
           return;
         }
 
@@ -59,7 +63,7 @@ const StandingsPage: React.FC = () => {
       fetchStandings();
     }, 300);
     return () => clearTimeout(timeout);
-  }, [division]);
+  }, [league, division]);
 
   if (loading)
     return (
@@ -73,30 +77,58 @@ const StandingsPage: React.FC = () => {
         <p className="text-red-500">{error}</p>
       </div>
     );
-  if (!standings) return null;
+  if (!standings)
+    return (
+      <div className="p-4 space-y-8 flex flex-col flex-grow overflow-auto bg-inherit">
+        No results found
+      </div>
+    );
 
   return (
     <ScrollArea>
       <div className="p-4 space-y-8 flex flex-col flex-grow overflow-auto bg-inherit">
         <h1 className="text-2xl font-bold">MLB Standings</h1>
-        <div className="flex justify-end text-black">
-          <select
-            defaultValue={division}
-            onChange={(e) => {
-              const val = parseInt(e.target.value, 10);
-              setDivision(val);
-            }}
-          >
-            <option value={105}>All</option>
-            <option value={103}>American league</option>
-            <option value={104}>National league</option>
-          </select>
+        <div className="flex gap-2 justify-end text-black">
+          <div className="flex flex-col gap-3">
+            <Label className="text-white">League</Label>
+            <select
+              className="ring-0 border-none outline-none text-black w-32 h-6 rounded-md"
+              defaultValue={league}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                setLeague(val);
+              }}
+            >
+              <option value={105}>All</option>
+              <option value={103}>American league</option>
+              <option value={104}>National league</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Label className="text-white">Division</Label>
+            <select
+              className="ring-0 border-none outline-none text-black w-32 h-6 rounded-md"
+              defaultValue={division}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                setDivision(val);
+              }}
+            >
+              <option value={0}>All</option>
+              <option value={1}>West</option>
+              <option value={2}>East</option>
+              <option value={3}>Central</option>
+            </select>
+          </div>
         </div>
-        <div className="mt-4 flex flex-col gap-1">
+        <div className="mt-4 flex flex-col rounded-none border-none">
           {standings.records.map((division) => (
-            <Card key={division.division.id} className="rounded-none m-0">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between text-black">
+            <Card
+              key={division.division.id}
+              className="rounded-none m-0 border-none"
+            >
+              <CardHeader className="border-none h-fit">
+                <CardTitle className="flex items-center justify-between text-black border-none">
                   <span>
                     {division.division.id
                       ? standings.divisions.find(
@@ -113,6 +145,7 @@ const StandingsPage: React.FC = () => {
                     columns={columns}
                     data={division.teamRecords}
                     showDateRange={false}
+                    sortOrder="desc"
                   ></DataTable>
                 </div>
               </CardContent>
