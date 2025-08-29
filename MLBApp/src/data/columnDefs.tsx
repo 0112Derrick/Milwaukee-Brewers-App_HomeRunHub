@@ -5,21 +5,19 @@ import { Link } from "react-router-dom";
 import { DateRange } from "src/interfaces/generated.game-content.types";
 import { ArrowUpDown, ArrowBigDownIcon, ArrowBigUpIcon } from "lucide-react";
 import { Button } from "src/@/components/ui/button";
+import { teamLogoUrl } from "src/utils/utils";
+import { TeamLogoName } from "src/components/TeamLogoName";
 
 export const columns: ColumnDef<TeamRecord>[] = [
   {
     id: "name",
-    header: "Name",
+    header: "Team",
     cell({ row }) {
       const teamName = row.original.team.name;
       const id = row.original.team.id;
+      const logo = teamLogoUrl(id);
       return (
-        <Link
-          to={`/teams/${id}`}
-          className="focus:text-blue-400 hover:text-blue-400"
-        >
-          {teamName}
-        </Link>
+        <TeamLogoName id={id} teamName={teamName} logo={logo}></TeamLogoName>
       );
     },
   },
