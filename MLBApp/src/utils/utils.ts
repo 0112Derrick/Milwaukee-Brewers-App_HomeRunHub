@@ -131,6 +131,19 @@ export function parseYMDLocal(ymd: string): Date {
   return new Date(year, monthIndex, day); // local time, not UTC
 }
 
+export function pad2(n: number) {
+  return n < 10 ? `0${n}` : String(n);
+}
+export function formatYYYYMMDD(d: Date): string {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+export function parseYYYYMMDD(s?: string): Date | undefined {
+  if (!s) return;
+  const [y, m, d] = s.split("-").map(Number);
+  if (!y || !m || !d) return;
+  return new Date(y, m - 1, d);
+}
+
 const RANK: Record<GameStatusBucket, number> = {
   live: 0,
   pregame: 1,
