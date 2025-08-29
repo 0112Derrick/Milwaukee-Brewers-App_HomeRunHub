@@ -174,33 +174,46 @@ export function DataTable<TData, TValue>({
   data,
   showDateRange,
   date,
+  dateId,
+  sortOrder,
 }: DataTableProps<TData, TValue>) {
   const endDate = date ?? new Date();
   const startDate = `${endDate.getFullYear()}-01-01`;
   const currentDate = formatYMDLocal(endDate);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
-    { id: "officialDate", value: { from: startDate, to: currentDate } },
+    { id: dateId ?? "", value: { from: startDate, to: currentDate } },
   ]);
   const [sorting, setSorting] = useState<SortingState>([
-    { id: "officialDate", desc: true },
+    { id: dateId ?? "", desc: sortOrder == "asc" ? false : true },
   ]);
-
-  const table = useReactTable({
+  let props: any = {
     data,
     columns,
-    state: { columnFilters, sorting },
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-  });
+  };
 
+  if (showDateRange && date && dateId) {
+    props = {
+      data,
+      columns,
+      state: { columnFilters, sorting },
+      onSortingChange: setSorting,
+      onColumnFiltersChange: setColumnFilters,
+      getCoreRowModel: getCoreRowModel(),
+      getFilteredRowModel: getFilteredRowModel(),
+      getSortedRowModel: getSortedRowModel(),
+    };
+  }
+  const table = useReactTable(props);
   return (
     <div className="overflow-hidden border">
-      <div className={`${showDateRange ? "flex p-4 items-end" : "hidden"}`}>
-        <DateRangeFilter table={table} />
-      </div>
+      {showDateRange ? (
+        <div className={`flex p-4 items-end`}>
+          <DateRangeFilter table={table} />
+        </div>
+      ) : null}
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
