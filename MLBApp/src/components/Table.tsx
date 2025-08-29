@@ -208,7 +208,7 @@ export function DataTable<TData, TValue>({
   }
   const table = useReactTable(props);
   return (
-    <div className="overflow-hidden border">
+    <div className="overflow-hidden border [&_th]:text-center [&_td]:text-center">
       {showDateRange ? (
         <div className={`flex p-4 items-end`}>
           <DateRangeFilter table={table} />
