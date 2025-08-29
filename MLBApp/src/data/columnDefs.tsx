@@ -1,14 +1,27 @@
-import {
-  TeamRecord,
-  Player,
-  SplitRowExtended,
-} from "src/interfaces/interfaces";
+import { MlbGame, Player, SplitRowExtended } from "src/interfaces/interfaces";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
+import { TeamRecord } from "src/interfaces/teams.types";
+import { Link } from "react-router-dom";
+import { DateRange } from "src/interfaces/generated.game-content.types";
+import { ArrowUpDown, ArrowBigDownIcon, ArrowBigUpIcon } from "lucide-react";
+import { Button } from "src/@/components/ui/button";
 
 export const columns: ColumnDef<TeamRecord>[] = [
   {
-    accessorKey: "team.name",
+    id: "name",
     header: "Name",
+    cell({ row }) {
+      const teamName = row.original.team.name;
+      const id = row.original.team.id;
+      return (
+        <Link
+          to={`/teams/${id}`}
+          className="focus:text-blue-400 hover:text-blue-400"
+        >
+          {teamName}
+        </Link>
+      );
+    },
   },
   {
     accessorKey: "gamesPlayed",
@@ -31,6 +44,22 @@ export const columns: ColumnDef<TeamRecord>[] = [
     header: "Division Rank",
   },
   {
+    id: "rd",
+    header: "Run Differential",
+    cell({ row }) {
+      const { runDifferential } = row.original;
+      return (
+        <div>
+          {runDifferential >= 0 ? `+${runDifferential}` : runDifferential}
+        </div>
+      );
+    },
+  },
+  {
+    header: "Streak",
+    accessorKey: "streak.streakCode",
+  },
+  {
     id: "clinched",
     accessorKey: "clinched",
     header: "Clinched",
@@ -42,6 +71,94 @@ export const columns: ColumnDef<TeamRecord>[] = [
         </div>
       );
     },
+  },
+];
+
+export const gamesColumns: ColumnDef<MlbGame>[] = [
+  {
+    accessorKey: "season",
+    header: "Season",
+  },
+  {
+    accessorKey: "officialDate",
+    header: ({ column }) => {
+      const sorted = column.getIsSorted(); // false | 'asc' | 'desc'
+      return (
+        <Button
+          variant="ghost"
+          className="px-2"
+          onClick={
+            () => column.toggleSorting(sorted === "asc") // flip asc/desc
+          }
+        >
+          Date
+          <span className="ml-1 inline-flex">
+            {sorted === "asc" ? (
+              <ArrowBigUpIcon className="h-4 w-4" />
+            ) : sorted === "desc" ? (
+              <ArrowBigDownIcon className="h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="h-4 w-4 opacity-60" />
+            )}
+          </span>
+        </Button>
+      );
+    },
+
+    sortingFn: (a, b, id) => {
+      const av = a.getValue<string>(id);
+      const bv = b.getValue<string>(id);
+      return new Date(av).getTime() - new Date(bv).getTime();
+    },
+    filterFn: (row, id, value: DateRange) => {
+      const v = String(row.getValue(id) ?? "");
+      if (!value?.from && !value?.to) return true;
+      if (value.from && v < value.from) return false;
+      if (value.to && v > value.to) return false;
+      return true;
+    },
+  },
+  {
+    id: "matchup",
+    header: "Matchup",
+    cell({ row }) {
+      const { gamePk, officialDate, teams } = row.original;
+      const awayName = teams.away.team.name;
+      const homeName = teams.home.team.name;
+
+      return (
+        <Link
+          to={`/games/${officialDate}/${gamePk}`}
+          className="hover:text-blue-400 focus:text-blue-400 outline-none"
+          tabIndex={0}
+        >
+          {awayName} @ {homeName}
+        </Link>
+      );
+    },
+  },
+  {
+    accessorKey: "venue.name",
+    header: "Venue",
+  },
+  {
+    id: "score",
+    header: "Score",
+    cell({ row }) {
+      const { teams } = row.original;
+      const awayScore = teams.away.score ?? "-";
+      const homeScore = teams.home.score ?? "-";
+
+      return (
+        <div>
+          {awayScore} - {homeScore}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "seriesGameNumber",
+    header: "Game # in series",
   },
 ];
 
