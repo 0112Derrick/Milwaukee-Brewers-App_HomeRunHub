@@ -6,6 +6,10 @@ import {
   getExpandedRowModel,
   ColumnDef,
   TableOptions,
+  ColumnFiltersState,
+  getFilteredRowModel,
+  SortingState,
+  getSortedRowModel,
 } from "@tanstack/react-table";
 import { useState } from "react";
 import { Fragment } from "react/jsx-runtime";
@@ -23,6 +27,8 @@ import {
   Player,
   SplitRowExtended,
 } from "src/interfaces/interfaces";
+import { DateRangeFilter } from "./DateRangeFilter";
+import { formatYMDLocal } from "src/utils/utils";
 
 export function StatsTable<T extends object>({
   data,
@@ -166,15 +172,35 @@ export function RosterTable({ data }: { data: Player[] }) {
 export function DataTable<TData, TValue>({
   columns,
   data,
+  showDateRange,
+  date,
 }: DataTableProps<TData, TValue>) {
+  const endDate = date ?? new Date();
+  const startDate = `${endDate.getFullYear()}-01-01`;
+  const currentDate = formatYMDLocal(endDate);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
+    { id: "officialDate", value: { from: startDate, to: currentDate } },
+  ]);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "officialDate", desc: true },
+  ]);
+
   const table = useReactTable({
     data,
     columns,
+    state: { columnFilters, sorting },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   });
 
   return (
-    <div className="overflow-hidden rounded-md border">
+    <div className="overflow-hidden border">
+      <div className={`${showDateRange ? "flex p-4 items-end" : "hidden"}`}>
+        <DateRangeFilter table={table} />
+      </div>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -194,12 +220,14 @@ export function DataTable<TData, TValue>({
             </TableRow>
           ))}
         </TableHeader>
+
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
+                className="even:bg-slate-200/20 hover:bg-slate-300/25"
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
