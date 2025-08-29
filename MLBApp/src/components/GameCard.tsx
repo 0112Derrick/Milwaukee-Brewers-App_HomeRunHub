@@ -19,7 +19,7 @@ import { ScrollArea } from "src/@/components/ui/scroll-area";
 import { GameStatusBucket } from "src/interfaces/interfaces";
 import { mlbGameStatus } from "src/utils/utils";
 
-function statusVisuals(bucket: GameStatusBucket) {
+export function statusVisuals(bucket: GameStatusBucket) {
   switch (bucket) {
     case "live":
       return {
