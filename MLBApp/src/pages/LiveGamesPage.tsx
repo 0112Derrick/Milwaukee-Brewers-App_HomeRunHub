@@ -11,24 +11,21 @@ import {
 } from "src/interfaces/interfaces";
 import ErrorPage from "./ErrorPage";
 import { Boxscore } from "src/components/Boxscore";
-import useScreenSize from "src/hooks/useScreenSize";
-import { Table, TableBody } from "src/@/components/ui/table";
 import {
   api,
   formatYMDLocal,
   mlbGameStatus,
   parseYMDLocal,
   sortGamesArr,
-  teamLogoUrl,
 } from "src/utils/utils";
 import DatePicker from "src/components/DatePicker";
-import { PlayCircle, TriangleIcon } from "lucide-react";
 import { GameCard } from "src/components/GameCard";
 import { ScrollArea } from "src/@/components/ui/scroll-area";
 import { isDate } from "date-fns";
 import { Option, Select } from "react-day-picker";
 import { Label } from "src/@/components/ui/label";
 import { ScheduleResponse } from "src/interfaces/teams.types";
+import { MiniGameCard } from "src/components/MiniGameCard";
 
 export function LiveGames() {
   const { gameDate } = useParams();
@@ -42,9 +39,7 @@ export function LiveGames() {
   const [sort, setSort] = useState<GameStatusBucket>("live");
   const [noGamesFound, setNoGamesFound] = useState<boolean>(false);
   const [sortedGames, setSortedGames] = useState<MlbGame[]>([]);
-
   const navigate = useNavigate();
-  const screenSize = useScreenSize();
 
   useEffect(() => {
     if (!gameDate) return;
@@ -88,9 +83,9 @@ export function LiveGames() {
         }
       } catch (error) {
         if (axios.isCancel(error)) {
-          console.log("Request canceled:", error.message);
+          //  console.log("Request canceled:", error.message);
         } else {
-          console.error("Error fetching team:", error);
+          // console.error("Error fetching team:", error);
           setError(error);
         }
       } finally {
@@ -178,122 +173,13 @@ export function LiveGames() {
       </div>
     );
   }
-  const currentDate = formatYMDLocal(date);
+  
 
-  const games = sortedGames.map((game) => {
-    const splitAwayName = game.teams.away.team.name.split(" ");
-    const splitHomeName = game.teams.home.team.name.split(" ");
+  
 
-    const awayAbbr =
-      splitAwayName[splitAwayName.length - 1] ?? splitHomeName[0];
-    const homeAbbr =
-      splitHomeName[splitHomeName.length - 1] ?? splitHomeName[0];
-    const state = game?.status?.detailedState ?? "";
-    const bucket = mlbGameStatus(state);
-
+  const gamesMiniScreen = sortedGames.map((game, indx) => {
     return (
-      <Link to={`/games/${currentDate}/${game.gamePk}`} key={`${game.gamePk}`}>
-        <GameCard game={game} color="red">
-          <Boxscore
-            gamePk={game.gamePk}
-            homeAbbr={homeAbbr}
-            awayAbbr={awayAbbr}
-            gameStatus={bucket}
-          />
-        </GameCard>
-      </Link>
-    );
-  });
-
-  const gamesMiniScreen = sortedGames.map((game) => {
-    const state = game?.status?.detailedState ?? "";
-    const bucket = mlbGameStatus(state);
-    const isFinal = bucket === "final";
-
-    const homeWinner = isFinal && game.teams.home.score > game.teams.away.score;
-
-    const awayWinner = isFinal && game.teams.away.score > game.teams.home.score;
-
-    const awayLogo = teamLogoUrl(game.teams.away.team.id);
-    const homeLogo = teamLogoUrl(game.teams.home.team.id);
-    const ymd = formatYMDLocal(new Date(game.gameDate));
-
-    const awayAbbr =
-      game.teams.away.team.name.split(" ")[1] ??
-      game.teams.away.team.name.split(" ")[0];
-    const homeAbbr =
-      game.teams.home.team.name.split(" ")[1] ??
-      game.teams.home.team.name.split(" ")[0];
-
-    const gameHref = `/games/${ymd}/${game.gamePk}`;
-    const videoHref = `https://www.mlb.com/stories/game/${game.gamePk}`;
-
-    return (
-      <div
-        key={game.gamePk}
-        role="link"
-        tabIndex={0}
-        onClick={() => navigate(gameHref)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            navigate(gameHref);
-          }
-        }}
-        className="bg-slate-100 text-black cursor-pointer max-w-fit hover:bg-slate-200 transition-colors"
-      >
-        <div className="flex items-center px-4 border-l border-black">
-          {/* teams/score block */}
-          <div className="grid grid-cols-2 items-center justify-items-end flex-grow gap-2 py-4 w-[150px]">
-            <div className="flex justify-self-start gap-2 items-center">
-              <img
-                src={awayLogo}
-                alt={`${awayAbbr} logo`}
-                className="h-8 w-8"
-              />
-              <p>{awayAbbr}</p>
-            </div>
-            <div className="flex items-center">
-              {game.teams.away.score ?? "-"}{" "}
-              <span className={`${awayWinner ? "visible" : "invisible"}`}>
-                <TriangleIcon className="-rotate-90 scale-50 fill-black"></TriangleIcon>
-              </span>
-            </div>
-
-            <div className="flex justify-self-start gap-2 items-center">
-              <img
-                src={homeLogo}
-                alt={`${homeAbbr} logo`}
-                className="h-8 w-8"
-              />
-              <p>{homeAbbr}</p>
-            </div>
-            <div className="flex items-center">
-              {game.teams.home.score ?? "-"}
-              <span className={`${homeWinner ? "visible" : "invisible"}`}>
-                <TriangleIcon className="-rotate-90 scale-50 fill-black"></TriangleIcon>
-              </span>
-            </div>
-          </div>
-
-          <div className="flex-shrink px-2">
-            <a
-              href={videoHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              aria-label="Open game highlights in a new tab"
-              title="Open game highlights"
-              className="group"
-            >
-              <PlayCircle
-                className="h-7 w-7 group-hover:stroke-green-600"
-                aria-hidden="true"
-              />
-            </a>
-          </div>
-        </div>
-      </div>
+      <MiniGameCard game={game} key={"miniGameCard_" + indx}></MiniGameCard>
     );
   });
 
@@ -323,23 +209,14 @@ export function LiveGames() {
           label="Search for games by date"
         ></DatePicker>
       </div>
-      {screenSize.width < 800 ? (
-        <ScrollArea>
-          <Table>
-            <TableBody>
-              <div className="flex flex-wrap justify-center">
-                {gamesMiniScreen}
-              </div>
-            </TableBody>
-          </Table>
-        </ScrollArea>
-      ) : (
-        <ScrollArea>
-          <div className="grid gap-4 p-2 bg-gray-800 sm:grid-cols-2 lg:grid-cols-3">
-            {games}
+
+      <ScrollArea>
+        <div className="flex flex-col md:items-center bg-slate-50">
+          <div className="grid shadow-lg md:grid-cols-1 lg:grid-cols-2 md:w-full md:max-w-[400px] lg:max-w-full lg:w-3/4">
+            {gamesMiniScreen}
           </div>
-        </ScrollArea>
-      )}
+        </div>
+      </ScrollArea>
     </div>
   );
 }
