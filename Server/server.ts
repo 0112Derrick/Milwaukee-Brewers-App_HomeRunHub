@@ -1,29 +1,25 @@
 import express from "express";
 import cors from "cors";
-import axiosPkg from "axios";
-import cache from "memory-cache";
-import { Database } from "./jsonManager.js";
+import { MLBLeagueIds, MlbTeamApp } from "./interfaces/interfaces.js";
 import {
-  BoxscoreResponse,
-  DivisionRecord,
-  DivisionResponse,
-  LiveFeedResponse,
-  MlbGame,
-  MLBLeagueIds,
-  MlbTeamApp,
-  mlbTeams,
-  PlayByPlayResponse,
-  RosterResponse,
-  ScheduleResponse,
-  SportsLeagueId,
-  StandingsResponse,
-  StandingsResponseV2,
-} from "./interfaces/interfaces.js";
+  fetchStandings,
+  filterStandingsByDivision,
+  isDivisionsEnum,
+} from "./services/standings.js";
 import expressStaticGzip from "express-static-gzip/index.js";
 import path from "path";
 import { fileURLToPath } from "url";
-import { GameContentResponse } from "./interfaces/generated.game-content.types.js";
-const axios = axiosPkg.default;
+import {
+  fetchGameContent,
+  fetchGameLineScore,
+  fetchPlayByPlay,
+  fetchBoxScores,
+} from "./services/games.js";
+import {
+  fetchSchedule,
+  fetchTeamScheduleBySeason,
+} from "./services/schedules.js";
+import { fetchTeams, fetchRoster } from "./services/roster.js";
 
 const __filenameResolved = fileURLToPath(import.meta.url);
 const __dirnameResolved = path.dirname(__filenameResolved);
@@ -31,7 +27,6 @@ const __dirnameResolved = path.dirname(__filenameResolved);
 export class Server {
   private app = express();
   private port: string | number = process.env.Port ?? 8080;
-  private mlbApiHost = "https://statsapi.mlb.com";
   // private __dirname = path.dirname(fileURLToPath(import.meta.url));
   private apiEndpoints = [
     "GET: -",
@@ -83,395 +78,18 @@ export class Server {
     this.app.use(cors());
   }
 
-  organizeMLBTeams(data: mlbTeams) {
-    let organizedMlbTeams: mlbTeams = [];
-
-    const americanTeams = data.filter(
-      (team) => team.league === "American League"
-    );
-
-    const americanCentral = americanTeams.filter((team) => {
-      return team.division.includes("Central");
-    });
-
-    const americanEast = americanTeams.filter((team) => {
-      return team.division.includes("East");
-    });
-
-    const americanWest = americanTeams.filter((team) => {
-      return team.division.includes("West");
-    });
-
-    const nationalTeams = data.filter(
-      (team) => team.league === "National League"
-    );
-
-    const nationalCentral = nationalTeams.filter((team) => {
-      return team.division.includes("Central");
-    });
-
-    const nationalEast = nationalTeams.filter((team) => {
-      return team.division.includes("East");
-    });
-
-    const nationalWest = nationalTeams.filter((team) => {
-      return team.division.includes("West");
-    });
-
-    // Filters and organizes teams by league and division.
-    organizedMlbTeams = organizedMlbTeams.concat(
-      americanCentral,
-      americanEast,
-      americanWest,
-      nationalCentral,
-      nationalEast,
-      nationalWest
-    );
-
-    return organizedMlbTeams;
-  }
-
-  cacheData(data: any, key: string, time = 300000) {
-    cache.put(key, data, time);
-  }
-
-  // Fetches data from an API, caches it, and organizes it based on team league and division.
-  async fetchTeams(): Promise<{ teams: mlbTeams; error: any }> {
-    const key = "mlbTeams";
-    const cachedData = cache.get(key);
-    if (cachedData) {
-      return { teams: cachedData, error: null }; // Returns cached data if available, reducing API calls.
-    }
-
-    try {
-      const data = await Database.readMlbTeams();
-      const organizedMlbTeams = this.organizeMLBTeams(data);
-      this.cacheData(organizedMlbTeams, key, 600000);
-      return { teams: organizedMlbTeams, error: null };
-    } catch (error) {
-      if (axios.isCancel(error)) {
-        console.log("Request timed-out:", error.message);
-      }
-
-      return { teams: null, error: error };
-    }
-  }
-
-  async fetchGameLineScore(gamePk: number): Promise<any> {
-    try {
-      const resp = await axios.get<LiveFeedResponse>(
-        `${this.mlbApiHost}/api/v1.1/game/${gamePk}/feed/live`
-      );
-
-      return resp.data;
-    } catch (e) {
-      console.error(e);
-      return { copyright: "", innings: [] };
-    }
-  }
-
-  async fetchGameContent(gamePk: number): Promise<any> {
-    try {
-      const resp = await axios.get<GameContentResponse>(
-        `${this.mlbApiHost}/api/v1/game/${gamePk}/content`
-      );
-
-      if (resp.status !== 200 || !resp.data.media) {
-        return null;
-      }
-
-      return resp.data;
-    } catch (e) {
-      console.error(e);
-      return { copyright: "", innings: [] };
-    }
-  }
-
-  async fetchStandings(
-    leagueId: MLBLeagueIds,
-    seasonDt: Date
-  ): Promise<StandingsResponseV2> {
-    try {
-      const dateStr = seasonDt.toISOString().split("T")[0];
-      const combinedKey = `standings-${dateStr}-all`;
-
-      let combined = cache.get<StandingsResponseV2>(
-        combinedKey
-      ) as StandingsResponseV2;
-      if (!combined) {
-        const year = seasonDt.getFullYear();
-        const [resAL, resNL] = await Promise.all([
-          axios.get<StandingsResponse>(`${this.mlbApiHost}/api/v1/standings`, {
-            params: {
-              leagueId: MLBLeagueIds.americanLeagueId,
-              season: year,
-              date: dateStr,
-            },
-          }),
-          axios.get<StandingsResponse>(`${this.mlbApiHost}/api/v1/standings`, {
-            params: {
-              leagueId: MLBLeagueIds.nationalLeagueId,
-              season: year,
-              date: dateStr,
-            },
-          }),
-        ]);
-
-        const divisions = await this.fetchDivision();
-
-        combined = {
-          copyright: resAL.data.copyright,
-          records: [...resAL.data.records, ...resNL.data.records],
-          divisions: divisions.divisions,
-        };
-
-        this.cacheData(combined, combinedKey);
-      }
-
-      if (leagueId === MLBLeagueIds.all) {
-        return combined;
-      }
-
-      return {
-        copyright: combined.copyright,
-        records: combined.records.filter(
-          (r: DivisionRecord) => r.league.id === leagueId
-        ),
-        divisions: combined.divisions,
-      };
-    } catch (e) {
-      console.error("Error fetching standings ", e);
-      return { copyright: "", records: [], divisions: [] };
-    }
-  }
-
-  async fetchBoxScores(
-    leagueId: SportsLeagueId,
-    gamePk: number,
-    gameDt: Date
-  ): Promise<BoxscoreResponse> {
-    try {
-      let resp = {
-        copyright: "",
-        teams: {
-          away: null,
-          home: null,
-        },
-      };
-      const date = new Date(gameDt);
-
-      const schedule = await this.fetchSchedule(leagueId, date, gameDt);
-
-      const foundGame = this.findGameByGamePk(schedule, gamePk);
-
-      if (foundGame) {
-        const key = `boxscore-${foundGame.gamePk}`;
-        const cachedData = cache.get(key);
-
-        if (cachedData) {
-          resp = cachedData;
-        } else {
-          const api = `${this.mlbApiHost}/api/v1/game/${foundGame.gamePk}/boxscore`;
-
-          const boxscore = await axios.get(api);
-          resp = boxscore.data;
-
-          this.cacheData(boxscore.data, key);
-        }
-      }
-
-      return resp;
-    } catch (e) {
-      console.error("An error occurred while fetching team standings. ", e);
-
-      let resp = {
-        copyright: "",
-        teams: {
-          away: null,
-          home: null,
-        },
-      };
-      return resp;
-    }
-  }
-
-  async fetchPlayByPlay(
-    leagueId: SportsLeagueId,
-    gamePk: number,
-    gameDt: Date
-  ): Promise<PlayByPlayResponse> {
-    try {
-      let resp: PlayByPlayResponse = {
-        copyright: "",
-        allPlays: [],
-        currentPlays: [],
-        scoringPlays: [],
-        playsByInning: [],
-      };
-
-      const date = new Date(gameDt);
-      const schedule = await this.fetchSchedule(leagueId, date, date);
-
-      const foundGame = this.findGameByGamePk(schedule, gamePk);
-
-      if (foundGame) {
-        const key = `playbyplay-${foundGame.gamePk}`;
-        const cachedData = cache.get(key);
-
-        if (cachedData) {
-          resp = cachedData;
-        } else {
-          const api = `${this.mlbApiHost}/api/v1/game/${foundGame.gamePk}/playByPlay`;
-
-          const playByPlay = await axios.get(api);
-          this.cacheData(playByPlay.data, key, 30000);
-          resp = playByPlay.data;
-        }
-      }
-
-      return resp;
-    } catch (e) {
-      console.error("An error occurred while fetching team standings. ", e);
-
-      let resp: PlayByPlayResponse = {
-        copyright: "",
-        allPlays: [],
-        currentPlays: [],
-        scoringPlays: [],
-        playsByInning: [],
-      };
-
-      return resp;
-    }
-  }
-
-  async fetchSchedule(
-    leagueId: SportsLeagueId,
-    startDt: Date,
-    endDate: Date
-  ): Promise<ScheduleResponse> {
-    const startDay = new Date(startDt).toISOString().split("T").at(0);
-
-    const endDay = new Date(endDate).toISOString().split("T").at(0);
-
-    const api = `${this.mlbApiHost}/api/v1/schedule?sportId=${leagueId}&startDate=${startDay}&endDate=${endDay}`;
-
-    try {
-      const key = `schedule-${startDay}-${endDay}`;
-      const cachedData = cache.get(key);
-
-      if (cachedData) {
-        return cachedData; // Returns cached data if available, reducing API calls.
-      }
-
-      const res = await axios.get(api);
-      this.cacheData(res.data, key);
-
-      return res.data;
-    } catch (e) {
-      console.error("An error occurred while fetching team schedule. ", e);
-      return {
-        copyright: "",
-        dates: [],
-        totalItems: 0,
-        totalEvents: 0,
-        totalGames: 0,
-        totalGamesInProgress: 0,
-      };
-    }
-  }
-
-  async fetchDivision(id?: number): Promise<DivisionResponse> {
-    try {
-      const key = `division`;
-      const cachedData = cache.get(key);
-
-      if (cachedData) {
-        return cachedData; // Returns cached data if available, reducing API calls.
-      }
-
-      const api = `${this.mlbApiHost}/api/v1/divisions`;
-      const res = await axios.get(api);
-      let data = res.data as DivisionResponse;
-      this.cacheData(data, key);
-
-      if (id) {
-        data.divisions = data.divisions.filter((d) => {
-          return d.id === id;
-        });
-      }
-
-      return data;
-    } catch (e) {
-      console.error("An error occurred while fetching division info. ", e);
-
-      let data: DivisionResponse = {
-        copyright: "",
-        divisions: [],
-      };
-      return data;
-    }
-  }
-
-  async fetchRoster(teamId: number, date: Date): Promise<RosterResponse> {
-    try {
-      const key = `roster-${teamId}`;
-      const cachedData = cache.get(key);
-
-      if (cachedData) {
-        return cachedData;
-      }
-
-      const api = `${
-        this.mlbApiHost
-      }/api/v1/teams/${teamId}/roster?rosterType=Active  
-    &hydrate=person(stats(group=[hitting,pitching],type=season,season=${date.getUTCFullYear()}))`;
-
-      const res = await axios.get<RosterResponse>(api);
-      let data = res.data;
-      this.cacheData(data, key);
-
-      return data;
-    } catch (e) {
-      console.error("An error occurred while fetching roster info. ", e);
-
-      let data: RosterResponse = {
-        copyright: "",
-        roster: [],
-      };
-
-      return data;
-    }
-  }
-
-  private findGameByGamePk(
-    schedule: ScheduleResponse,
-    gamePk: number
-  ): MlbGame | undefined {
-    for (const dateObj of schedule.dates) {
-      for (const game of dateObj.games) {
-        if (game.gamePk == gamePk) {
-          return game;
-        }
-      }
-    }
-
-    return undefined;
-  }
-
   // Sets up API endpoints and defines route behaviors.
   configureRoutes() {
-    // this.app.get("/", (req, res) => {
-    //   res.status(200).json({
-    //     // Provides options for different API endpoints.
-    //     options: this.apiEndpoints,
-    //   });
-    // });
-
     this.app.get("/", (req, res) =>
       res.sendFile(path.join(__dirnameResolved, "build", "index.html"))
     );
 
+    this.app.get("/endpoints", (req, res) => {
+      res.status(200).json({
+        // Provides options for different API endpoints.
+        options: this.apiEndpoints,
+      });
+    });
     this.app.get("/teams", async (req, res) => {
       // Implements query parameter handling for pagination and filtering.
       let start = parseInt(String(req.query.start)) || 0;
@@ -517,7 +135,7 @@ export class Server {
 
       try {
         // Retrieves teams based on filters and paginates the results.
-        const data = await this.fetchTeams();
+        const data = await fetchTeams();
 
         if (data.error) {
           res.status(500).json({
@@ -589,10 +207,25 @@ export class Server {
         });
       }
     });
-
+    this.app.get("/mlb/schedule", async (req, res) => {
+      let teamId = parseInt(String(req.query.teamId)) || 158;
+      let season =
+        parseInt(String(req.query.season)) || new Date().getFullYear();
+      try {
+        const data = await fetchTeamScheduleBySeason(teamId, season);
+        res.send(data);
+        return;
+      } catch (e) {
+        console.error(e);
+        res.send({
+          copyright: "",
+          error: e,
+        });
+        return;
+      }
+    });
     this.app.post("/mlb/standings", async (req, res) => {
-      console.log(req.body);
-      const { leagueId, seasonDt } = req.body;
+      const { leagueId, seasonDt, division } = req.body;
 
       if (typeof seasonDt !== "string") {
         res.send(
@@ -616,12 +249,19 @@ export class Server {
 
       const dt = new Date(seasonDt);
 
-      const resp = await this.fetchStandings(id, dt);
+      let resp = await fetchStandings(id, dt);
+
+      if (
+        division &&
+        typeof division == "number" &&
+        isDivisionsEnum(division)
+      ) {
+        resp.records = filterStandingsByDivision(division, resp.records);
+      }
 
       res.json(resp);
     });
     this.app.post("/mlb/schedule", async (req, res) => {
-      console.log(req.body);
       const { leagueId: sportsLeagueId, startDt, endDt } = req.body;
 
       const id = sportsLeagueId ?? 1;
@@ -641,7 +281,7 @@ export class Server {
       const startdt = new Date(startDt);
       const enddt = new Date(endDt);
 
-      const resp = await this.fetchSchedule(id, startdt, enddt);
+      const resp = await fetchSchedule(id, startdt, enddt);
 
       res.json(resp);
     });
@@ -651,17 +291,19 @@ export class Server {
 
       if (!teamId || typeof teamId !== "number") {
         res.send("Error: teamId expected type is int.");
+        return;
       }
 
       if (seasonDt && typeof seasonDt !== "string") {
         res.send(
           "Error: seasonDt expected type is string in yyyy-mm-dd format."
         );
+        return;
       }
 
       const _seasonDt = new Date(seasonDt) ?? new Date();
 
-      const resp = await this.fetchRoster(teamId, _seasonDt);
+      const resp = await fetchRoster(teamId, _seasonDt);
 
       res.json(resp);
     });
@@ -683,7 +325,7 @@ export class Server {
 
       const gameDate = new Date(gameDt);
 
-      const resp = await this.fetchBoxScores(id, gamePk, gameDate);
+      const resp = await fetchBoxScores(id, gamePk, gameDate);
 
       res.json(resp);
     });
@@ -712,7 +354,7 @@ export class Server {
 
       const gameDate = new Date(gameDt);
 
-      const resp = await this.fetchPlayByPlay(id, gamePk, gameDate);
+      const resp = await fetchPlayByPlay(id, gamePk, gameDate);
 
       res.json(resp);
     });
@@ -725,12 +367,11 @@ export class Server {
         return;
       }
 
-      const resp = await this.fetchGameLineScore(gamePk);
+      const resp = await fetchGameLineScore(gamePk);
 
       res.json(resp);
     });
     this.app.post("/mlb/teams", async (req, res) => {
-      console.log(req.body);
       const { teams } = req.body;
 
       if (
@@ -742,7 +383,7 @@ export class Server {
         return;
       }
 
-      const resp = await this.fetchTeams();
+      const resp = await fetchTeams();
 
       if (resp.error) {
         res.json({ error: resp.error });
@@ -762,7 +403,7 @@ export class Server {
         return;
       }
 
-      const resp = await this.fetchGameContent(gamePk);
+      const resp = await fetchGameContent(gamePk);
 
       res.json(resp);
     });
