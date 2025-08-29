@@ -6,11 +6,13 @@ import {
   CardContent,
 } from "src/@/components/ui/card";
 import { Badge } from "src/@/components/ui/badge";
-import { StandingsResponseV2 } from "src/interfaces/interfaces";
+
 import { Spinner } from "src/components/Spinner";
-import { Link } from "react-router-dom";
 import { ScrollArea } from "src/@/components/ui/scroll-area";
 import { getStandingsResp } from "src/repository/schedules";
+import { StandingsResponseV2 } from "src/interfaces/teams.types";
+import { DataTable } from "src/components/Table";
+import { columns } from "src/data/columnDefs";
 
 const StandingsPage: React.FC = () => {
   const [standings, setStandings] = useState<StandingsResponseV2 | null>(null);
@@ -23,8 +25,6 @@ const StandingsPage: React.FC = () => {
   const fetchStandings = async () => {
     setLoading(true);
 
-    // Create a new CancelToken
-
     try {
       const response = await getStandingsResp(
         ac,
@@ -36,7 +36,7 @@ const StandingsPage: React.FC = () => {
         if (!response) {
           return;
         }
-        
+
         if (typeof response == "object") {
           throw new Error(`Fetch error: ${response.statusText}`);
         }
@@ -92,57 +92,33 @@ const StandingsPage: React.FC = () => {
             <option value={104}>National league</option>
           </select>
         </div>
-        {standings.records.map((division) => (
-          <Card
-            key={division.division.id}
-            className="bg-gradient-to-b from-slate-300/50 to-slate-400/45 mix-blend-hard-light"
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between text-black">
-                <span>
-                  {division.division.id
-                    ? standings.divisions.find(
-                        (d) => d.id === division.division.id
-                      )?.name
-                    : ""}
-                </span>
-                <Badge>{division.standingsType}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {division.teamRecords.map((team) => (
-                  <Link to={`/teams/${team.team.id}`}>
-                    <Card
-                      key={team.team.id}
-                      className="bg-gradient-to-br from-slate-100 to-slate-400/20 mix-blend-hard-light hover:ring-2 hover:ring-blue-900/35 hover:shadow-lg"
-                    >
-                      <CardHeader>
-                        <CardTitle>{team.team.name}</CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          Rank: {team.divisionRank}
-                        </p>
-                      </CardHeader>
-                      <CardContent>
-                        <p>
-                          W: {team.wins} - L: {team.losses}
-                        </p>
-                        <p>GB: {team.gamesBack}</p>
-                        <p>
-                          RD:{" "}
-                          {team.runDifferential >= 0
-                            ? `+${team.runDifferential}`
-                            : team.runDifferential}
-                        </p>
-                        <p>Streak: {team.streak.streakCode}</p>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        <div className="mt-4 flex flex-col gap-1">
+          {standings.records.map((division) => (
+            <Card key={division.division.id} className="rounded-none m-0">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between text-black">
+                  <span>
+                    {division.division.id
+                      ? standings.divisions.find(
+                          (d) => d.id === division.division.id
+                        )?.name
+                      : ""}
+                  </span>
+                  <Badge>{division.standingsType}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div>
+                  <DataTable
+                    columns={columns}
+                    data={division.teamRecords}
+                    showDateRange={false}
+                  ></DataTable>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </ScrollArea>
   );
