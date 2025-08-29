@@ -209,3 +209,5 @@ export type AnyImageNode =
     }
   | null
   | undefined;
+
+export type DateRange = { from?: string; to?: string };
