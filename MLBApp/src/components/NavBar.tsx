@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 const NavBar = () => {
   const navigate = useNavigate();
   return (
-    <div className="flex flex-col flex-shrink opacity-75 hover:opacity-95 z-20 backdrop-blur-lg w-full">
+    <div className="flex flex-col w-full min-h-fit opacity-75 overflow-hidden hover:opacity-95 z-20 backdrop-blur-lg">
       <nav className="flex items-center justify-between bg-gray-900 px-6 py-2 w-full text-white ">
         <div
           className="font-bold text-xl flex gap-2 items-center cursor-pointer"
