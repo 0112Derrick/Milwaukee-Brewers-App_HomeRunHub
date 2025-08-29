@@ -7,7 +7,6 @@ import {
   GAME_STATUSES,
   GameStatusBucket,
   MlbGame,
-  ScheduleResponse,
   THREE_MINUTES,
 } from "src/interfaces/interfaces";
 import ErrorPage from "./ErrorPage";
@@ -29,6 +28,7 @@ import { ScrollArea } from "src/@/components/ui/scroll-area";
 import { isDate } from "date-fns";
 import { Option, Select } from "react-day-picker";
 import { Label } from "src/@/components/ui/label";
+import { ScheduleResponse } from "src/interfaces/teams.types";
 
 export function LiveGames() {
   const { gameDate } = useParams();
