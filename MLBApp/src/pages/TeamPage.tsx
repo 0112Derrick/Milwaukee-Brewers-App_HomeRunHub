@@ -22,6 +22,7 @@ import {
 import { ScrollArea } from "src/@/components/ui/scroll-area";
 import { mlbTeamsDetails } from "src/data/teamData";
 import { Label } from "src/@/components/ui/label";
+import { useDebounce } from "src/hooks/debouncing";
 
 function TeamPage() {
   const { id } = useParams();
@@ -35,8 +36,9 @@ function TeamPage() {
   const [rosterData, setRosterData] = useState<Player[]>([]);
   const [games, setGames] = useState<MlbGame[]>([]);
   const today = new Date();
-  const currentYear = today.getFullYear();
   const [season, setSeason] = useState(today.getFullYear());
+  const [inputSeason, setInputSeason] = useState<number>(today.getFullYear());
+  const debouncedSeason = useDebounce<number>(inputSeason, 500); // 500ms delay
 
   const navigate = useNavigate();
 
@@ -153,10 +155,19 @@ function TeamPage() {
     };
   }, [id, page, season]);
 
-  const years: number[] = [];
-  for (let i = 0; i < 41; i++) {
-    years.push(currentYear - i);
-  }
+  useEffect(() => {
+    if (debouncedSeason !== season) {
+      setSeason(debouncedSeason);
+    }
+  }, [debouncedSeason, season]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value, 10);
+
+    if (!isNaN(val)) {
+      setInputSeason(val);
+    }
+  };
 
   const InnerNav = () => {
     return (
@@ -190,20 +201,12 @@ function TeamPage() {
               <Label htmlFor="season" className="px-1 font-semibold">
                 Season
               </Label>
-              <select
-                className="ring-0 border-none outline-none text-black w-32 h-6 rounded-md"
-                defaultValue={season}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value, 10);
-                  setSeason(val);
-                }}
-              >
-                {years.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
+              <input
+                className="ring-0 px-1 border-none outline-none text-black w-32 h-6 rounded-md"
+                type="number"
+                value={inputSeason}
+                onChange={handleInputChange}
+              ></input>
             </div>
           </div>
         </div>
@@ -436,6 +439,7 @@ function TeamPage() {
                         .padStart(2, "0")}`
                     )
                   }
+                  dateId="officialDate"
                 ></DataTable>
               </ScrollArea>
             </CardContent>
