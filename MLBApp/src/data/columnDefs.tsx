@@ -129,7 +129,7 @@ export const gamesColumns: ColumnDef<MlbGame>[] = [
       return (
         <Link
           to={`/games/${officialDate}/${gamePk}`}
-          className="hover:text-blue-400 focus:text-blue-400 outline-none"
+          className="hover:text-blue-400 focus:text-blue-400 outline-none cursor-pointer"
           tabIndex={0}
         >
           {awayName} @ {homeName}
