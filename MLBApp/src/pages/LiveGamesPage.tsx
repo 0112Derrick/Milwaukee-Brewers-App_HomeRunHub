@@ -174,9 +174,6 @@ export function LiveGames() {
     );
   }
   
-
-  
-
   const gamesMiniScreen = sortedGames.map((game, indx) => {
     return (
       <MiniGameCard game={game} key={"miniGameCard_" + indx}></MiniGameCard>
