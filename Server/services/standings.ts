@@ -6,7 +6,7 @@ import {
   StandingsResponse,
   StandingsResponseV2,
 } from "../interfaces/interfaces.js";
-import { DivisionsEnum } from "../interfaces/enums.js";
+import { DivisionsEnum, MlbDivisionsEnum } from "../interfaces/enums.js";
 
 import axiosPkg from "axios";
 import cache from "./cache.js";
@@ -43,13 +43,49 @@ export const divisions = {
   },
 };
 
+export function filterStandingsByLeague(
+  filter: MLBLeagueIds,
+  records: DivisionRecord[]
+) {
+  records = records.filter((r: DivisionRecord) => r.league.id === filter);
+  return records;
+}
+
 export function filterStandingsByDivision(
   filter: DivisionsEnum,
   records: DivisionRecord[]
 ) {
-  records = records.filter((division) => {
-    division.division.id !== filter;
-  });
+  if (filter == DivisionsEnum.All) {
+    return records;
+  }
+
+  const west = [
+    MlbDivisionsEnum.AmericanLeagueWest,
+    MlbDivisionsEnum.NationalLeagueWest,
+  ];
+  const east = [
+    MlbDivisionsEnum.AmericanLeagueEast,
+    MlbDivisionsEnum.NationalLeagueEast,
+  ];
+  const central = [
+    MlbDivisionsEnum.AmericanLeagueCentral,
+    MlbDivisionsEnum.NationalLeagueCentral,
+  ];
+
+  if (filter == DivisionsEnum.WEST) {
+    records = records.filter((division) => {
+      return west.includes(division.division.id);
+    });
+  } else if (filter == DivisionsEnum.EAST) {
+    records = records.filter((division) => {
+      return east.includes(division.division.id);
+    });
+  } else {
+    records = records.filter((division) => {
+      return central.includes(division.division.id);
+    });
+  }
+
   return records;
 }
 
@@ -65,6 +101,8 @@ export async function fetchStandings(
     let combined = _cache.get<StandingsResponseV2>(
       combinedKey
     ) as StandingsResponseV2;
+    let data: StandingsResponseV2;
+
     if (!combined) {
       const year = seasonDt.getFullYear();
       const [resAL, resNL] = await Promise.all([
@@ -95,16 +133,16 @@ export async function fetchStandings(
       cache.cacheData(combined, combinedKey);
     }
 
+    data = Object.assign({}, combined);
+
     if (leagueId === MLBLeagueIds.all) {
-      return combined;
+      return data;
     }
 
     return {
-      copyright: combined.copyright,
-      records: combined.records.filter(
-        (r: DivisionRecord) => r.league.id === leagueId
-      ),
-      divisions: combined.divisions,
+      copyright: data.copyright,
+      records: data.records,
+      divisions: data.divisions,
     };
   } catch (e) {
     console.error("Error fetching standings ", e);

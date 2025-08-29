@@ -57,7 +57,8 @@ export async function getTeamScheduleResp(
 export async function getStandingsResp(
   ac: AbortController,
   seasonDt: string,
-  leagueId: number = 105
+  leagueId: number = 105,
+  divisionId: number = 0
 ) {
   try {
     const scheduleEndPoint = `mlb/standings`;
@@ -70,6 +71,7 @@ export async function getStandingsResp(
       {
         seasonDt,
         leagueId,
+        divisionId
       },
       { signal: ac.signal }
     );

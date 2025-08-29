@@ -4,6 +4,7 @@ import { MLBLeagueIds, MlbTeamApp } from "./interfaces/interfaces.js";
 import {
   fetchStandings,
   filterStandingsByDivision,
+  filterStandingsByLeague,
   isDivisionsEnum,
 } from "./services/standings.js";
 import expressStaticGzip from "express-static-gzip/index.js";
@@ -225,7 +226,7 @@ export class Server {
       }
     });
     this.app.post("/mlb/standings", async (req, res) => {
-      const { leagueId, seasonDt, division } = req.body;
+      const { leagueId, seasonDt, divisionId } = req.body;
 
       if (typeof seasonDt !== "string") {
         res.send(
@@ -237,7 +238,8 @@ export class Server {
       if (
         typeof leagueId !== "number" &&
         leagueId !== MLBLeagueIds.americanLeagueId &&
-        leagueId !== MLBLeagueIds.nationalLeagueId
+        leagueId !== MLBLeagueIds.nationalLeagueId &&
+        leagueId !== MLBLeagueIds.all
       ) {
         res.send(
           "Error leagueId expected type is number and should be equal to 103 for american league or 104 for national league."
@@ -245,18 +247,22 @@ export class Server {
         return;
       }
 
-      const id = leagueId ?? MLBLeagueIds.americanLeagueId;
+      const id: MLBLeagueIds = leagueId ?? MLBLeagueIds.americanLeagueId;
 
       const dt = new Date(seasonDt);
 
       let resp = await fetchStandings(id, dt);
 
       if (
-        division &&
-        typeof division == "number" &&
-        isDivisionsEnum(division)
+        divisionId &&
+        typeof divisionId == "number" &&
+        isDivisionsEnum(divisionId)
       ) {
-        resp.records = filterStandingsByDivision(division, resp.records);
+        resp.records = filterStandingsByDivision(divisionId, resp.records);
+      }
+
+      if (id !== MLBLeagueIds.all) {
+        resp.records = filterStandingsByLeague(id, resp.records);
       }
 
       res.json(resp);
