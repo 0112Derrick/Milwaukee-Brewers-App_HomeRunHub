@@ -423,7 +423,7 @@ export function PlayByPlay({
             <div className="w-fit my-4 flex gap-4 items-center">
               <Link to={`/games/${date}`} className="w-full h-full">
                 <Button variant={"secondary"} className="bg-blue-300">
-                  Back
+                  Back to Games
                 </Button>
               </Link>
             </div>
@@ -445,7 +445,9 @@ export function PlayByPlay({
   }
 
   return (
-    <div className={`flex w-full overflow-hidden sm:flex-col lg:flex-row`}>
+    <div
+      className={`flex w-full min-h-[85%] overflow-hidden sm:flex-col lg:flex-row`}
+    >
       <div className="flex-1 h-full flex flex-col overflow-hidden">
         <Card className="flex flex-col w-full h-full rounded-none overflow-scroll">
           <div className="flex-shrink-0 p-4">
@@ -453,7 +455,7 @@ export function PlayByPlay({
               <div className="flex flex-wrap gap-4">
                 <Link to={`/games/${date}`}>
                   <Button variant={"secondary"} className="bg-blue-300">
-                    Back
+                    Back to Games
                   </Button>
                 </Link>
                 <Button
@@ -513,7 +515,7 @@ export function PlayByPlay({
                       value="highlights"
                       className={`${hideHighlights ? "hidden" : "block"}`}
                     >
-                      Highlights
+                      Media
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
