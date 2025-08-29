@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import TeamCard from "../components/TeamCard";
 import SkeletonCard from "../components/SkeletonCard";
-import { MlbTeamDataI, MlbTeamDataModifiedI } from "src/interfaces/interfaces";
 import { Button } from "src/@/components/ui/button";
 import TitleSection from "../components/TitleSection";
 import { PlayIcon } from "@radix-ui/react-icons";
@@ -12,6 +11,7 @@ import { mlbTeamsDetails } from "src/data/teamData";
 import ErrorPage from "./ErrorPage";
 import Dompurify from "dompurify";
 import { api } from "src/utils/utils";
+import { MlbTeamDataModifiedI, MlbTeamDataI } from "src/interfaces/teams.types";
 
 // Custom React hook for managing and fetching team data.
 const useTeams = (initialStart = 0) => {
