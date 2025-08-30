@@ -86,7 +86,7 @@ const StandingsPage: React.FC = () => {
 
   return (
     <ScrollArea>
-      <div className="p-4 space-y-8 flex flex-col flex-grow overflow-auto bg-inherit">
+      <div className="p-4 flex flex-col flex-grow max-w-[100vw] overflow-auto bg-inherit">
         <h1 className="text-2xl font-bold">MLB Standings</h1>
         <div className="flex gap-2 justify-end text-black">
           <div className="flex flex-col gap-3">
@@ -99,7 +99,7 @@ const StandingsPage: React.FC = () => {
                 setLeague(val);
               }}
             >
-              <option value={105}>All</option>
+              <option value={105}>Any</option>
               <option value={103}>American league</option>
               <option value={104}>National league</option>
             </select>
@@ -114,18 +114,18 @@ const StandingsPage: React.FC = () => {
                 setDivision(val);
               }}
             >
-              <option value={0}>All</option>
+              <option value={0}>Any</option>
               <option value={1}>West</option>
               <option value={2}>East</option>
               <option value={3}>Central</option>
             </select>
           </div>
         </div>
-        <div className="mt-4 flex flex-col rounded-none border-none">
+        <div className="flex flex-col mt-4 rounded-none border-none bg-slate-50 md:items-start lg:items-center">
           {standings.records.map((division) => (
             <Card
               key={division.division.id}
-              className="rounded-none m-0 border-none"
+              className="rounded-none m-0 border-none md:min-w-full md:max-w-full lg:min-w-[70%] lg:max-w-[70%]"
             >
               <CardHeader className="border-none h-fit">
                 <CardTitle className="flex items-center justify-between text-black border-none">
