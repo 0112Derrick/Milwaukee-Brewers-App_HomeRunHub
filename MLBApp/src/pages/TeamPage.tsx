@@ -23,6 +23,8 @@ import { ScrollArea } from "src/@/components/ui/scroll-area";
 import { mlbTeamsDetails } from "src/data/teamData";
 import { Label } from "src/@/components/ui/label";
 import { useDebounce } from "src/hooks/debouncing";
+import { TeamLogoName } from "src/components/TeamLogoName";
+import { teamLogoUrl } from "src/utils/utils";
 
 function TeamPage() {
   const { id } = useParams();
@@ -39,7 +41,8 @@ function TeamPage() {
   const [season, setSeason] = useState(today.getFullYear());
   const [inputSeason, setInputSeason] = useState<number>(today.getFullYear());
   const debouncedSeason = useDebounce<number>(inputSeason, 500); // 500ms delay
-
+  const teamId = parseInt(id ?? "0");
+  const logo = teamLogoUrl(teamId);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -82,7 +85,7 @@ function TeamPage() {
 
         if (page == TeamPages.Description) {
           getTeamData();
-        } else if (page == TeamPages.DivisionRanking) {
+        } else if (page == TeamPages.Standings) {
           const division = 105;
           getTeamData();
           const response = await getStandingsResp(ac, dt, division);
@@ -115,7 +118,7 @@ function TeamPage() {
           const data = response.data;
 
           setRosterData(data.roster);
-        } else if (page == TeamPages.Games) {
+        } else if (page == TeamPages.Schedule) {
           try {
             const response = await getTeamScheduleResp(ac, intId, season);
 
@@ -171,7 +174,7 @@ function TeamPage() {
 
   const InnerNav = () => {
     return (
-      <div className="flex flex-shrink items-center justify-between w-full p-4">
+      <div className="flex flex-shrink items-center justify-end w-full p-4">
         <div className="flex gap-2">
           <div className="flex flex-col gap-3">
             <Label htmlFor="page" className="px-1 font-semibold">
@@ -187,14 +190,16 @@ function TeamPage() {
               }}
             >
               <option value={TeamPages.Description}>Description</option>
-              <option value={TeamPages.DivisionRanking}>Standings</option>
-              <option value={TeamPages.Games}>Schedule</option>
+              <option value={TeamPages.Standings}>Standings</option>
+              <option value={TeamPages.Schedule}>Schedule</option>
               <option value={TeamPages.Roster}>Roster</option>
             </select>
           </div>
           <div
             className={
-              page !== TeamPages.Description ? "block text-white" : "hidden"
+              page !== TeamPages.Description
+                ? "visible text-white"
+                : "invisible"
             }
           >
             <div className="flex flex-col gap-3">
@@ -210,15 +215,6 @@ function TeamPage() {
             </div>
           </div>
         </div>
-        <Button
-          variant={"outline"}
-          className="bg-blue-500 hover:bg-blue-600 text-lg text-white hover:text-white"
-          onClick={() => {
-            navigate("/");
-          }}
-        >
-          Back to home
-        </Button>
       </div>
     );
   };
@@ -372,24 +368,26 @@ function TeamPage() {
         </div>
       );
     }
-    if (page == TeamPages.DivisionRanking) {
+    if (page == TeamPages.Standings) {
       return (
-        <div className="flex flex-col flex-grow items-center flex-1 gap-4">
+        <div className="flex-1 flex flex-col flex-grow gap-4">
           <InnerNav></InnerNav>
-          <Card className="flex-1 w-full rounded-none">
-            <CardHeader>
-              <span className="font-semibold text-lg text-card-foreground">
-                {team.name}
-              </span>
-            </CardHeader>
-            <CardContent className="p-0">
-              <DataTable
-                columns={columns}
-                data={divisionData}
-                showDateRange={false}
-              ></DataTable>
-            </CardContent>
-          </Card>
+          <div className="w-full flex flex-col flex-grow items-center bg-slate-50">
+            <Card className="flex-1 rounded-none md:w-full lg:w-3/4 border-b-0">
+              <CardHeader>
+                <span className="font-semibold text-lg text-card-foreground">
+                  {team.name}
+                </span>
+              </CardHeader>
+              <CardContent className="p-0">
+                <DataTable
+                  columns={columns}
+                  data={divisionData}
+                  showDateRange={false}
+                ></DataTable>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       );
     }
@@ -402,7 +400,7 @@ function TeamPage() {
             <Card className="h-full flex flex-col overflow-hidden rounded-none">
               <CardHeader className="flex-shrink-0">
                 <span className="font-semibold text-lg text-card-foreground">
-                  {team.name}
+                  <TeamLogoName id={teamId} teamName={team.name} logo={logo} />
                 </span>
               </CardHeader>
               <CardContent className="flex-1 min-h-0 min-w-full overflow-x-hidden p-0">
@@ -413,37 +411,39 @@ function TeamPage() {
         </div>
       );
     }
-    if (page == TeamPages.Games) {
+    if (page == TeamPages.Schedule) {
       return (
         <div className="flex flex-col flex-grow items-center flex-1 gap-4 overflow-hidden">
           <InnerNav></InnerNav>
-          <Card className="flex-1 w-full rounded-none overflow-y-auto">
-            <CardHeader>
-              <span className="font-semibold text-lg text-card-foreground">
-                {team.name}
-              </span>
-            </CardHeader>
-            <CardContent className="p-0 overflow-y-auto">
-              <ScrollArea className="overflow-y-auto">
-                <DataTable
-                  columns={gamesColumns}
-                  data={games}
-                  showDateRange={true}
-                  date={
-                    new Date(
-                      `${season}-${(today.getMonth() + 1)
-                        .toString()
-                        .padStart(2, "0")}-${today
-                        .getDate()
-                        .toString()
-                        .padStart(2, "0")}`
-                    )
-                  }
-                  dateId="officialDate"
-                ></DataTable>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+          <div className="w-full flex-1 flex flex-col flex-grow items-center bg-slate-50 overflow-hidden">
+            <Card className="flex-1 rounded-none overflow-y-auto border-b-0 md:w-full lg:w-3/4 ">
+              <CardHeader>
+                <span className="font-semibold text-lg text-card-foreground">
+                  <TeamLogoName id={teamId} teamName={team.name} logo={logo} />
+                </span>
+              </CardHeader>
+              <CardContent className="p-0 overflow-y-auto">
+                <ScrollArea className="overflow-y-auto">
+                  <DataTable
+                    columns={gamesColumns}
+                    data={games}
+                    showDateRange={true}
+                    date={
+                      new Date(
+                        `${season}-${(today.getMonth() + 1)
+                          .toString()
+                          .padStart(2, "0")}-${today
+                          .getDate()
+                          .toString()
+                          .padStart(2, "0")}`
+                      )
+                    }
+                    dateId="officialDate"
+                  ></DataTable>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       );
     }
