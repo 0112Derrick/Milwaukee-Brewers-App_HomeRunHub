@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "src/@/components/ui/button";
 import { Skeleton } from "src/@/components/ui/skeleton";
 import {
@@ -10,16 +10,14 @@ import {
   THREE_MINUTES,
 } from "src/interfaces/interfaces";
 import ErrorPage from "./ErrorPage";
-import { Boxscore } from "src/components/Boxscore";
 import {
   api,
   formatYMDLocal,
-  mlbGameStatus,
   parseYMDLocal,
   sortGamesArr,
 } from "src/utils/utils";
 import DatePicker from "src/components/DatePicker";
-import { GameCard } from "src/components/GameCard";
+
 import { ScrollArea } from "src/@/components/ui/scroll-area";
 import { isDate } from "date-fns";
 import { Option, Select } from "react-day-picker";
@@ -173,7 +171,7 @@ export function LiveGames() {
       </div>
     );
   }
-  
+
   const gamesMiniScreen = sortedGames.map((game, indx) => {
     return (
       <MiniGameCard game={game} key={"miniGameCard_" + indx}></MiniGameCard>
@@ -182,29 +180,31 @@ export function LiveGames() {
 
   return (
     <div className="flex flex-col gap-2 flex-grow w-full h-[80vh] overflow-hidden">
-      <div className="p-2 italic">Games today: {gamesData?.totalGames}</div>
-      <div className="flex items-end gap-4 self-end px-2">
-        <Label className="flex flex-col gap-3">
-          <span className="font-semibold"> Sort Games</span>
-          <Select
-            defaultValue={sort}
-            onChange={(val) => setSort(val.target.value as GameStatusBucket)}
-            className="rounded text-black outline-none ring-0 h-6 w-20"
-          >
-            {GAME_STATUSES.map((val, indx) => {
-              return (
-                <Option key={indx} value={val}>
-                  {val}
-                </Option>
-              );
-            })}
-          </Select>
-        </Label>
-        <DatePicker
-          date={date}
-          setDate={setDateWrapper}
-          label="Search for games by date"
-        ></DatePicker>
+      <div className="flex justify-between py-4">
+        <div className="p-2 italic">Games today: {gamesData?.totalGames}</div>
+        <div className="flex items-end gap-4 self-end px-2">
+          <Label className="flex flex-col gap-3">
+            <span className="font-semibold"> Sort Games</span>
+            <Select
+              defaultValue={sort}
+              onChange={(val) => setSort(val.target.value as GameStatusBucket)}
+              className="rounded text-black outline-none ring-0 h-6 w-20"
+            >
+              {GAME_STATUSES.map((val, indx) => {
+                return (
+                  <Option key={indx} value={val}>
+                    {val}
+                  </Option>
+                );
+              })}
+            </Select>
+          </Label>
+          <DatePicker
+            date={date}
+            setDate={setDateWrapper}
+            label="Search for games by date"
+          ></DatePicker>
+        </div>
       </div>
 
       <ScrollArea>
