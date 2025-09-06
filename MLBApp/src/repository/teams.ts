@@ -1,8 +1,14 @@
+import { mlbTeamsDetails } from "src/data/teamData";
+import { PlayerResponse } from "src/interfaces/generated.player.types";
 import { RosterResponse } from "src/interfaces/interfaces";
-import { TeamsResponse } from "src/interfaces/teams.types";
+import {
+  MlbTeamDataI,
+  MlbTeamDataModifiedI,
+  TeamsResponse,
+} from "src/interfaces/teams.types";
 import { api } from "src/utils/utils";
 
-export async function getTeamsResp(ac: AbortController, teamId: number = 158) {
+export async function getTeamResp(ac: AbortController, teamId: number = 158) {
   try {
     const scheduleEndPoint = `teams?id=` + teamId;
 
@@ -41,5 +47,79 @@ export async function getRosterResp(
   } catch (e) {
     console.error(e);
     return null;
+  }
+}
+
+export async function getPlayerResp(ac: AbortController, id: number) {
+  try {
+    const playerEndPoint = `mlb/players/${id}`;
+    if (!id) {
+      return null;
+    }
+
+    const resp = await api.get<PlayerResponse>(playerEndPoint, {
+      signal: ac.signal,
+    });
+
+    return resp;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
+export async function getTeamsResp(
+  ac: AbortController,
+  start: number,
+  itemsPerPage: number,
+  searchTerm: string = "",
+  league: string = "",
+  division: string = ""
+): Promise<MlbTeamDataModifiedI[]> {
+  try {
+    // Constructing query parameters based on inputs and pagination.
+    let params = `start=${start}&limit=${itemsPerPage}`;
+
+    if (Number.isInteger(parseInt(searchTerm))) {
+      params += `&id=${searchTerm}`;
+    } else if (searchTerm) {
+      params += `&name=${searchTerm}`;
+    }
+
+    if (league && typeof league == "string" && league !== "any") {
+      params += `&league=${league}`;
+    }
+
+    if (division && typeof division == "string" && division !== "any") {
+      params += `&division=${division}`;
+    }
+
+    const endpoint = `teams?${params}`;
+
+    const resp = await api.get<{
+      teams: MlbTeamDataI[];
+      options: string[];
+    }>(endpoint, {
+      signal: ac.signal,
+    });
+    let teams: MlbTeamDataModifiedI[] = [];
+
+    if (resp.status == 200) {
+      for (let i = 0; i < (resp.data.teams as MlbTeamDataI[]).length; i++) {
+        let team = resp.data.teams[i] as MlbTeamDataModifiedI;
+
+        let color = mlbTeamsDetails.find(
+          (mlbTeam) => team.name.toLowerCase() === mlbTeam.team.toLowerCase()
+        )?.color;
+
+        if (color) team.color = color;
+        teams.push(team);
+      }
+    }
+
+    return teams;
+  } catch (e) {
+    console.error(e);
+    return [];
   }
 }
