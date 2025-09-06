@@ -12,7 +12,7 @@ function TitleSection({
   const [buttonIsHovered, setButtonIsHovered] = useState(false);
   return (
     <>
-      <div className="h-auto sm:h-60 w-full my-16 sm:my-32 flex flex-col items-center text-center gap-8 px-4 sm:px-0">
+      <div className="h-auto w-full my-2 flex flex-col items-center text-center gap-8 px-4 sm:px-0">
         <div className=".semi-circle-gradient"></div>
         <span className="text-neutral-200 font-bold text-2xl sm:text-4xl">
           Home Run Hub is
@@ -26,7 +26,7 @@ function TitleSection({
         </span>
 
         <Button
-          variant={"default"}
+          variant={"secondary"}
           className="outline outline-white p-6 w-fit rounded-full text-sm sm:text-base hover:shadow-md hover:shadow-white"
           onClick={() => {
             if (forwardRef && forwardRef.current)
