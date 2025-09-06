@@ -1,12 +1,18 @@
 import { MlbGame, Player, SplitRowExtended } from "src/interfaces/interfaces";
-import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import { TeamRecord } from "src/interfaces/teams.types";
+import {
+  ColumnDef,
+  createColumnHelper,
+  SortingFn,
+  sortingFns,
+} from "@tanstack/react-table";
+import { TeamPages, TeamRecord } from "src/interfaces/teams.types";
 import { Link } from "react-router-dom";
 import { DateRange } from "src/interfaces/generated.game-content.types";
 import { ArrowUpDown, ArrowBigDownIcon, ArrowBigUpIcon } from "lucide-react";
 import { Button } from "src/@/components/ui/button";
 import { teamLogoUrl } from "src/utils/utils";
 import { TeamLogoName } from "src/components/TeamLogoName";
+import { Split } from "src/interfaces/generated.player.types";
 
 export const columns: ColumnDef<TeamRecord>[] = [
   {
@@ -160,201 +166,6 @@ export const gamesColumns: ColumnDef<MlbGame>[] = [
   },
 ];
 
-const col = createColumnHelper<SplitRowExtended>();
-
-export const splitColumns: ColumnDef<SplitRowExtended, any>[] = [
-  col.accessor("season", { header: "Season" }),
-
-  col.accessor("team.name", { header: "Team" }),
-
-  col.accessor("gameType", { header: "Game Type" }),
-
-  col.accessor("group", { header: "Group" }),
-
-  // Now all the stat fields:
-  col.accessor((row) => row.stat.gamesPlayed, {
-    id: "gamesPlayed",
-    header: "G",
-  }),
-  col.accessor((row) => row.stat.gamesStarted, {
-    id: "gamesStarted",
-    header: "GS",
-  }),
-  col.accessor((row) => row.stat.groundOuts, {
-    id: "groundOuts",
-    header: "GO",
-  }),
-  col.accessor((row) => row.stat.airOuts, { id: "airOuts", header: "AO" }),
-  col.accessor((row) => row.stat.runs, { id: "runs", header: "R" }),
-  col.accessor((row) => row.stat.doubles, { id: "doubles", header: "2B" }),
-  col.accessor((row) => row.stat.triples, { id: "triples", header: "3B" }),
-  col.accessor((row) => row.stat.homeRuns, { id: "homeRuns", header: "HR" }),
-  col.accessor((row) => row.stat.strikeOuts, {
-    id: "strikeOuts",
-    header: "SO",
-  }),
-  col.accessor((row) => row.stat.baseOnBalls, {
-    id: "baseOnBalls",
-    header: "BB",
-  }),
-  col.accessor((row) => row.stat.intentionalWalks, {
-    id: "intentionalWalks",
-    header: "IBB",
-  }),
-  col.accessor((row) => row.stat.hits, { id: "hits", header: "H" }),
-  col.accessor((row) => row.stat.hitByPitch, {
-    id: "hitByPitch",
-    header: "HBP",
-  }),
-  col.accessor((row) => row.stat.avg, { id: "avg", header: "AVG" }),
-  col.accessor((row) => row.stat.atBats, { id: "atBats", header: "AB" }),
-  col.accessor((row) => row.stat.obp, { id: "obp", header: "OBP" }),
-  col.accessor((row) => row.stat.slg, { id: "slg", header: "SLG" }),
-  col.accessor((row) => row.stat.ops, { id: "ops", header: "OPS" }),
-  col.accessor((row) => row.stat.caughtStealing, {
-    id: "caughtStealing",
-    header: "CS",
-  }),
-  col.accessor((row) => row.stat.stolenBases, {
-    id: "stolenBases",
-    header: "SB",
-  }),
-  col.accessor((row) => row.stat.stolenBasePercentage, {
-    id: "stolenBasePercentage",
-    header: "SB%",
-  }),
-  col.accessor((row) => row.stat.groundIntoDoublePlay, {
-    id: "groundIntoDoublePlay",
-    header: "GIDP",
-  }),
-  col.accessor((row) => row.stat.numberOfPitches, {
-    id: "numberOfPitches",
-    header: "Pitches",
-  }),
-  col.accessor((row) => row.stat.era, { id: "era", header: "ERA" }),
-  col.accessor((row) => row.stat.inningsPitched, {
-    id: "inningsPitched",
-    header: "IP",
-  }),
-  col.accessor((row) => row.stat.wins, { id: "wins", header: "W" }),
-  col.accessor((row) => row.stat.losses, { id: "losses", header: "L" }),
-  col.accessor((row) => row.stat.saves, { id: "saves", header: "SV" }),
-  col.accessor((row) => row.stat.saveOpportunities, {
-    id: "saveOpportunities",
-    header: "SVO",
-  }),
-  col.accessor((row) => row.stat.holds, { id: "holds", header: "HLD" }),
-  col.accessor((row) => row.stat.blownSaves, {
-    id: "blownSaves",
-    header: "BS",
-  }),
-  col.accessor((row) => row.stat.earnedRuns, {
-    id: "earnedRuns",
-    header: "ER",
-  }),
-  col.accessor((row) => row.stat.whip, { id: "whip", header: "WHIP" }),
-  col.accessor((row) => row.stat.battersFaced, {
-    id: "battersFaced",
-    header: "BF",
-  }),
-  col.accessor((row) => row.stat.outs, { id: "outs", header: "Outs" }),
-  col.accessor((row) => row.stat.gamesPitched, {
-    id: "gamesPitched",
-    header: "GP",
-  }),
-  col.accessor((row) => row.stat.completeGames, {
-    id: "completeGames",
-    header: "CG",
-  }),
-  col.accessor((row) => row.stat.shutouts, { id: "shutouts", header: "SHO" }),
-  col.accessor((row) => row.stat.strikes, { id: "strikes", header: "Strikes" }),
-  col.accessor((row) => row.stat.strikePercentage, {
-    id: "strikePercentage",
-    header: "K%",
-  }),
-  col.accessor((row) => row.stat.hitBatsmen, {
-    id: "hitBatsmen",
-    header: "HB",
-  }),
-  col.accessor((row) => row.stat.balks, { id: "balks", header: "Balks" }),
-  col.accessor((row) => row.stat.wildPitches, {
-    id: "wildPitches",
-    header: "WP",
-  }),
-  col.accessor((row) => row.stat.pickoffs, { id: "pickoffs", header: "PO" }),
-  col.accessor((row) => row.stat.totalBases, {
-    id: "totalBases",
-    header: "TB",
-  }),
-  col.accessor((row) => row.stat.groundOutsToAirouts, {
-    id: "groundOutsToAirouts",
-    header: "GO/AO",
-  }),
-  col.accessor((row) => row.stat.winPercentage, {
-    id: "winPercentage",
-    header: "W%",
-  }),
-  col.accessor((row) => row.stat.pitchesPerInning, {
-    id: "pitchesPerInning",
-    header: "P/Inn",
-  }),
-  col.accessor((row) => row.stat.gamesFinished, {
-    id: "gamesFinished",
-    header: "GF",
-  }),
-  col.accessor((row) => row.stat.strikeoutWalkRatio, {
-    id: "strikeoutWalkRatio",
-    header: "K/BB",
-  }),
-  col.accessor((row) => row.stat.strikeoutsPer9Inn, {
-    id: "strikeoutsPer9Inn",
-    header: "K/9",
-  }),
-  col.accessor((row) => row.stat.walksPer9Inn, {
-    id: "walksPer9Inn",
-    header: "BB/9",
-  }),
-  col.accessor((row) => row.stat.hitsPer9Inn, {
-    id: "hitsPer9Inn",
-    header: "H/9",
-  }),
-  col.accessor((row) => row.stat.runsScoredPer9, {
-    id: "runsScoredPer9",
-    header: "R/9",
-  }),
-  col.accessor((row) => row.stat.homeRunsPer9, {
-    id: "homeRunsPer9",
-    header: "HR/9",
-  }),
-  col.accessor((row) => row.stat.inheritedRunners, {
-    id: "inheritedRunners",
-    header: "IR",
-  }),
-  col.accessor((row) => row.stat.inheritedRunnersScored, {
-    id: "inheritedRunnersScored",
-    header: "IRS",
-  }),
-  col.accessor((row) => row.stat.catchersInterference, {
-    id: "catchersInterference",
-    header: "CI",
-  }),
-  col.accessor((row) => row.stat.sacBunts, { id: "sacBunts", header: "SB" }),
-  col.accessor((row) => row.stat.sacFlies, { id: "sacFlies", header: "SF" }),
-  col.accessor((row) => row.stat.babip, {
-    id: "babip",
-    header: "BABIP",
-  }),
-  col.accessor((row) => row.stat.leftonbase, {
-    id: "leftonbase",
-    header: "LOB",
-  }),
-  col.accessor((row) => row.stat.plateappearances, {
-    id: "plateappearances",
-    header: "PA",
-  }),
-  col.accessor((row) => row.stat.rbi, { id: "rbi", header: "RBI" }),
-];
-
 export const rosterColumns: ColumnDef<Player>[] = [
   {
     id: "expander",
@@ -384,6 +195,17 @@ export const rosterColumns: ColumnDef<Player>[] = [
   {
     accessorKey: "person.fullName",
     header: "Name",
+    cell: ({ row }) => {
+      const playerId = row.original.person.id;
+      return (
+        <Link
+          to={`/players/${playerId}`}
+          className="cursor-pointer hover:text-blue-300"
+        >
+          <p>{row.original.person.fullName}</p>
+        </Link>
+      );
+    },
   },
   {
     accessorKey: "person.birthDate",
@@ -415,3 +237,177 @@ export const rosterColumns: ColumnDef<Player>[] = [
     },
   },
 ];
+
+type SplitLike = Split | SplitRowExtended; // your union
+
+const col = createColumnHelper<SplitLike>();
+
+// Nice labels for common stat keys; fallback is the raw key
+const STAT_LABELS: Record<string, string> = {
+  // hitting
+  gamesPlayed: "G",
+  gamesStarted: "GS",
+  atBats: "AB",
+  hits: "H",
+  doubles: "2B",
+  triples: "3B",
+  homeRuns: "HR",
+  rbi: "RBI",
+  baseOnBalls: "BB",
+  strikeOuts: "SO",
+  avg: "AVG",
+  obp: "OBP",
+  slg: "SLG",
+  ops: "OPS",
+  stolenBases: "SB",
+  caughtStealing: "CS",
+  // pitching
+  era: "ERA",
+  inningsPitched: "IP",
+  wins: "W",
+  losses: "L",
+  saves: "SV",
+  saveOpportunities: "SVO",
+  whip: "WHIP",
+  battersFaced: "BF",
+  hitsPer9Inn: "H/9",
+  strikeoutsPer9Inn: "K/9",
+  walksPer9Inn: "BB/9",
+  homeRunsPer9: "HR/9",
+  strikeoutWalkRatio: "K/BB",
+  // fielding
+  assists: "A",
+  putOuts: "PO",
+  errors: "E",
+  chances: "Ch",
+  doublePlays: "DP",
+  triplePlays: "TP",
+  fielding: "Fld%", // often a string like "0.987"
+  throwingErrors: "TE",
+  passedBall: "PB",
+  // misc
+  leftOnBase: "LOB",
+  plateAppearances: "PA",
+  // note: you already handle leftonbase/plateappearances casing elsewhere if needed
+};
+
+function humanizeKey(k: string) {
+  return STAT_LABELS[k] ?? k;
+}
+
+/**
+ * Build columns from the splits in a tab.
+ * - Adds meta columns (Season, Team, Game Type, Group if present on the row)
+ * - Inspects `stat` objects to find all keys that have at least one non-empty value
+ */
+export function buildSplitColumnsFromData(
+  splits: SplitLike[]
+): ColumnDef<SplitLike, any>[] {
+  // --- META COLUMNS (stable) ---
+  const base: ColumnDef<SplitLike, any>[] = [
+    col.accessor((row) => (row as any).season ?? "", {
+      id: "season",
+      header: "Season",
+      sortingFn: withTotalsLast((a, b, id) => {
+        const av = Number(a.getValue(id) ?? 0);
+        const bv = Number(b.getValue(id) ?? 0);
+        return av - bv; // asc; Table's sort direction toggle still works
+      }),
+    }),
+    col.accessor((row) => row.team?.name ?? "Total", {
+      id: "team",
+      header: "Team",
+      sortingFn: withTotalsLast(sortingFns.alphanumeric),
+      cell({ row }) {
+        const current = row.original;
+        if (current.team) {
+          return (
+            <Link
+              to={`/teams/${current.team.id}/${
+                current.season ?? new Date().getFullYear()
+              }/${TeamPages.Roster}`}
+              className="hover:text-blue-400 focus:text-blue-400 outline-none cursor-pointer"
+              tabIndex={0}
+            >
+              <p>{current.team.name}</p>
+            </Link>
+          );
+        } else {
+          return <p>Total</p>;
+        }
+      },
+    }),
+    col.accessor((row) => (row as any).gameType ?? "", {
+      id: "gameType",
+      header: "Game Type",
+    }),
+    col.accessor((row) => row.position?.abbreviation ?? "—", {
+      id: "pos",
+      header: "Pos",
+    }),
+    // Only if your data actually carries group on the row (it usually lives on parent StatElement)
+    col.accessor((row) => (row as any).group ?? "", {
+      id: "group",
+      header: "Group",
+    }),
+  ];
+
+  // --- GATHER STAT KEYS PRESENT ---
+  const keySet = new Set<string>();
+  for (const s of splits) {
+    const stat = (s as any)?.stat ?? {};
+    Object.keys(stat).forEach((k) => keySet.add(k));
+  }
+
+  // Decide which keys are worth showing: keep keys that have a value
+  const statCols: ColumnDef<SplitLike, any>[] = [];
+  const keys = Array.from(keySet);
+  for (const key of keys) {
+    // Skip nested objects (e.g., position) and obvious non-stats if needed
+    if (typeof (splits[0] as any)?.stat?.[key] === "object") continue;
+
+    statCols.push(
+      col.accessor((row) => (row as any)?.stat?.[key], {
+        id: key,
+        header: humanizeKey(key),
+        // text align numerics
+        cell: ({ getValue }) => {
+          const v = getValue();
+          if (v == null || v === "") return null;
+          // Slight numeric alignment
+          const isNum =
+            typeof v === "number" || /^-?\d+(\.\d+)?$/.test(String(v));
+          return (
+            <div className={isNum ? "text-right tabular-nums" : ""}>{v}</div>
+          );
+        },
+      })
+    );
+  }
+
+  return [...base, ...statCols];
+}
+
+const isTotal = (s: Split | SplitRowExtended) => !s.team; // your rule
+
+// Wrap any base sorting fn so totals are always last
+const withTotalsLast =
+  (
+    base: SortingFn<Split | SplitRowExtended>
+  ): SortingFn<Split | SplitRowExtended> =>
+  (a, b, columnId) => {
+    const aTotal = isTotal(a.original);
+    const bTotal = isTotal(b.original);
+    if (aTotal !== bTotal) return aTotal ? 1 : -1; // totals after non-totals
+    return base(a, b, columnId);
+  };
+
+export const totalsLastColumn: ColumnDef<Split | SplitRowExtended> = {
+  id: "__totalsLast",
+  accessorFn: (row) => (isTotal(row) ? 1 : 0),
+  enableSorting: true,
+  sortingFn: "basic", // 0 before 1
+  header: () => null, // never shown
+  cell: () => null, // never shown
+  meta: { hidden: true }, // (optional) if you use meta to hide
+};

@@ -413,7 +413,12 @@ export function PlayByPlay({
     );
   }
 
-  if (error) return <p className="text-red-500">{error}</p>;
+  if (error)
+    return (
+      <div className="flex flex-col items-center justify-center flex-grow">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
 
   if (noGameFound) {
     return (

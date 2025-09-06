@@ -21,7 +21,11 @@ import {
   TableBody,
   TableCell,
 } from "src/@/components/ui/table";
-import { rosterColumns, splitColumns } from "src/data/columnDefs";
+import {
+  rosterColumns,
+  buildSplitColumnsFromData,
+  totalsLastColumn,
+} from "src/data/columnDefs";
 import {
   DataTableProps,
   Player,
@@ -37,10 +41,16 @@ export function StatsTable<T extends object>({
   data: T[];
   columnDefs: ColumnDef<T, any>[];
 }) {
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "__totalsLast", desc: false }, // totals at bottom by default
+  ]);
   const table = useReactTable<T>({
     data,
-    columns: columnDefs,
+    columns: [...(columnDefs as any), totalsLastColumn as any],
+    state: { sorting },
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(), // <- needed for sorting to work
   } as TableOptions<T>);
 
   const allLeafCols = table.getAllLeafColumns();
@@ -54,7 +64,7 @@ export function StatsTable<T extends object>({
   );
 
   return (
-    <Table className="min-w-max">
+    <Table className="min-w-max [&_th]:text-center [&_td]:text-center">
       <TableHeader>
         {table.getHeaderGroups().map((hg) => (
           <TableRow key={hg.id}>
@@ -152,7 +162,7 @@ export function RosterTable({ data }: { data: Player[] }) {
                           <div className="min-w-max">
                             <StatsTable
                               data={flattened}
-                              columnDefs={splitColumns}
+                              columnDefs={buildSplitColumnsFromData(flattened)}
                             />
                           </div>
                         );

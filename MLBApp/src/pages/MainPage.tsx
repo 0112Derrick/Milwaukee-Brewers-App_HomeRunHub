@@ -32,9 +32,9 @@ const useTeams = (initialStart = 0) => {
     setLoading(true);
 
     try {
-      console.log(
-        `Search term: ${searchTerm} | Division: ${filterDivision} | League: ${filterLeague}`
-      );
+      // console.log(
+      //   `Search term: ${searchTerm} | Division: ${filterDivision} | League: ${filterLeague}`
+      // );
 
       // Constructing query parameters based on inputs and pagination.
       let params = `start=${newStart}&limit=${itemsPerPage}`;
@@ -88,7 +88,7 @@ const useTeams = (initialStart = 0) => {
       }
     } catch (error) {
       if (axios.isCancel(error)) {
-        console.log("Request canceled:", error.message);
+        // console.log("Request canceled:", error.message);
       } else {
         console.log("Error: ", error);
         setError(error);

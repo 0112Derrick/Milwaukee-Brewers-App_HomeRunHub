@@ -32,8 +32,8 @@ export interface MlbTeamDataModifiedI {
 export enum TeamPages {
   Description,
   Standings,
-  Roster,
   Schedule,
+  Roster,
 }
 
 export interface TeamsResponse {

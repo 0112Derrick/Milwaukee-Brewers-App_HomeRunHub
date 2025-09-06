@@ -7,6 +7,10 @@ import {
 } from "../interfaces/interfaces.js";
 import { Database } from "../jsonManager.js";
 import { formatYYYYMMDD } from "./utils.js";
+import {
+  Person,
+  PlayerResponse,
+} from "../interfaces/generated.player.types.js";
 const axios = axiosPkg.default;
 
 export function organizeMLBTeams(data: mlbTeams) {
@@ -106,5 +110,27 @@ export async function fetchRoster(
   } catch (e) {
     console.error("An error occurred while fetching roster info.", e);
     return { copyright: "", roster: [] };
+  }
+}
+
+export async function fetchPlayer(id: number) {
+  try {
+    const hydrate = encodeURIComponent(
+      "stats(group=[hitting,pitching,fielding],type=[career,yearByYear])"
+    );
+    const url = `${mlbApiHost}/api/v1/people/${id}?hydrate=${hydrate}`;
+
+    const key = `player-${id}`;
+    const c = cache.getCache().get(key);
+    if (c) return c;
+
+    const { data } = await axios.get<PlayerResponse>(url);
+
+    cache.cacheData(data, key);
+    return data;
+  } catch (e) {
+    console.error("An error occurred while fetching player info.", e);
+    // Return the proper shape
+    return { copyright: "", people: [] as Person[] };
   }
 }
