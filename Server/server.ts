@@ -21,7 +21,7 @@ import {
   fetchSchedule,
   fetchTeamScheduleBySeason,
 } from "./services/schedules.js";
-import { fetchTeams, fetchRoster } from "./services/roster.js";
+import { fetchTeams, fetchRoster, fetchPlayer } from "./services/roster.js";
 
 const __filenameResolved = fileURLToPath(import.meta.url);
 const __dirnameResolved = path.dirname(__filenameResolved);
@@ -238,6 +238,18 @@ export class Server {
 
       res.send({ exists: results });
     });
+    this.app.get("/mlb/players/:playerId", async (req, res) => {
+      const playedId = parseInt(String(req.params.playerId)) || 0;
+
+      if (typeof playedId !== "number" || isNaN(playedId)) {
+        res.send({ error: "Expected an int for playerId" });
+        return;
+      }
+
+      const results = await fetchPlayer(playedId);
+
+      res.send(results);
+    });
     this.app.post("/mlb/standings", async (req, res) => {
       const { leagueId, seasonDt, divisionId } = req.body;
 
@@ -305,7 +317,7 @@ export class Server {
       res.json(resp);
     });
     this.app.post("/mlb/roster", async (req, res) => {
-      console.log(req.body);
+      // console.log(req.body);
       const { teamId, seasonDt } = req.body;
 
       if (!teamId || typeof teamId !== "number") {
@@ -327,7 +339,7 @@ export class Server {
       res.json(resp);
     });
     this.app.post("/mlb/boxscore", async (req, res) => {
-      console.log(req.body);
+      // console.log(req.body);
       const { leagueId, gameDt, gamePk } = req.body;
 
       const id = leagueId ?? 1;
@@ -349,7 +361,7 @@ export class Server {
       res.json(resp);
     });
     this.app.post("/mlb/playbyplay", async (req, res) => {
-      console.log(req.body);
+      // console.log(req.body);
       const { leagueId: sportsLeagueId, gameDt, gamePk } = req.body;
 
       const id = sportsLeagueId ?? 1;
@@ -378,7 +390,7 @@ export class Server {
       res.json(resp);
     });
     this.app.post("/mlb/linescore", async (req, res) => {
-      console.log(req.body);
+      // console.log(req.body);
       const { gamePk } = req.body;
 
       if (typeof gamePk !== "number" && !gamePk) {
@@ -428,7 +440,7 @@ export class Server {
     });
     this.app.post("/contact", (req, res) => {
       //NOTE - This is where you would add a database in order to store the contact info.
-      console.log(req.body);
+      // console.log(req.body);
       const { message, email, name, reasonForContact } = req.body;
       const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
       try {

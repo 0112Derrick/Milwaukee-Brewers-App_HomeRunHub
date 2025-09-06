@@ -14,6 +14,7 @@ import About from "./components/About";
 import StandingsPage from "./pages/standings_page";
 import { PlayByPlay } from "./pages/PlayByPlayPage";
 import { LiveGames } from "./pages/LiveGamesPage";
+import { PlayerPage } from "./pages/PlayerPage";
 
 function App() {
   return (
@@ -30,7 +31,7 @@ function App() {
           }
         ></Route>
         <Route
-          path="/teams/:id"
+          path="/teams/:id/:user_season?/:user_page?"
           element={
             <div className="flex flex-col h-screen bg-gray-900 text-white">
               <NavBar />
@@ -85,6 +86,16 @@ function App() {
             <div className="flex flex-col h-screen bg-gray-900 text-white">
               <NavBar />
               <LiveGames></LiveGames>
+              <Footer />
+            </div>
+          }
+        ></Route>
+        <Route
+          path="/players/:id"
+          element={
+            <div className="flex flex-col h-screen bg-gray-900 text-white">
+              <NavBar />
+              <PlayerPage></PlayerPage>
               <Footer />
             </div>
           }

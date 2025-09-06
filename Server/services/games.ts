@@ -150,7 +150,7 @@ export async function checkMlbStory(gamePk: number) {
   let result = false;
   try {
     const apiRes = await axios.get(videoHref);
-    console.log(`Status: ${apiRes.status} | Result: ${apiRes.data}`);
+    // console.log(`Status: ${apiRes.status} | Result: ${apiRes.data}`);
     if (apiRes.status < 400) {
       result = true;
     } else {

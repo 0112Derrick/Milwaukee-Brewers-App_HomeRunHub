@@ -54,7 +54,7 @@ const ContactUs = () => {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    console.log(formData);
+    // console.log(formData);
     //Sending data to a server
     //FIXME - Add a captcha in order to stop bots from spamming your api
 

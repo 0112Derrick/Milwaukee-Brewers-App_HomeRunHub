@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { MlbGame, Player } from "src/interfaces/interfaces";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "src/@/components/ui/card";
-import { Button } from "src/@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import ErrorPage from "./ErrorPage";
 import { Skeleton } from "src/@/components/ui/skeleton";
 import { DataTable, RosterTable } from "src/components/Table";
@@ -20,16 +18,34 @@ import {
   TeamRecord,
 } from "src/interfaces/teams.types";
 import { ScrollArea } from "src/@/components/ui/scroll-area";
-import { mlbTeamsDetails } from "src/data/teamData";
 import { Label } from "src/@/components/ui/label";
 import { useDebounce } from "src/hooks/debouncing";
 import { TeamLogoName } from "src/components/TeamLogoName";
 import { teamLogoUrl } from "src/utils/utils";
+import { mlbTeamsDetails } from "src/data/teamData";
 
-function TeamPage() {
-  const { id } = useParams();
+export default function TeamPage() {
+  const { id, user_season, user_page } = useParams();
 
-  const [page, setPage] = useState<TeamPages>(TeamPages.Description);
+  const today = new Date();
+  const defaultSeason = today.getFullYear();
+
+  const pageFromParam = Number(user_page);
+  const seasonFromParam = Number(user_season);
+
+  const parsedPage: TeamPages = Number.isFinite(pageFromParam)
+    ? (pageFromParam as TeamPages)
+    : TeamPages.Description;
+
+  const parsedSeason = Number.isFinite(seasonFromParam)
+    ? seasonFromParam
+    : defaultSeason;
+
+  const [page, setPage] = useState<TeamPages>(parsedPage);
+  const [season, setSeason] = useState<number>(parsedSeason);
+  const [inputSeason, setInputSeason] = useState<number>(parsedSeason);
+  const debouncedSeason = useDebounce<number>(inputSeason, 500);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>(null);
 
@@ -37,126 +53,89 @@ function TeamPage() {
   const [divisionData, setDivisionData] = useState<TeamRecord[]>([]);
   const [rosterData, setRosterData] = useState<Player[]>([]);
   const [games, setGames] = useState<MlbGame[]>([]);
-  const today = new Date();
-  const [season, setSeason] = useState(today.getFullYear());
-  const [inputSeason, setInputSeason] = useState<number>(today.getFullYear());
-  const debouncedSeason = useDebounce<number>(inputSeason, 500); // 500ms delay
-  const teamId = parseInt(id ?? "0");
-  const logo = teamLogoUrl(teamId);
-  const navigate = useNavigate();
+
+  const teamId = useMemo(() => Number(id ?? 0), [id]);
+  const logo = useMemo(() => teamLogoUrl(teamId), [teamId]);
+
+  useEffect(() => {
+    setPage(parsedPage);
+  }, [parsedPage]);
+
+  useEffect(() => {
+    setSeason(parsedSeason);
+    setInputSeason(parsedSeason);
+  }, [parsedSeason]);
 
   useEffect(() => {
     const ac = new AbortController();
 
+    const getTeamData = async () => {
+      const response = await getTeamsResp(ac, teamId); // ✅ use derived teamId
+      if (!response) return;
+
+      if (response.data?.teams?.length) {
+        const team = response.data.teams[0];
+        const extra = mlbTeamsDetails.find(
+          (t) => t.team.toLowerCase() === team.name.toLowerCase()
+        );
+        if (!extra) throw new Error("Could not find additional team data.");
+        setTeam({ ...team, ...extra });
+      } else {
+        throw new Error("No data returned");
+      }
+    };
+
     const fetchTeam = async () => {
       setLoading(true);
-
+      // ✅ clear old team so previous name doesn’t render
+      setTeam(null);
       try {
-        let day = today.getDate().toString().padStart(2, "0");
-        let month = (today.getMonth() + 1).toString().padStart(2, "0");
-
+        const day = today.getDate().toString().padStart(2, "0");
+        const month = (today.getMonth() + 1).toString().padStart(2, "0");
         const dt = `${season}-${month}-${day}`;
-        const intId = parseInt(id ? id : "114");
 
-        const getTeamData = async () => {
-          const response = await getTeamsResp(ac, intId);
-          if (!response) return;
+        await getTeamData();
 
-          if (response.data && response.data.teams) {
-            const team = response.data.teams[0];
-
-            // Adds in additional team data from /data/teamData this adds in info about world series won and hall of fame players that was not provided with the brewers api.
-            let additionalTeamDetails = mlbTeamsDetails.find(
-              (mlbTeam) =>
-                mlbTeam.team.toLowerCase() === team.name.toLowerCase()
-            );
-
-            if (!additionalTeamDetails)
-              throw new Error(
-                "Could not find additional team data. Please contact support."
-              );
-
-            let modifiedTeam = { ...team, ...additionalTeamDetails };
-            setTeam(modifiedTeam);
-          } else {
-            throw new Error("No data returned");
-          }
-        };
-
-        if (page == TeamPages.Description) {
-          getTeamData();
-        } else if (page == TeamPages.Standings) {
+        if (page === TeamPages.Standings) {
           const division = 105;
-          getTeamData();
-          const response = await getStandingsResp(ac, dt, division);
-
-          if (!response || response.status !== 200) {
+          const resp = await getStandingsResp(ac, dt, division);
+          if (!resp || resp.status !== 200)
             throw new Error("Unable to get teams record.");
-          }
+          setError(null);
 
-          const data = response.data;
-
-          let foundDivision: TeamRecord[] = [];
-
-          for (let i = 0; i < data.records.length; i++) {
-            let division = data.records[i];
-            for (let j = 0; j < division.teamRecords.length; j++) {
-              let team = division.teamRecords[j];
-              if (team.team.id == parseInt(id ? id : "0")) {
-                foundDivision = division.teamRecords;
-              }
-            }
-          }
+          const foundDivision =
+            resp.data.records.find((div: any) =>
+              div.teamRecords.some((tr: any) => tr.team.id === teamId)
+            )?.teamRecords ?? [];
           setDivisionData(foundDivision);
-        } else if (page == TeamPages.Roster) {
-          const response = await getRosterResp(ac, intId, dt);
-
-          if (!response || response.status !== 200) {
+        } else if (page === TeamPages.Roster) {
+          const resp = await getRosterResp(ac, teamId, dt);
+          if (!resp || resp.status !== 200)
             throw new Error("Unable to get teams record.");
-          }
-
-          const data = response.data;
-
-          setRosterData(data.roster);
-        } else if (page == TeamPages.Schedule) {
-          try {
-            const response = await getTeamScheduleResp(ac, intId, season);
-
-            if (!response || response.status !== 200) {
-              throw new Error("Unable to get teams record.");
-            }
-
-            const games: MlbGame[] = [];
-            response.data.dates.forEach((date) => {
-              games.push(...date.games);
-            });
-
-            setGames(games);
-          } catch (e) {
-            console.error("Error fetching games.");
-            setError(e);
-          }
+          setError(null);
+          setRosterData(resp.data.roster);
+        } else if (page === TeamPages.Schedule) {
+          const resp = await getTeamScheduleResp(ac, teamId, season);
+          if (!resp || resp.status !== 200)
+            throw new Error("Unable to get teams record.");
+          setError(null);
+          const games: MlbGame[] = [];
+          resp.data.dates.forEach((d: any) => {
+            games.push(...d.games);
+          });
+          setGames(games);
         }
-      } catch (error) {
-        if (axios.isCancel(error)) {
-          console.log("Request canceled:", error.message);
-        } else {
-          console.error("Error fetching team:", error);
-          setError(error);
-        }
+      } catch (e: any) {
+        if (axios.isCancel(e)) setError(null);
+        else setError("Unable to load the teams page");
       } finally {
-        setTimeout(() => {
-          setLoading(false);
-        }, 750);
+        setTimeout(() => setLoading(false), 750);
       }
     };
 
     fetchTeam();
-
-    return () => {
-      ac.abort();
-    };
-  }, [id, page, season]);
+    return () => ac.abort();
+  }, [teamId, page, season]); // ✅ key by teamId, not id
 
   useEffect(() => {
     if (debouncedSeason !== season) {
@@ -221,22 +200,15 @@ function TeamPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-grow items-center justify-center p-8">
-        <div className="border border-white w-3/4 h-fit rounded flex flex-col items-center justify-center gap-8 p-8 sm:flex-row">
-          <div className="grid grid-cols-1 gap-4">
-            <Button
-              variant={"outline"}
-              className="bg-blue-500 hover:bg-blue-600 text-lg text-white hover:text-white"
-              onClick={() => {
-                navigate("/");
-              }}
-            >
-              Back to home
-            </Button>
-            <Skeleton className="h-32 w-32 rounded-full bg-white p-4" />
+      <div className="flex flex-col flex-1 items-center w-full pb-6 overflow-auto">
+        <div className="w-full self-end flex flex-col">
+          <InnerNav></InnerNav>
+        </div>
+        <div className="flex items-center justify-center sm:flex-wrap lg:flex-nowrap border border-white w-3/4 h-fit rounded  gap-8 p-8 min-h-[80%]">
+          <div>
+            <Skeleton className="h-8 w-full p-12 bg-white" />
           </div>
-
-          <div className="bg-gray-800 h-full w-full p-6 rounded">
+          <div className="bg-gray-800 min-h-fit h-1/2 w-full max-w-[1000px] p-6 rounded">
             <Skeleton className="h-8 w-full p-2 m-2 bg-white" />
             <Skeleton className="h-8 w-3/4 p-2 m-2 bg-white" />
             <Skeleton className="h-8 w-3/6 p-2 m-2 bg-white" />
@@ -395,7 +367,6 @@ function TeamPage() {
       return (
         <div className="flex-1 min-h-0 w-full flex flex-col">
           <InnerNav />
-
           <div className="flex-1 min-h-0">
             <Card className="h-full flex flex-col overflow-hidden rounded-none">
               <CardHeader className="flex-shrink-0">
@@ -460,5 +431,3 @@ function TeamPage() {
     </div>
   );
 }
-
-export default TeamPage;

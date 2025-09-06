@@ -78,7 +78,7 @@ export async function getStandingsResp(
 
     return scheduleResp;
   } catch (e) {
-    console.error(e);
+    // console.error(e);
     return null;
   }
 }

@@ -28,7 +28,7 @@ export async function getPlayByPlayResp(
 
     return resp;
   } catch (e) {
-    console.error(e);
+    // console.error(e);
     return null;
   }
 }
@@ -57,7 +57,7 @@ export async function getBoxscoreResp(
 
     return resp;
   } catch (e) {
-    console.error(e);
+    // console.error(e);
     return null;
   }
 }
@@ -81,7 +81,7 @@ export async function getLinescoreResp(ac: AbortController, gamePk: number) {
 
     return resp;
   } catch (e) {
-    console.error(e);
+    // console.error(e);
     return null;
   }
 }
