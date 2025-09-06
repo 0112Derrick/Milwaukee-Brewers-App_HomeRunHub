@@ -1,12 +1,4 @@
 import { Button } from "src/@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "src/@/components/ui/dropdown-menu";
-import { Card, CardDescription, CardTitle } from "src/@/components/ui/card";
-import { PersonIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "react-router-dom";
 
 const NavBar = () => {
@@ -33,15 +25,32 @@ const NavBar = () => {
           <span className="hover:text-white cursor-pointer">Home Run Hub</span>
         </div>
         <div>
-          <Button variant={"default"} onClick={() => navigate("/standings")}>
+          <Button
+            variant={"default"}
+            className="hover:text-blue-300"
+            onClick={() => navigate("/standings")}
+          >
             Standings
           </Button>
-          <Button variant={"default"} onClick={() => navigate("/games")}>
-            Games
+          <Button
+            variant={"default"}
+            className="hover:text-blue-300"
+            onClick={() => navigate("/games")}
+          >
+            Scores
           </Button>
-          <DropdownMenu>
+          <Button
+            variant={"default"}
+            className="hover:text-blue-300"
+            onClick={() => navigate("/about")}
+          >
+            About
+          </Button>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="default">Company</Button>
+              <Button variant="default" className="hover:text-blue-300">
+                About
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-40 bg-gray-900 border-gray-700">
               <DropdownMenuLabel>
@@ -59,7 +68,7 @@ const NavBar = () => {
                 </Card>
               </DropdownMenuLabel>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
           {/* <Button variant={"default"} onClick={() => navigate("/contact")}>
             Contact
           </Button> */}
