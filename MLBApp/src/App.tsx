@@ -1,6 +1,6 @@
 import "./App.css";
 import NavBar from "./components/NavBar";
-import MainContent from "./pages/MainPage";
+import MainPage from "./pages/MainPage";
 import Footer from "./components/Footer";
 import {
   HashRouter as Router,
@@ -24,7 +24,7 @@ function App() {
           element={
             <div className="flex flex-col h-screen bg-gray-900 text-white">
               <NavBar />
-              <MainContent />
+              <MainPage />
               <Footer />
             </div>
           }
