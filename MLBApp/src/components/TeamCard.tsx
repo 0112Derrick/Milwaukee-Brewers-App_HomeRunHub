@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import { useRef } from "react";
 import {
   Card,
   CardHeader,
@@ -50,7 +50,7 @@ const TeamCard = ({
           <img
             src={imageUrl}
             alt={teamName}
-            className="w-full h-48 object-contain py-4"
+            className="w-full h-36 object-contain py-4"
           />
           <CardHeader className="bg-slate-800">
             <CardTitle>{teamName}</CardTitle>
