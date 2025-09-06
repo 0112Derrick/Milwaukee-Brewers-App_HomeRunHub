@@ -4,21 +4,18 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@radix-ui/react-tooltip";
-import { Button } from "src/@/components/ui/button";
 import { Card, CardDescription } from "src/@/components/ui/card";
 import { Input } from "src/@/components/ui/input";
 
 function TeamsFilterSearchBar({
-  handleSearchSubmit,
   searchTerm,
   handleSearchChange,
 }: {
-  handleSearchSubmit: any;
   searchTerm: string;
   handleSearchChange: any;
 }) {
   return (
-    <form onSubmit={handleSearchSubmit} className="mb-4">
+    <form className="mb-4">
       <div className="flex flex-wrap sm:flex-nowrap mb-2 gap-2">
         <Input
           type="text"
@@ -26,13 +23,6 @@ function TeamsFilterSearchBar({
           value={searchTerm}
           onChange={handleSearchChange}
         />
-
-        <Button
-          className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 hover:shadow-lg"
-          type="submit"
-        >
-          Search
-        </Button>
 
         <div className="flex items-center mx-1">
           <TooltipProvider>
