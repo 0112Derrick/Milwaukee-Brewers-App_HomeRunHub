@@ -4,8 +4,6 @@ import {
   AccordionContent,
 } from "@radix-ui/react-accordion";
 import {
-  ChevronRight,
-  ChevronDown,
   SquareGanttChart,
   AlertTriangle,
   Ban,
@@ -14,8 +12,9 @@ import {
   Flag,
   PlayIcon,
   Trophy,
+  CircleCheck,
+  ChevronRight,
 } from "lucide-react";
-import { useState } from "react";
 import { Badge } from "src/@/components/ui/badge";
 import {
   TableHeader,
@@ -47,7 +46,13 @@ export function resultBadgeVariant(result: PlayEvent["result"]) {
   }
 }
 
-export function ResultIcon({ result }: { result: PlayEvent["result"] }) {
+export function ResultIcon({
+  result,
+  className,
+}: {
+  result: PlayEvent["result"];
+  className?: string;
+}) {
   switch (result) {
     case "Home Run":
       return <Trophy className="h-4 w-4" />;
@@ -65,9 +70,7 @@ export function ResultIcon({ result }: { result: PlayEvent["result"] }) {
       return <Ban className="h-4 w-4" />;
     case "Out":
     default:
-      return (
-        <PlayIcon className="h-4 w-4 hover:stroke-green-400 hover:fill-green-400" />
-      );
+      return <PlayIcon className={"h-4 w-4" + className} />;
   }
 }
 
@@ -85,10 +88,20 @@ export function PlayRow({
   return (
     <TableRow
       className={cn(
-        "min-h-full hover:bg-muted/50 transition-colors",
+        "min-h-full hover:bg-muted/50 focus:bg-muted/50 transition-colors outline-none ring-0 group cursor-pointer",
         scoring && "bg-amber-50 dark:bg-amber-900/20"
       )}
       onClick={() => onClick?.(play)}
+      tabIndex={0}
+      aria-label="Play this event"
+      onKeyDown={(e) => {
+        const k = e.key;
+        if (k === "Enter" || k === "NumpadEnter" || k === " ") {
+          e.preventDefault(); // avoid page scroll on Space
+          onClick?.(play);
+        }
+      }}
+      title="Play this event"
     >
       <TableCell className="w-[44px] text-muted-foreground tabular-nums text-xs">
         {play.count ?? ""}
@@ -97,8 +110,11 @@ export function PlayRow({
         {play.outsAfter ?? ""}
       </TableCell>
       <TableCell className="w-[140px]">
-        <div className="flex items-center gap-2 cursor-pointer group">
-          <ResultIcon result={play.result} />
+        <div className="flex items-center gap-2">
+          <ResultIcon
+            result={play.result}
+            className="hover:stroke-green-400 hover:fill-green-400 group-hover:fill-green-400 group-hover:stroke-green-400 group-focus:fill-green-400 group-focus:stroke-green-400"
+          />
           <Badge variant={resultBadgeVariant(play.result)}>{play.result}</Badge>
         </div>
       </TableCell>
@@ -125,31 +141,57 @@ export function PlayRow({
 export function InningPanel({
   title,
   plays,
+  isOpen,
   onPlayClick,
 }: {
   title: string;
   plays: PlayEvent[];
+  isOpen: boolean;
   onPlayClick?: (p: PlayEvent) => void;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
   return (
     <AccordionItem
       value={title}
-      className="border-none min-h-full"
-      onClick={() => setIsOpen(!isOpen)}
+      className={`border-none min-h-full ${
+        isOpen
+          ? "cursor-default text-black-400"
+          : "cursor-pointer hover:text-sky-400 text-stone-600"
+      }`}
     >
-      <AccordionTrigger className="px-0 text-left hover:no-underline">
-        <div className="flex items-center gap-2">
-          <ChevronDown className={`h-4 w-4 ${isOpen ? "block" : "hidden"}`} />
-          <ChevronRight className={`h-4 w-4 ${isOpen ? "hidden" : "block"}`} />
-          <span className="font-semibold">{title}</span>
-          <Badge variant="outline" className="ml-2">
-            {plays.length} plays
-          </Badge>
+      <AccordionTrigger
+        className={`px-0 w-full text-left hover:no-underline ${
+          isOpen ? "cursor-default" : "cursor-pointer"
+        }`}
+        title="Open play by play list"
+      >
+        <div
+          className={`flex items-center justify-between w-full gap-2 p-2 rounded rounded-b-none ${
+            isOpen ? "!bg-sky-300/30" : ""
+          }`}
+        >
+          <div className="flex items-center gap-4">
+            <CircleCheck className={`h-4 w-4 fill-blue-400 stroke-white`} />
+            <span className="font-semibold">{title}</span>
+          </div>
+
+          {isOpen ? (
+            <Badge
+              className={`${
+                isOpen ? "block" : "hidden"
+              } flex items-center bg-blue-400`}
+            >
+              <span className="font-semibold">{plays.length} plays</span>
+            </Badge>
+          ) : (
+            <div className={`${isOpen ? "hidden" : "block"} flex items-center`}>
+              <span className="font-semibold">{plays.length} plays</span>
+              <ChevronRight className="h-4 w-4" />
+            </div>
+          )}
         </div>
       </AccordionTrigger>
-      <AccordionContent className="min-h-full">
-        <div className="rounded-md border min-h-full">
+      <AccordionContent className="min-h-full text-black">
+        <div className="min-h-full">
           <Table className="min-h-full">
             <TableHeader>
               <TableRow>
