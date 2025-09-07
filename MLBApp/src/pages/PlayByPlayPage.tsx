@@ -176,6 +176,7 @@ export function PlayByPlay({
     today.toLocaleString()
   );
   const [displayPlayByPlay, setDisplayPlayByPlay] = useState<boolean>(false);
+  const [openPbpItem, setOpenPbpItem] = useState<string | undefined>(undefined);
 
   const fieldRef = useRef<BaseballFieldHandle>(null);
   const video = useRef<HTMLVideoElement>(null);
@@ -189,11 +190,6 @@ export function PlayByPlay({
       return true;
     });
   }, [plays, filter]);
-
-  const grouped = useMemo(
-    () => (groupByInning ? groupPlays(filtered) : []),
-    [filtered, groupByInning]
-  );
 
   const handlePlayClick = (play: PlayEvent) => {
     setDisplayPlayByPlay(true);
@@ -219,6 +215,25 @@ export function PlayByPlay({
       playId: play.id,
     });
   };
+
+  const formatTitle = (key: string) => {
+    const [inning, half] = key.split("-");
+    return `${half[0].toUpperCase()}${half.slice(1)} ${inning}`; // e.g. "Top 1"
+  };
+
+  const grouped = useMemo(
+    () => (groupByInning ? groupPlays(filtered) : []),
+    [filtered, groupByInning]
+  );
+
+  useEffect(() => {
+    if (grouped.length > 0) {
+      const first = formatTitle(grouped[0].key);
+      setOpenPbpItem(first);
+    } else {
+      setOpenPbpItem(undefined);
+    }
+  }, [grouped]);
 
   useEffect(() => {
     prmRef.current = prefersReducedMotion;
@@ -536,17 +551,21 @@ export function PlayByPlay({
                       <div className="p-3 min-h-full">
                         {groupByInning ? (
                           <Accordion
-                            type="multiple"
-                            className="w-full min-h-full"
+                            type="single"
+                            className="flex flex-col gap-2 w-full min-h-full [&>div:nth-child(odd)_button>div]:bg-orange-50/40
+                            [&>div:nth-child(even)_button>div]:bg-sky-100/40"
+                            value={openPbpItem}
+                            onValueChange={setOpenPbpItem}
+                            collapsible
                           >
                             {grouped.map(({ key, plays }) => {
-                              const [inning, half] = key.split("-");
-                              const title = `${half} ${inning}`;
+                              const title = formatTitle(key);
                               return (
                                 <InningPanel
                                   key={key}
                                   title={title}
                                   plays={plays}
+                                  isOpen={title === openPbpItem}
                                   onPlayClick={handlePlayClick}
                                 />
                               );
