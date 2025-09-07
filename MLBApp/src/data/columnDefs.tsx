@@ -12,7 +12,7 @@ import { ArrowUpDown, ArrowBigDownIcon, ArrowBigUpIcon } from "lucide-react";
 import { Button } from "src/@/components/ui/button";
 import { teamLogoUrl } from "src/utils/utils";
 import { TeamLogoName } from "src/components/TeamLogoName";
-import { Split } from "src/interfaces/generated.player.types";
+import { Split } from "../interfaces/generated.player.types";
 
 export const columns: ColumnDef<TeamRecord>[] = [
   {
