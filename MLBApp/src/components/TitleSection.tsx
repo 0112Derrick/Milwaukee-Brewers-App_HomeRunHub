@@ -15,9 +15,7 @@ function TitleSection({
       <div className="h-auto w-full my-2 flex flex-col items-center text-center gap-8 px-4 sm:px-0">
         <div className=".semi-circle-gradient"></div>
         <span className="text-neutral-200 font-bold text-2xl sm:text-4xl">
-          Home Run Hub is
-          <br className="hidden sm:inline" /> your premier destination for all
-          things baseball!
+          Baseball, <span className="text-sky-400">Beautifully</span> Organized
         </span>
         <span className="text-neutral-300 text-xl sm:text-2xl pb-2 sm:pb-4">
           Experience the next evolution in baseball apps.
