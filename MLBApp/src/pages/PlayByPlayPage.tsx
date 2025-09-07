@@ -226,14 +226,30 @@ export function PlayByPlay({
     [filtered, groupByInning]
   );
 
+  const panelTitles = useMemo(
+    () => grouped.map(({ key }) => formatTitle(key)),
+    [grouped]
+  );
+
+  // Only set when there's no current value, or the current value disappeared
   useEffect(() => {
-    if (grouped.length > 0) {
-      const first = formatTitle(grouped[0].key);
-      setOpenPbpItem(first);
-    } else {
+    if (panelTitles.length === 0) {
       setOpenPbpItem(undefined);
+      return;
     }
-  }, [grouped]);
+
+    setOpenPbpItem((prev) => {
+      // keep the same open panel if it still exists
+      if (prev && panelTitles.includes(prev)) return prev;
+
+      // otherwise initialize to the first (or choose another policy here)
+      return panelTitles[0];
+    });
+  }, [panelTitles]);
+
+  useEffect(() => {
+    if (panelTitles.length) setOpenPbpItem(panelTitles[0]);
+  }, [filter, groupByInning]); // or [filter, groupByInning]
 
   useEffect(() => {
     prmRef.current = prefersReducedMotion;
