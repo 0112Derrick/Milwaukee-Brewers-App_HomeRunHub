@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { MlbGame, Player } from "src/interfaces/interfaces";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "src/@/components/ui/card";
 import ErrorPage from "./ErrorPage";
 import { Skeleton } from "src/@/components/ui/skeleton";
 import { DataTable, RosterTable } from "src/components/Table";
 import { columns, gamesColumns } from "src/data/columnDefs";
-import { getRosterResp, getTeamsResp } from "src/repository/teams";
+import { getRosterResp, getTeamResp } from "src/repository/teams";
 import {
   getStandingsResp,
   getTeamScheduleResp,
@@ -18,11 +18,12 @@ import {
   TeamRecord,
 } from "src/interfaces/teams.types";
 import { ScrollArea } from "src/@/components/ui/scroll-area";
-import { Label } from "src/@/components/ui/label";
 import { useDebounce } from "src/hooks/debouncing";
 import { TeamLogoName } from "src/components/TeamLogoName";
 import { teamLogoUrl } from "src/utils/utils";
 import { mlbTeamsDetails } from "src/data/teamData";
+import { Button } from "src/@/components/ui/button";
+import { Label } from "src/@/components/ui/label";
 
 export default function TeamPage() {
   const { id, user_season, user_page } = useParams();
@@ -57,6 +58,8 @@ export default function TeamPage() {
   const teamId = useMemo(() => Number(id ?? 0), [id]);
   const logo = useMemo(() => teamLogoUrl(teamId), [teamId]);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     setPage(parsedPage);
   }, [parsedPage]);
@@ -70,7 +73,7 @@ export default function TeamPage() {
     const ac = new AbortController();
 
     const getTeamData = async () => {
-      const response = await getTeamsResp(ac, teamId); // ✅ use derived teamId
+      const response = await getTeamResp(ac, teamId); // ✅ use derived teamId
       if (!response) return;
 
       if (response.data?.teams?.length) {
@@ -153,46 +156,66 @@ export default function TeamPage() {
 
   const InnerNav = () => {
     return (
-      <div className="flex flex-shrink items-center justify-end w-full p-4">
-        <div className="flex gap-2">
+      <div className="w-full flex justify-around py-2 px-4">
+        <div
+          className={
+            page !== TeamPages.Description ? "visible text-white" : "invisible"
+          }
+        >
           <div className="flex flex-col gap-3">
-            <Label htmlFor="page" className="px-1 font-semibold">
-              Page
+            <Label htmlFor="season" className="px-1 font-semibold">
+              Season
             </Label>
-
-            <select
-              className="ring-0 border-none outline-none text-black w-32 h-6 rounded-md"
-              defaultValue={page}
-              onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
-                setPage(val);
-              }}
-            >
-              <option value={TeamPages.Description}>Description</option>
-              <option value={TeamPages.Standings}>Standings</option>
-              <option value={TeamPages.Schedule}>Schedule</option>
-              <option value={TeamPages.Roster}>Roster</option>
-            </select>
+            <input
+              className="ring-0 px-1 border-none outline-none text-black w-32 h-6 rounded-md"
+              type="number"
+              value={inputSeason}
+              onChange={handleInputChange}
+            ></input>
           </div>
-          <div
-            className={
-              page !== TeamPages.Description
-                ? "visible text-white"
-                : "invisible"
+        </div>
+
+        <div className="flex items-center justify-center h-full">
+          <Button
+            variant={"default"}
+            className="hover:text-blue-300"
+            disabled={page == TeamPages.Description}
+            onClick={() =>
+              navigate(`/teams/${teamId}/${season}/${TeamPages.Description}`)
             }
           >
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="season" className="px-1 font-semibold">
-                Season
-              </Label>
-              <input
-                className="ring-0 px-1 border-none outline-none text-black w-32 h-6 rounded-md"
-                type="number"
-                value={inputSeason}
-                onChange={handleInputChange}
-              ></input>
-            </div>
-          </div>
+            Description
+          </Button>
+          <Button
+            variant={"default"}
+            className="hover:text-blue-300"
+            disabled={page == TeamPages.Standings}
+            onClick={() =>
+              navigate(`/teams/${teamId}/${season}/${TeamPages.Standings}`)
+            }
+          >
+            Standings
+          </Button>
+          <Button
+            variant={"default"}
+            className="hover:text-blue-300"
+            disabled={page == TeamPages.Schedule}
+            onClick={() =>
+              navigate(`/teams/${teamId}/${season}/${TeamPages.Schedule}`)
+            }
+          >
+            Schedule
+          </Button>
+          <Button
+            variant={"default"}
+            className="hover:text-blue-300"
+            disabled={page == TeamPages.Roster}
+            onClick={() =>
+              navigate(`/teams/${teamId}/${season}/${TeamPages.Roster}`)
+            }
+          >
+            Roster
+          </Button>
         </div>
       </div>
     );
