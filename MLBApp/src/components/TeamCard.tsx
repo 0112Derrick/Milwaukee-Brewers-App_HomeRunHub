@@ -26,7 +26,7 @@ const TeamCard = ({
     <>
       {teamColor ? (
         <Card
-          className={`overflow-hidden cursor-pointer hover:border-solid hover:border-x-2 text-white hover:bg-zinc-400 hover:shadow-lg`}
+          className={`w-[250px] overflow-hidden cursor-pointer hover:border-solid hover:border-x-2 text-white hover:bg-zinc-400 hover:shadow-lg`}
           onClick={() => {
             navigate(`/teams/${id}`);
           }}
