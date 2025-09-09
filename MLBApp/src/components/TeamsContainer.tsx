@@ -226,7 +226,10 @@ export function TeamsContainer({
   return (
     <div>
       <div className="flex-1 min-h-0 flex flex-col py-2 overflow-auto">
-        <div className="flex items-center justify-center pb-8 mt-20">
+        <div
+          ref={teamSectionRef}
+          className="flex items-center justify-center pb-8 mt-20"
+        >
           <h2 className="text-4xl text-neutral-200">
             Find Your Favorite Teams
           </h2>
@@ -243,9 +246,9 @@ export function TeamsContainer({
           handleFilterChange={handleFilterChange}
         ></TeamFilterRadioButtons>
 
-        <div ref={teamSectionRef}>
+        <div>
           {teams.length ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 justify-items-center gap-4">
               {teamsList}
             </div>
           ) : (
