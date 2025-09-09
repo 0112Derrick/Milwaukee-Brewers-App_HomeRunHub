@@ -27,21 +27,21 @@ const NavBar = () => {
         <div>
           <Button
             variant={"default"}
-            className="hover:text-blue-300"
+            className="hover:text-blue-300 cursor-pointer"
             onClick={() => navigate("/standings")}
           >
             Standings
           </Button>
           <Button
             variant={"default"}
-            className="hover:text-blue-300"
-            onClick={() => navigate("/games")}
+            className="hover:text-blue-300 cursor-pointer"
+            onClick={() => navigate("/scores")}
           >
             Scores
           </Button>
           <Button
             variant={"default"}
-            className="hover:text-blue-300"
+            className="hover:text-blue-300 cursor-pointer"
             onClick={() => navigate("/about")}
           >
             About

@@ -71,7 +71,7 @@ function App() {
           }
         ></Route>
         <Route
-          path="/games/:gameDate/:id"
+          path="/scores/:gameDate/:id"
           element={
             <div className="flex flex-col h-screen bg-gray-900 text-white">
               <NavBar />
@@ -81,7 +81,7 @@ function App() {
           }
         ></Route>
         <Route
-          path="/games/:gameDate?"
+          path="/scores/:gameDate?"
           element={
             <div className="flex flex-col h-screen bg-gray-900 text-white">
               <NavBar />

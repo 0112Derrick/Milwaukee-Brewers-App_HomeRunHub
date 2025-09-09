@@ -42,7 +42,7 @@ export function MiniGameCard({ game }: { game: MlbGame }) {
       ? game.teams.away.score
       : "-";
 
-  const gameHref = `/games/${ymd}/${game.gamePk}`;
+  const gameHref = `/scores/${ymd}/${game.gamePk}`;
   const checkMlbStoryStatusHref = `/check-mlb-story/${game.gamePk}`;
   const storyHref = `https://www.mlb.com/stories/game/${game.gamePk}`;
 
