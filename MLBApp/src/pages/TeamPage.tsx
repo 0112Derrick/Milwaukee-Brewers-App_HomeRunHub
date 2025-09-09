@@ -83,6 +83,7 @@ export default function TeamPage() {
         );
         if (!extra) throw new Error("Could not find additional team data.");
         setTeam({ ...team, ...extra });
+        setError(null);
       } else {
         throw new Error("No data returned");
       }
@@ -90,7 +91,7 @@ export default function TeamPage() {
 
     const fetchTeam = async () => {
       setLoading(true);
-      // ✅ clear old team so previous name doesn’t render
+
       setTeam(null);
       try {
         const day = today.getDate().toString().padStart(2, "0");
@@ -413,7 +414,12 @@ export default function TeamPage() {
             <Card className="flex-1 rounded-none overflow-y-auto border-b-0 md:w-full lg:w-3/4 ">
               <CardHeader>
                 <span className="font-semibold text-lg text-card-foreground">
-                  <TeamLogoName id={teamId} teamName={team.name} logo={logo} />
+                  <TeamLogoName
+                    id={teamId}
+                    teamName={team.name}
+                    logo={logo}
+                    isLink={false}
+                  />
                 </span>
               </CardHeader>
               <CardContent className="p-0 overflow-y-auto">

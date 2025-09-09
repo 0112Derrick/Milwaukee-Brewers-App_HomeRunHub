@@ -457,9 +457,9 @@ export function PlayByPlay({
         <div className="flex-shrink-0 p-4">
           <div className="flex flex-col w-full items-center justify-center">
             <div className="w-fit my-4 flex gap-4 items-center">
-              <Link to={`/games/${date}`} className="w-full h-full">
+              <Link to={`/scores/${date}`} className="w-full h-full">
                 <Button variant={"secondary"} className="bg-blue-300">
-                  Back to Games
+                  Back to scores
                 </Button>
               </Link>
             </div>
@@ -489,9 +489,9 @@ export function PlayByPlay({
           <div className="flex-shrink-0 p-4">
             <div className="w-full my-4 gap-4 flex flex-col justify-center items-end">
               <div className="flex flex-wrap gap-4">
-                <Link to={`/games/${date}`}>
+                <Link to={`/scores/${date}`}>
                   <Button variant={"secondary"} className="bg-blue-300">
-                    Back to Games
+                    Back to scores
                   </Button>
                 </Link>
                 <Button
@@ -528,7 +528,10 @@ export function PlayByPlay({
                 <ToggleGroup
                   type="single"
                   value={filter}
-                  onValueChange={(v) => v && setFilter(v as any)}
+                  onValueChange={(v) => {
+                    v && setFilter(v as any);
+                    setTab("pbp");
+                  }}
                 >
                   <ToggleGroupItem value="all">All plays</ToggleGroupItem>
                   <ToggleGroupItem value="scoring">Scoring</ToggleGroupItem>
@@ -568,8 +571,8 @@ export function PlayByPlay({
                         {groupByInning ? (
                           <Accordion
                             type="single"
-                            className="flex flex-col gap-2 w-full min-h-full [&>div:nth-child(odd)_button>div]:bg-orange-50/40
-                            [&>div:nth-child(even)_button>div]:bg-sky-100/40"
+                            className="flex flex-col gap-2 w-full min-h-full [&>div:nth-child(odd)_button>div]:bg-orange-100/40
+                            [&>div:nth-child(even)_button>div]:bg-blue-100/40"
                             value={openPbpItem}
                             onValueChange={setOpenPbpItem}
                             collapsible
