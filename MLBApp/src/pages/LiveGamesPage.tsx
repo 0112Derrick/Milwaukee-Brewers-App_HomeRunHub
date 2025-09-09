@@ -118,7 +118,7 @@ export function LiveGames() {
 
     if (!d) return;
     const next = typeof d === "string" ? d : formatYMDLocal(d);
-    navigate(`/games/${next}`, { replace: false });
+    navigate(`/scores/${next}`, { replace: false });
   };
 
   if (loading) {
