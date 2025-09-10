@@ -8,7 +8,7 @@ import {
 import { Badge } from "src/@/components/ui/badge";
 
 import { Spinner } from "src/components/Spinner";
-import { ScrollArea } from "src/@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "src/@/components/ui/scroll-area";
 import { getStandingsResp } from "src/repository/schedules";
 import { StandingsResponseV2 } from "src/interfaces/teams.types";
 import { DataTable } from "src/components/Table";
@@ -125,7 +125,7 @@ const StandingsPage: React.FC = () => {
           {standings.records.map((division) => (
             <Card
               key={division.division.id}
-              className="rounded-none m-0 border-none md:min-w-full md:max-w-full lg:min-w-[70%] lg:max-w-[70%]"
+              className="rounded-none overflow-hidden m-0 border-none md:min-w-full md:max-w-full lg:min-w-[70%] lg:max-w-[70%]"
             >
               <CardHeader className="border-none h-fit">
                 <CardTitle className="flex flex-wrap items-center justify-between text-black border-none">
@@ -139,15 +139,16 @@ const StandingsPage: React.FC = () => {
                   <Badge>{division.standingsType}</Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0">
-                <div>
+              <CardContent className="p-0 h-full min-h-0 min-w-full">
+                <ScrollArea>
                   <DataTable
                     columns={columns}
                     data={division.teamRecords}
                     showDateRange={false}
                     sortOrder="desc"
                   ></DataTable>
-                </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
               </CardContent>
             </Card>
           ))}
