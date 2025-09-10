@@ -1,11 +1,7 @@
 import { TriangleIcon, PlayCircle } from "lucide-react";
 import { cn } from "src/@/lib/utils";
-import {
-  mlbGameStatus,
-  teamLogoUrl,
-  formatYMDLocal,
-  api,
-} from "src/utils/utils";
+import { mlbGameStatus, teamLogoUrl, formatYMDLocal } from "src/utils/utils";
+import { api } from "src/utils/axios";
 import { statusVisuals } from "./GameCard";
 import { Badge } from "src/@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
