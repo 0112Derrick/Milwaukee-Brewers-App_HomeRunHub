@@ -33,7 +33,7 @@ const MainPage = () => {
   return (
     <div className="flex flex-col flex-grow bg-inherit min-h-0 overflow-auto">
       <ScrollArea className="p-4">
-        <div className="flex h-[80vh] gap-2 sm:flex-col lg:flex-row items-center">
+        <div className="flex flex-col items-center justify-around h-[80vh] md:h-fit md:justify-start md:flex-col lg:flex-row lg:justify-start gap-2">
           <div className="p-4 px-8 flex flex-col items-center justify-center">
             {!prefersReducedMotion ? (
               <video

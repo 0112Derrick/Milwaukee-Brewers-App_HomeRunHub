@@ -88,7 +88,7 @@ const StandingsPage: React.FC = () => {
     <ScrollArea>
       <div className="p-4 flex flex-col flex-grow max-w-[100vw] overflow-auto bg-inherit">
         <h1 className="text-2xl font-bold">MLB Standings</h1>
-        <div className="flex gap-2 justify-end text-black">
+        <div className="flex flex-wrap gap-2 justify-end text-black">
           <div className="flex flex-col gap-3">
             <Label className="text-white">League</Label>
             <select
@@ -128,7 +128,7 @@ const StandingsPage: React.FC = () => {
               className="rounded-none m-0 border-none md:min-w-full md:max-w-full lg:min-w-[70%] lg:max-w-[70%]"
             >
               <CardHeader className="border-none h-fit">
-                <CardTitle className="flex items-center justify-between text-black border-none">
+                <CardTitle className="flex flex-wrap items-center justify-between text-black border-none">
                   <span>
                     {division.division.id
                       ? standings.divisions.find(
