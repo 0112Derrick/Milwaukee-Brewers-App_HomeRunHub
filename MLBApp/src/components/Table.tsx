@@ -114,68 +114,66 @@ export function RosterTable({ data }: { data: Player[] }) {
   });
 
   return (
-    <div className="w-full overflow-x-auto">
-      <Table className="min-w-max">
-        <TableHeader>
-          {table.getHeaderGroups().map((hg) => (
-            <TableRow key={hg.id}>
-              {hg.headers.map((h) => (
-                <TableHead key={h.id} colSpan={h.colSpan}>
-                  {h.isPlaceholder
-                    ? null
-                    : flexRender(h.column.columnDef.header, h.getContext())}
-                </TableHead>
+    <Table className="min-w-max overflow-x-auto [&_th]:text-center [&_td]:text-center [&_th]:whitespace-nowrap">
+      <TableHeader>
+        {table.getHeaderGroups().map((hg) => (
+          <TableRow key={hg.id}>
+            {hg.headers.map((h) => (
+              <TableHead key={h.id} colSpan={h.colSpan}>
+                {h.isPlaceholder
+                  ? null
+                  : flexRender(h.column.columnDef.header, h.getContext())}
+              </TableHead>
+            ))}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {table.getRowModel().rows.map((row) => (
+          <Fragment key={row.id}>
+            <TableRow>
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id} className="whitespace-nowrap">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
               ))}
             </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.map((row) => (
-            <Fragment key={row.id}>
+
+            {row.getIsExpanded() && (
               <TableRow>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className="whitespace-nowrap">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-
-              {row.getIsExpanded() && (
-                <TableRow>
-                  <TableCell
-                    colSpan={row.getVisibleCells().length}
-                    className="p-0"
-                  >
-                    {/* Single scroll area - stats table will be part of main table width */}
-                    <div className="bg-muted/30 p-4">
-                      {(() => {
-                        const flattened: SplitRowExtended[] =
-                          row.original.person.stats.flatMap((ps) =>
-                            ps.splits.map((split) => ({
-                              type: ps.type.displayName,
-                              group: ps.group.displayName,
-                              ...split,
-                            }))
-                          );
-
-                        return (
-                          <div className="min-w-max">
-                            <StatsTable
-                              data={flattened}
-                              columnDefs={buildSplitColumnsFromData(flattened)}
-                            />
-                          </div>
+                <TableCell
+                  colSpan={row.getVisibleCells().length}
+                  className="p-0"
+                >
+                  {/* Single scroll area - stats table will be part of main table width */}
+                  <div className="bg-muted/30 p-4">
+                    {(() => {
+                      const flattened: SplitRowExtended[] =
+                        row.original.person.stats.flatMap((ps) =>
+                          ps.splits.map((split) => ({
+                            type: ps.type.displayName,
+                            group: ps.group.displayName,
+                            ...split,
+                          }))
                         );
-                      })()}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </Fragment>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+
+                      return (
+                        <div className="min-w-max">
+                          <StatsTable
+                            data={flattened}
+                            columnDefs={buildSplitColumnsFromData(flattened)}
+                          />
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </Fragment>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -218,13 +216,13 @@ export function DataTable<TData, TValue>({
   }
   const table = useReactTable(props);
   return (
-    <div className="overflow-hidden border [&_th]:text-center [&_td]:text-center">
+    <div className="min-w-max border [&_th]:text-center [&_td]:text-center">
       {showDateRange ? (
         <div className={`flex p-4 items-end`}>
           <DateRangeFilter table={table} />
         </div>
       ) : null}
-      <Table>
+      <Table className="min-w-max">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
