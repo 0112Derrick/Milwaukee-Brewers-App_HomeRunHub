@@ -17,13 +17,12 @@ import {
   TeamPages,
   TeamRecord,
 } from "src/interfaces/teams.types";
-import { ScrollArea } from "src/@/components/ui/scroll-area";
-import { useDebounce } from "src/hooks/debouncing";
+import { ScrollArea, ScrollBar } from "src/@/components/ui/scroll-area";
 import { TeamLogoName } from "src/components/TeamLogoName";
 import { teamLogoUrl } from "src/utils/utils";
 import { mlbTeamsDetails } from "src/data/teamData";
 import { Button } from "src/@/components/ui/button";
-import { Label } from "src/@/components/ui/label";
+import { SeasonPicker } from "src/components/SeasonPicker";
 
 export default function TeamPage() {
   const { id, user_season, user_page } = useParams();
@@ -45,7 +44,6 @@ export default function TeamPage() {
   const [page, setPage] = useState<TeamPages>(parsedPage);
   const [season, setSeason] = useState<number>(parsedSeason);
   const [inputSeason, setInputSeason] = useState<number>(parsedSeason);
-  const debouncedSeason = useDebounce<number>(inputSeason, 500);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>(null);
@@ -71,6 +69,9 @@ export default function TeamPage() {
 
   useEffect(() => {
     const ac = new AbortController();
+    navigate(`/teams/${teamId}/${season}/${page}`, {
+      replace: true,
+    });
 
     const getTeamData = async () => {
       const response = await getTeamResp(ac, teamId); // ✅ use derived teamId
@@ -141,82 +142,35 @@ export default function TeamPage() {
     return () => ac.abort();
   }, [teamId, page, season]); // ✅ key by teamId, not id
 
-  useEffect(() => {
-    if (debouncedSeason !== season) {
-      setSeason(debouncedSeason);
-    }
-  }, [debouncedSeason, season]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value, 10);
-
-    if (!isNaN(val)) {
-      setInputSeason(val);
-    }
-  };
-
   const InnerNav = () => {
     return (
-      <div className="w-full flex justify-around py-2 px-4">
-        <div
-          className={
-            page !== TeamPages.Description ? "visible text-white" : "invisible"
-          }
-        >
-          <div className="flex flex-col gap-3">
-            <Label htmlFor="season" className="px-1 font-semibold">
-              Season
-            </Label>
-            <input
-              className="ring-0 px-1 border-none outline-none text-black w-32 h-6 rounded-md"
-              type="number"
-              value={inputSeason}
-              onChange={handleInputChange}
-            ></input>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center h-full">
-          <Button
-            variant={"default"}
-            className="hover:text-blue-300"
-            disabled={page == TeamPages.Description}
-            onClick={() =>
-              navigate(`/teams/${teamId}/${season}/${TeamPages.Description}`)
-            }
-          >
-            Description
-          </Button>
-          <Button
-            variant={"default"}
-            className="hover:text-blue-300"
-            disabled={page == TeamPages.Standings}
-            onClick={() =>
-              navigate(`/teams/${teamId}/${season}/${TeamPages.Standings}`)
-            }
-          >
-            Standings
-          </Button>
-          <Button
-            variant={"default"}
-            className="hover:text-blue-300"
-            disabled={page == TeamPages.Schedule}
-            onClick={() =>
-              navigate(`/teams/${teamId}/${season}/${TeamPages.Schedule}`)
-            }
-          >
-            Schedule
-          </Button>
-          <Button
-            variant={"default"}
-            className="hover:text-blue-300"
-            disabled={page == TeamPages.Roster}
-            onClick={() =>
-              navigate(`/teams/${teamId}/${season}/${TeamPages.Roster}`)
-            }
-          >
-            Roster
-          </Button>
+      <div className="sticky top-0 z-20 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center justify-between px-3 py-2">
+          {/* Season chip */}
+          <SeasonPicker season={season} setSeason={setSeason}></SeasonPicker>
+          {/* Pills */}
+          <ScrollArea className="w-[70%]">
+            <div className="flex gap-2">
+              {[
+                ["Description", TeamPages.Description],
+                ["Standings", TeamPages.Standings],
+                ["Schedule", TeamPages.Schedule],
+                ["Roster", TeamPages.Roster],
+              ].map(([label, val]) => (
+                <Button
+                  key={label}
+                  variant={page === val ? "default" : "outline"}
+                  size="sm"
+                  disabled={page === val}
+                  className={`rounded-full bg-blue-400 border-blue-300 hover:shadow-md`}
+                  onClick={() => navigate(`/teams/${teamId}/${season}/${val}`)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
         </div>
       </div>
     );
@@ -228,7 +182,7 @@ export default function TeamPage() {
         <div className="w-full self-end flex flex-col">
           <InnerNav></InnerNav>
         </div>
-        <div className="flex items-center justify-center sm:flex-wrap lg:flex-nowrap border border-white w-3/4 h-fit rounded  gap-8 p-8 min-h-[80%]">
+        <div className="flex items-center justify-center flex-wrap sm:flex-wrap lg:flex-nowrap border border-white w-3/4 h-fit rounded  gap-8 p-8 min-h-[80%]">
           <div>
             <Skeleton className="h-8 w-full p-12 bg-white" />
           </div>
@@ -262,15 +216,15 @@ export default function TeamPage() {
     if (page == TeamPages.Description) {
       return (
         <div className="flex flex-col flex-grow items-center w-full pb-6 overflow-auto">
-          <div className="w-full self-end flex flex-col">
+          <div className="w-full self-end flex flex-col h-fit">
             <InnerNav></InnerNav>
           </div>
           <Card className="flex items-center flex-wrap justify-evenly flex-1 p-4 gap-4 border-0 sm:border-0 sm:gap-12 sm:p-24 md:w-4/5 md:p-4 lg:border-2 bg-inherit rounded-md">
-            <CardContent className="flex flex-wrap gap-8">
+            <CardContent className="flex flex-wrap gap-8 items-center justify-center sm:items-center ">
               <img
                 src={team.logo}
                 alt={`${team.name} Logo`}
-                className="w-20 h-20 sm:w-48 sm:h-48 md:h-20 md:w-20 justify-self-center self-center object-contain"
+                className="w-20 aspect-square sm:w-20 md:w-28 object-contain"
               />
 
               <div className="flex flex-col items-center bg-gray-800 text-white text-center px-4 py-8 sm:p-8 rounded-lg shadow-lg">
@@ -366,53 +320,42 @@ export default function TeamPage() {
     }
     if (page == TeamPages.Standings) {
       return (
-        <div className="flex-1 flex flex-col flex-grow gap-4">
+        <div className="flex-1 flex flex-col gap-4">
           <InnerNav></InnerNav>
-          <div className="w-full flex flex-col flex-grow items-center bg-slate-50">
-            <Card className="flex-1 rounded-none md:w-full lg:w-3/4 border-b-0">
-              <CardHeader>
-                <span className="font-semibold text-lg text-card-foreground">
-                  {team.name}
-                </span>
-              </CardHeader>
-              <CardContent className="p-0">
-                <DataTable
-                  columns={columns}
-                  data={divisionData}
-                  showDateRange={false}
-                ></DataTable>
-              </CardContent>
-            </Card>
-          </div>
+          <ScrollArea className="h-full flex flex-col bg-slate-50">
+            <div className="w-full flex flex-col flex-1 items-center">
+              <Card className="flex-1 flex flex-col md:w-full lg:w-3/4 border-b-0 overflow-hidden rounded-none">
+                <CardHeader className="flex-shrink-0">
+                  <span className="font-semibold text-lg text-card-foreground">
+                    <TeamLogoName
+                      id={teamId}
+                      teamName={team.name}
+                      logo={logo}
+                      isLink={false}
+                    />
+                  </span>
+                </CardHeader>
+                <CardContent className="p-0 h-full min-h-0 min-w-full">
+                  <DataTable
+                    columns={columns}
+                    data={divisionData}
+                    showDateRange={false}
+                  ></DataTable>
+                </CardContent>
+              </Card>
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
         </div>
       );
     }
     if (page == TeamPages.Roster) {
       return (
-        <div className="flex-1 min-h-0 w-full flex flex-col">
+        <div className="flex-1 flex flex-col w-full min-h-0">
           <InnerNav />
-          <div className="flex-1 min-h-0">
-            <Card className="h-full flex flex-col overflow-hidden rounded-none">
+          <ScrollArea className="flex-1 min-h-0 w-full">
+            <Card className="flex flex-col h-full w-full rounded-none">
               <CardHeader className="flex-shrink-0">
-                <span className="font-semibold text-lg text-card-foreground">
-                  <TeamLogoName id={teamId} teamName={team.name} logo={logo} />
-                </span>
-              </CardHeader>
-              <CardContent className="flex-1 min-h-0 min-w-full overflow-x-hidden p-0">
-                <RosterTable data={rosterData} />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      );
-    }
-    if (page == TeamPages.Schedule) {
-      return (
-        <div className="flex flex-col flex-grow items-center flex-1 gap-4 overflow-hidden">
-          <InnerNav></InnerNav>
-          <div className="w-full flex-1 flex flex-col flex-grow items-center bg-slate-50 overflow-hidden">
-            <Card className="flex-1 rounded-none overflow-y-auto border-b-0 md:w-full lg:w-3/4 ">
-              <CardHeader>
                 <span className="font-semibold text-lg text-card-foreground">
                   <TeamLogoName
                     id={teamId}
@@ -422,8 +365,33 @@ export default function TeamPage() {
                   />
                 </span>
               </CardHeader>
-              <CardContent className="p-0 overflow-y-auto">
-                <ScrollArea className="overflow-y-auto">
+              <CardContent className="p-0 h-full min-h-0 min-w-full">
+                <RosterTable data={rosterData} />
+              </CardContent>
+            </Card>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
+      );
+    }
+    if (page == TeamPages.Schedule) {
+      return (
+        <div className="flex-1 flex flex-col gap-4">
+          <InnerNav></InnerNav>
+          <ScrollArea>
+            <div className="w-full flex flex-col flex-1 items-center bg-slate-50">
+              <Card className="flex-1 flex flex-col md:w-full lg:w-3/4 border-b-0 overflow-hidden rounded-none">
+                <CardHeader className="flex-shrink-0">
+                  <span className="font-semibold text-lg text-card-foreground">
+                    <TeamLogoName
+                      id={teamId}
+                      teamName={team.name}
+                      logo={logo}
+                      isLink={false}
+                    />
+                  </span>
+                </CardHeader>
+                <CardContent className="p-0 h-full min-h-0 min-w-full">
                   <DataTable
                     columns={gamesColumns}
                     data={games}
@@ -440,10 +408,11 @@ export default function TeamPage() {
                     }
                     dateId="officialDate"
                   ></DataTable>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
         </div>
       );
     }
