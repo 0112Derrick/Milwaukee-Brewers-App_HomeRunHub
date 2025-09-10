@@ -2,7 +2,7 @@ import {
   BoxscoreResponse,
   PlayByPlayResponse,
 } from "src/interfaces/interfaces";
-import { api } from "src/utils/utils";
+import { api } from "src/utils/axios";
 
 export async function getPlayByPlayResp(
   ac: AbortController,

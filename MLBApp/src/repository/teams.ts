@@ -6,7 +6,7 @@ import {
   MlbTeamDataModifiedI,
   TeamsResponse,
 } from "src/interfaces/teams.types";
-import { api } from "src/utils/utils";
+import { api } from "src/utils/axios";
 
 export async function getTeamResp(ac: AbortController, teamId: number = 158) {
   try {

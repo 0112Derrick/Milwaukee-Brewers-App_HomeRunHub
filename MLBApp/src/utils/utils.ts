@@ -1,4 +1,3 @@
-import axios from "axios";
 import { PlayEvent } from "../interfaces/baseballField.types";
 import {
   GameHeader,
@@ -108,10 +107,6 @@ export function mlbGameStatus(detailedState: string): GameStatusBucket {
   if (s.includes("scheduled") || s.includes("tbd")) return "scheduled";
   return "other";
 }
-
-export const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
-});
 
 export function formatYMDLocal(d: Date): string {
   const y = d.getFullYear();

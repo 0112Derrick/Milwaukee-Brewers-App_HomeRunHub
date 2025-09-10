@@ -1,5 +1,5 @@
 import { GameContentResponse } from "src/interfaces/generated.game-content.types";
-import { api } from "src/utils/utils";
+import { api } from "src/utils/axios";
 
 export async function getGameContentResp(ac: AbortController, gamePk: number) {
   try {

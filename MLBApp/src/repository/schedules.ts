@@ -2,7 +2,7 @@ import {
   ScheduleResponse,
   StandingsResponseV2,
 } from "src/interfaces/teams.types";
-import { api } from "src/utils/utils";
+import { api } from "src/utils/axios";
 
 export async function getScheduleResp(
   ac: AbortController,
@@ -71,7 +71,7 @@ export async function getStandingsResp(
       {
         seasonDt,
         leagueId,
-        divisionId
+        divisionId,
       },
       { signal: ac.signal }
     );
