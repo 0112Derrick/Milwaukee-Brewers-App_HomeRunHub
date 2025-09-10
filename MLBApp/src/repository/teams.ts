@@ -18,7 +18,6 @@ export async function getTeamResp(ac: AbortController, teamId: number = 158) {
 
     return scheduleResp;
   } catch (e) {
-    console.error(e);
     return null;
   }
 }
@@ -45,7 +44,7 @@ export async function getRosterResp(
 
     return scheduleResp;
   } catch (e) {
-    console.error(e);
+    // console.error(e);
     return null;
   }
 }
@@ -63,7 +62,7 @@ export async function getPlayerResp(ac: AbortController, id: number) {
 
     return resp;
   } catch (e) {
-    console.error(e);
+    // console.error(e);
     return null;
   }
 }
@@ -119,7 +118,7 @@ export async function getTeamsResp(
 
     return teams;
   } catch (e) {
-    console.error(e);
+    // console.error(e);
     return [];
   }
 }
