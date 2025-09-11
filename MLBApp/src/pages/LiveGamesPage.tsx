@@ -1,8 +1,6 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button } from "src/@/components/ui/button";
-import { Skeleton } from "src/@/components/ui/skeleton";
 import {
   GAME_STATUSES,
   GameStatusBucket,
@@ -20,12 +18,13 @@ import { Option, Select } from "react-day-picker";
 import { Label } from "src/@/components/ui/label";
 import { ScheduleResponse } from "src/interfaces/teams.types";
 import { MiniGameCard } from "src/components/MiniGameCard";
+import { Spinner } from "src/components/Spinner";
 
 export function LiveGames() {
   const { gameDate } = useParams();
   const [gamesData, setGamesData] = useState<ScheduleResponse | null>(null);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);
   const [date, setDate] = useState<Date>(() =>
     gameDate ? parseYMDLocal(gameDate) : new Date()
@@ -119,36 +118,11 @@ export function LiveGames() {
 
   if (loading) {
     return (
-      <div className="flex flex-grow items-center justify-center p-8">
-        <div className="border border-white w-3/4 h-fit rounded flex flex-col items-center justify-center gap-8 p-8 sm:flex-row">
-          <div className="grid grid-cols-1 gap-4">
-            <Button
-              variant={"outline"}
-              className="bg-blue-500 hover:bg-blue-600 text-lg text-white hover:text-white"
-              onClick={() => {
-                navigate("/");
-              }}
-            >
-              Back to home
-            </Button>
-            <Skeleton className="h-32 w-32 rounded-full bg-white p-4" />
-          </div>
-
-          <div className="bg-gray-800 h-full w-full p-6 rounded">
-            <Skeleton className="h-8 w-full p-2 m-2 bg-white" />
-            <Skeleton className="h-8 w-3/4 p-2 m-2 bg-white" />
-            <Skeleton className="h-8 w-3/6 p-2 m-2 bg-white" />
-            <Skeleton className="h-8 w-3/4 p-2 m-2 bg-white" />
-            <Skeleton className="h-8 w-full p-2 m-2 bg-white" />
-            <div className="w-full flex items-center justify-center">
-              <Skeleton className="h-8 w-3/12 rounded-full p-2 mt-4 bg-blue-500 shadow-md shadow-black" />
-            </div>
-          </div>
-        </div>
+      <div className="flex flex-col flex-grow h-full w-full items-center justify-center p-4">
+        <Spinner />
       </div>
     );
   }
-
   if (error) {
     return <ErrorPage pageError={error}></ErrorPage>;
   }
