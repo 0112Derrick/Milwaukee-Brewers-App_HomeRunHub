@@ -4,7 +4,6 @@ import {
   LinkedInLogoIcon,
   TwitterLogoIcon,
 } from "@radix-ui/react-icons";
-import React from "react";
 import { Card } from "src/@/components/ui/card";
 import {
   HoverCard,
@@ -16,6 +15,7 @@ import { Link } from "react-router-dom";
 function TeamMemeberLinks({
   img,
   name,
+  title,
   linkedin,
   twitter,
   instagram,
@@ -24,6 +24,7 @@ function TeamMemeberLinks({
 }: {
   img: string;
   name: string;
+  title: string;
   linkedin?: string;
   twitter?: string;
   instagram?: string;
@@ -50,8 +51,8 @@ function TeamMemeberLinks({
             alt={name}
           ></img>
           <div>
-            <p>Derrick Williams</p>
-            <p className="opacity-75">Engineer</p>
+            <p>{name}</p>
+            <p className="opacity-75">{title}</p>
           </div>
           {linkedin ? (
             <Link to={linkedin} target="_blank">
