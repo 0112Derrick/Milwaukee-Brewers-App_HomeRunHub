@@ -130,8 +130,8 @@ const NavBar = () => {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="z-20 flex w-full min-h-fit flex-col overflow-hidden opacity-75 backdrop-blur-lg hover:opacity-95">
-      <nav className="flex w-full items-center justify-between bg-gray-900 px-6 py-2 text-white">
+    <div className="sticky top-0 z-[21] w-full overflow-clip bg-gray-900 supports-[backdrop-filter]:bg-gray-900/60">
+      <nav className=" flex items-center justify-between w-full h-full bg-inherit px-6 py-2 text-white">
         {/* Brand */}
         <div
           className="flex cursor-pointer items-center gap-2 text-xl font-bold"
@@ -151,22 +151,22 @@ const NavBar = () => {
         {/* Desktop actions */}
         <div className="hidden gap-2 lg:flex">
           <Button
-            variant="default"
-            className="cursor-pointer hover:text-blue-300"
+            variant="link"
+            className="cursor-pointer hover:text-blue-300 no-underline text-inherit"
             onClick={() => navigate("/standings")}
           >
             Standings
           </Button>
           <Button
-            variant="default"
-            className="cursor-pointer hover:text-blue-300"
+            variant="link"
+            className="cursor-pointer hover:text-blue-300 no-underline text-inherit"
             onClick={() => navigate("/scores")}
           >
             Scores
           </Button>
           <Button
-            variant="default"
-            className="cursor-pointer hover:text-blue-300"
+            variant="link"
+            className="cursor-pointer hover:text-blue-300 no-underline text-inherit"
             onClick={() => navigate("/about")}
           >
             About
@@ -177,15 +177,13 @@ const NavBar = () => {
         <div className="lg:hidden">
           <HamburgerButton open={open} onToggle={() => setOpen((v) => !v)} />
         </div>
+        {/* Mobile sheet */}
+        <MobileMenu
+          open={open}
+          setOpen={setOpen}
+          onNavigate={(path) => navigate(path)}
+        />
       </nav>
-      <hr className="opacity-25" />
-
-      {/* Mobile sheet */}
-      <MobileMenu
-        open={open}
-        setOpen={setOpen}
-        onNavigate={(path) => navigate(path)}
-      />
     </div>
   );
 };
