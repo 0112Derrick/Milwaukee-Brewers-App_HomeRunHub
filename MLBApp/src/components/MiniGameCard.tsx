@@ -32,10 +32,14 @@ export function MiniGameCard({ game }: { game: MlbGame }) {
   const homeScore =
     game.teams.home.score && (status == "live" || status == "final")
       ? game.teams.home.score
+      : status == "live" || status == "final"
+      ? 0
       : "-";
   const awayScore =
     game.teams.away.score && (status == "live" || status == "final")
       ? game.teams.away.score
+      : status == "live" || status == "final"
+      ? 0
       : "-";
 
   const gameHref = `/scores/${ymd}/${game.gamePk}`;
