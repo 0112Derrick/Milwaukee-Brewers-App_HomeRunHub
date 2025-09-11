@@ -10,8 +10,8 @@ import {
 } from "react-router-dom";
 import TeamPage from "./pages/TeamPage";
 import ContactUs from "./components/Contact";
-import About from "./components/About";
-import StandingsPage from "./pages/standings_page";
+import About from "./pages/About";
+import StandingsPage from "./pages/StandingsPage";
 import { PlayByPlay } from "./pages/PlayByPlayPage";
 import { LiveGames } from "./pages/LiveGamesPage";
 import { PlayerPage } from "./pages/PlayerPage";
