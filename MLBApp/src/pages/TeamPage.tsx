@@ -43,7 +43,6 @@ export default function TeamPage() {
 
   const [page, setPage] = useState<TeamPages>(parsedPage);
   const [season, setSeason] = useState<number>(parsedSeason);
-  const [inputSeason, setInputSeason] = useState<number>(parsedSeason);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>(null);
@@ -64,7 +63,6 @@ export default function TeamPage() {
 
   useEffect(() => {
     setSeason(parsedSeason);
-    setInputSeason(parsedSeason);
   }, [parsedSeason]);
 
   useEffect(() => {
@@ -179,7 +177,7 @@ export default function TeamPage() {
   if (loading) {
     return (
       <div className="flex flex-col flex-1 items-center w-full pb-6 overflow-auto">
-        <div className="w-full self-end flex flex-col">
+        <div className="w-full self-end flex flex-col mb-4">
           <InnerNav></InnerNav>
         </div>
         <div className="flex items-center justify-center flex-wrap sm:flex-wrap lg:flex-nowrap border border-white w-3/4 h-fit rounded  gap-8 p-8 min-h-[80%]">
@@ -219,7 +217,7 @@ export default function TeamPage() {
           <div className="w-full self-end flex flex-col h-fit">
             <InnerNav></InnerNav>
           </div>
-          <Card className="flex items-center flex-wrap justify-evenly flex-1 p-4 gap-4 border-0 sm:border-0 sm:gap-12 sm:p-24 md:w-4/5 md:p-4 lg:border-2 bg-inherit rounded-md">
+          <Card className="flex items-center flex-wrap justify-evenly flex-1 p-4 gap-4 border-0 sm:gap-12 sm:p-24 md:w-4/5 md:p-4 bg-inherit rounded-md">
             <CardContent className="flex flex-wrap gap-8 items-center justify-center sm:items-center ">
               <img
                 src={team.logo}
