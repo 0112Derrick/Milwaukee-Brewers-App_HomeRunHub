@@ -29,7 +29,11 @@ export function SeasonPicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="secondary" size="sm" className="rounded-full">
+        <Button
+          variant="secondary"
+          size="sm"
+          className="rounded-full bg-slate-300"
+        >
           Season {season}
         </Button>
       </PopoverTrigger>
