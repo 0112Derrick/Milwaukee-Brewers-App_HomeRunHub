@@ -205,14 +205,14 @@ export function TeamsContainer({
 
         <div className="flex justify-between mt-4">
           <Button
-            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 hover:shadow-lg"
+            className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 hover:shadow-lg"
             onClick={handlePreviousPage}
             disabled={start === 0}
           >
             Previous
           </Button>
           <Button
-            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 hover:shadow-lg"
+            className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 hover:shadow-lg"
             onClick={handleNextPage}
             disabled={teams.length < itemsPerPage || start >= 30}
           >
