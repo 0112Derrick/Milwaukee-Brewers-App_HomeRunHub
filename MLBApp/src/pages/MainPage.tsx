@@ -32,10 +32,10 @@ const MainPage = () => {
 
   return (
     <div className="flex flex-col flex-grow bg-inherit min-h-0 overflow-auto">
-      <ScrollArea className="p-4">
-        <div className="flex flex-col items-center justify-around h-[80vh] md:h-fit md:justify-start md:flex-col lg:flex-row lg:justify-start gap-2">
+      <ScrollArea className="px-4">
+        <div className="flex flex-col items-center justify-around h-[80vh] md:justify-start md:flex-col lg:flex-row lg:justify-start gap-2">
           <div className="p-4 px-8 flex flex-col items-center justify-center">
-            {!prefersReducedMotion ? (
+            {false ? (
               <video
                 ref={video}
                 muted={true}
@@ -71,6 +71,7 @@ const MainPage = () => {
         </div>
 
         <TeamsContainer teamSectionRef={teamSectionRef}></TeamsContainer>
+        <div className="h-4"></div>
       </ScrollArea>
     </div>
   );
