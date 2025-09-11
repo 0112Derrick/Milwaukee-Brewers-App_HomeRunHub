@@ -17,7 +17,7 @@ import { Label } from "src/@/components/ui/label";
 
 const StandingsPage: React.FC = () => {
   const [standings, setStandings] = useState<StandingsResponseV2 | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [league, setLeague] = useState<number>(105);
   const [division, setDivision] = useState<number>(0);
