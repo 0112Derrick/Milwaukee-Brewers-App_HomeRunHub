@@ -61,6 +61,7 @@ import {
 import { getScheduleResp } from "src/repository/schedules";
 import { getGameContentResp } from "src/repository/gameContent";
 import { getBoxscoreResp, getPlayByPlayResp } from "src/repository/playByPlay";
+import { LucideArrowRightCircle } from "lucide-react";
 
 export function ScoreBug({
   header,
@@ -482,29 +483,28 @@ export function PlayByPlay({
 
   return (
     <div
-      className={`flex w-full min-h-[85%] overflow-hidden sm:flex-col lg:flex-row`}
+      className={`flex-1 flex flex-col w-full min-h-[85%] overflow-hidden lg:flex-row`}
     >
       <div className="flex-1 h-full flex flex-col overflow-hidden">
         <Card className="flex flex-col w-full h-full rounded-none overflow-scroll">
           <div className="flex-shrink-0 p-4">
             <div className="w-full my-4 gap-4 flex flex-col justify-center items-end">
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap items-center justify-center gap-4">
                 <Link to={`/scores/${date}`}>
-                  <Button variant={"secondary"} className="bg-blue-300">
-                    Back to scores
+                  <Button
+                    variant={"secondary"}
+                    className="bg-blue-400 text-white font-semibold shadow-md w-fit h-8 hover:bg-blue-500 focus:bg-blue-500 hover:shadow-none focus:shadow-none"
+                  >
+                    Scores Page
                   </Button>
                 </Link>
-                <Button
-                  variant={"secondary"}
-                  className={`bg-blue-300 ${
+
+                <LucideArrowRightCircle
+                  onClick={() => setDisplayPlayByPlay(false)}
+                  className={`w-8 aspect-square cursor-pointer hover:fill-black hover:stroke-blue-300 ${
                     displayPlayByPlay ? "block" : "hidden"
                   }`}
-                  onClick={() => {
-                    setDisplayPlayByPlay(false);
-                  }}
-                >
-                  Close
-                </Button>
+                />
               </div>
 
               <p className="text-xs">Last update time: {lastUpdateTime}</p>
@@ -608,7 +608,7 @@ export function PlayByPlay({
                                   </TableHead>
                                 </TableRow>
                               </TableHeader>
-                              <TableBody className="min-h-full">
+                              <TableBody className="min-h-full min-w-full overflow-auto">
                                 {filtered.map((p) => (
                                   <PlayRow
                                     key={p.id}
