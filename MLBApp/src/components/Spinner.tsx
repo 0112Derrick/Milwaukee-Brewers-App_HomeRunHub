@@ -1,3 +1,3 @@
 export const Spinner: React.FC = () => (
-  <div className="animate-spin h-20 w-20 border-4 border-t-blue-500 border-gray-200 rounded-full"></div>
+  <div className="animate-spin h-28 w-28 border-8 border-t-blue-500 border-white rounded-full"></div>
 );
