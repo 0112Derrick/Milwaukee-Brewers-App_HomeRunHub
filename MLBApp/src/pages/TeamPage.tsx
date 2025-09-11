@@ -142,7 +142,7 @@ export default function TeamPage() {
 
   const InnerNav = () => {
     return (
-      <div className="sticky top-0 z-20 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="sticky top-[0.05rem] z-22 bg-gray-500/80 backdrop-blur supports-[backdrop-filter]:bg-gray-500/70">
         <div className="flex items-center justify-between px-3 py-2">
           {/* Season chip */}
           <SeasonPicker season={season} setSeason={setSeason}></SeasonPicker>
@@ -310,6 +310,13 @@ export default function TeamPage() {
                     Learn More About Us
                   </a>
                 </div>
+                <iframe
+                  src="https://www.mlb.com/stories/game-preview/776370?teamId=114&amp;landscape=true&amp;suppressPoll=true&amp;suppressOutlink=true&amp;suppressOutlinkSponsor=true&amp;suppressDrawer=true&amp;ap=1#embedMode=2"
+                  allow="autoplay"
+                  sandbox="allow-top-navigation-by-user-activation allow-popups-to-escape-sandbox allow-forms allow-modals allow-pointer-lock allow-popups allow-same-origin allow-scripts allow-top-navigation"
+                  aria-label="Game Story"
+                  className="hidden TapStorystyle__TapStoryIFrame-sc-d3dkf9-1 jFsZhX"
+                ></iframe>
               </div>
             </CardContent>
           </Card>
@@ -374,10 +381,10 @@ export default function TeamPage() {
     }
     if (page == TeamPages.Schedule) {
       return (
-        <div className="flex-1 flex flex-col gap-4">
+        <div className="flex-1 flex flex-col gap-4 overflow-hidden bg-gray-50">
           <InnerNav></InnerNav>
           <ScrollArea>
-            <div className="w-full flex flex-col flex-1 items-center bg-slate-50">
+            <div className="w-full flex flex-col flex-1 mt-6 items-center ">
               <Card className="flex-1 flex flex-col md:w-full lg:w-3/4 border-b-0 overflow-hidden rounded-none">
                 <CardHeader className="flex-shrink-0">
                   <span className="font-semibold text-lg text-card-foreground">
