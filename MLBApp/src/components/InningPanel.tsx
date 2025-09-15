@@ -120,7 +120,9 @@ export function PlayRow({
       </TableCell>
       <TableCell>
         <div className="leading-tight">
-          <div className="font-medium">{play.description}</div>
+          <div className="font-medium text-wrap max-w-[400px]">
+            {play.description}
+          </div>
           <div className="text-xs text-muted-foreground">
             {batterName}
             {rbi > 0 ? ` • ${rbi} RBI` : ""}

@@ -15,7 +15,6 @@ import { ScrollArea } from "src/@/components/ui/scroll-area";
 import { Badge } from "src/@/components/ui/badge";
 import { Separator } from "src/@/components/ui/separator";
 import { Accordion } from "src/@/components/ui/accordion";
-import { ToggleGroup, ToggleGroupItem } from "src/@/components/ui/toggle-group";
 import {
   Table,
   TableBody,
@@ -39,6 +38,7 @@ import {
   teamLogoUrl,
   adaptHeader,
   mlbGameStatus,
+  createGameHeader,
 } from "src/utils/utils";
 import axios from "axios";
 import { Spinner } from "src/components/Spinner";
@@ -62,6 +62,7 @@ import { getScheduleResp } from "src/repository/schedules";
 import { getGameContentResp } from "src/repository/gameContent";
 import { getBoxscoreResp, getPlayByPlayResp } from "src/repository/playByPlay";
 import { LucideArrowRightCircle } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "src/@/components/ui/toggle-group";
 
 export function ScoreBug({
   header,
@@ -139,6 +140,8 @@ export function ScoreBug({
   );
 }
 
+type PBPTabs = "pbp" | "lineups" | "highlights";
+
 export function PlayByPlay({
   groupByInning = true,
   initialFilter = "all",
@@ -150,7 +153,7 @@ export function PlayByPlay({
   let videoUnmuted = false;
   const date = gameDate ?? today.toLocaleString();
 
-  const [tab, setTab] = useState<string>("pbp");
+  const [tab, setTab] = useState<PBPTabs>("pbp");
   const [lineupsTab, setLineupsTab] = useState<"home" | "away">("home");
   const [bucket, setBucket] = useState<GameStatusBucket>("other");
   const [filter, setFilter] = useState<"all" | "scoring" | "home" | "away">(
@@ -410,32 +413,7 @@ export function PlayByPlay({
     run();
   }, [id, date]);
 
-  const h: GameHeader = {
-    away: {
-      team: {
-        id: 0,
-        name: "",
-        abbr: undefined,
-      },
-      score: null,
-      logoUrl: undefined,
-    },
-    home: {
-      team: {
-        id: 0,
-        name: "",
-        abbr: undefined,
-      },
-      score: null,
-      logoUrl: undefined,
-    },
-    statusText: "",
-    count: {
-      balls: 0,
-      strikes: 0,
-      outs: 0,
-    },
-  };
+  const h: GameHeader = createGameHeader();
 
   if (loading) {
     return (
@@ -483,12 +461,15 @@ export function PlayByPlay({
 
   return (
     <div
-      className={`flex-1 flex flex-col w-full min-h-[85%] overflow-hidden lg:flex-row`}
+      className={`flex-1 flex flex-col w-full min-h-0 overflow-hidden lg:flex-row`}
     >
       <div className="flex-1 h-full flex flex-col overflow-hidden">
-        <Card className="flex flex-col w-full h-full rounded-none overflow-scroll">
-          <div className="flex-shrink-0 p-4">
-            <div className="w-full my-4 gap-4 flex flex-col justify-center items-end">
+        <Card className="flex flex-col w-full h-full rounded-none overflow-scroll border-t-0">
+          <div className="w-[200px] h-fit text-slate-50 bg-slate-900/95 rounded-2xl rounded-t-none">
+            <h1 className="text-xl text-center">Play-by-Play</h1>
+          </div>
+          <div className="flex-shrink-0 p-2">
+            <div className="w-full gap-4 flex flex-col justify-center items-end">
               <div className="flex flex-wrap items-center justify-center gap-4">
                 <Link to={`/scores/${date}`}>
                   <Button
@@ -510,20 +491,20 @@ export function PlayByPlay({
               <p className="text-xs">Last update time: {lastUpdateTime}</p>
             </div>
           </div>
-          <CardHeader className="flex-shrink-0 pb-4">
-            <CardTitle className="text-xl">Play-by-Play</CardTitle>
-          </CardHeader>
-          <CardContent className="min-h-full flex flex-col space-y-3">
+          <CardContent className="min-h-0 flex-1 flex flex-col space-y-3">
             {/* Fixed content section */}
-            <div className="flex-shrink-0">
+            <div
+              className={`flex-shrink-0 ${tab === "pbp" ? "block" : "hidden"}`}
+            >
               <ScoreBug
                 header={header ?? h}
                 gamePk={parseInt(id ?? "0")}
                 status={bucket}
               />
               <Separator className="my-2" />
-
-              {/* Filters */}
+            </div>
+            {/* Filters */}
+            <div>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <ToggleGroup
                   type="single"
@@ -532,6 +513,7 @@ export function PlayByPlay({
                     v && setFilter(v as any);
                     setTab("pbp");
                   }}
+                  className={`${tab === "pbp" ? "block" : "hidden"}`}
                 >
                   <ToggleGroupItem value="all">All plays</ToggleGroupItem>
                   <ToggleGroupItem value="scoring">Scoring</ToggleGroupItem>
@@ -542,7 +524,7 @@ export function PlayByPlay({
                 <Tabs
                   value={tab}
                   onValueChange={(e) => {
-                    setTab(e);
+                    setTab(e as PBPTabs);
                     setDisplayPlayByPlay(false);
                   }}
                   className="ml-auto"
@@ -562,66 +544,69 @@ export function PlayByPlay({
             </div>
 
             {/* Scrollable content section */}
-            <div className="min-h-full">
-              <Tabs value={tab} onValueChange={setTab} className="min-h-full">
-                <TabsContent value="pbp" className="min-h-full mt-0">
-                  <div className="min-h-full rounded-md border">
-                    <ScrollArea className="min-h-full">
-                      <div className="p-3 min-h-full">
-                        {groupByInning ? (
-                          <Accordion
-                            type="single"
-                            className="flex flex-col gap-2 w-full min-h-full [&>div:nth-child(odd)_button>div]:bg-orange-100/40
+            <div className="flex-1 min-h-0 w-full overflow-x-hidden">
+              <Tabs
+                value={tab}
+                onValueChange={(e) => setTab(e as PBPTabs)}
+                className="flex-1 min-h-0"
+              >
+                <TabsContent
+                  value="pbp"
+                  className="flex-1 min-h-0 mt-0 p-0 flex flex-col items-center"
+                >
+                  <div className="min-h-full w-full overflow-x-auto rounded-md border">
+                    <div className="p-3 min-h-full min-w-max">
+                      {groupByInning ? (
+                        <Accordion
+                          type="single"
+                          className="flex flex-col gap-2 min-w-max min-h-full [&>div:nth-child(odd)_button>div]:bg-orange-100/40
                             [&>div:nth-child(even)_button>div]:bg-blue-100/40"
-                            value={openPbpItem}
-                            onValueChange={setOpenPbpItem}
-                            collapsible
-                          >
-                            {grouped.map(({ key, plays }) => {
-                              const title = formatTitle(key);
-                              return (
-                                <InningPanel
-                                  key={key}
-                                  title={title}
-                                  plays={plays}
-                                  isOpen={title === openPbpItem}
-                                  onPlayClick={handlePlayClick}
+                          value={openPbpItem}
+                          onValueChange={setOpenPbpItem}
+                          collapsible
+                        >
+                          {grouped.map(({ key, plays }) => {
+                            const title = formatTitle(key);
+                            return (
+                              <InningPanel
+                                key={key}
+                                title={title}
+                                plays={plays}
+                                isOpen={title === openPbpItem}
+                                onPlayClick={handlePlayClick}
+                              />
+                            );
+                          })}
+                        </Accordion>
+                      ) : (
+                        <div className="rounded-md border min-h-full min-w-max">
+                          <Table className="min-h-full">
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="w-[44px]">Ct</TableHead>
+                                <TableHead className="w-[44px]">Out</TableHead>
+                                <TableHead className="w-[140px]">
+                                  Result
+                                </TableHead>
+                                <TableHead>Description</TableHead>
+                                <TableHead className="text-right">
+                                  Score
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody className="min-h-full min-w-full overflow-auto">
+                              {filtered.map((p) => (
+                                <PlayRow
+                                  key={p.id}
+                                  play={p}
+                                  onClick={onPlayClick}
                                 />
-                              );
-                            })}
-                          </Accordion>
-                        ) : (
-                          <div className="rounded-md border min-h-full">
-                            <Table className="min-h-full">
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead className="w-[44px]">Ct</TableHead>
-                                  <TableHead className="w-[44px]">
-                                    Out
-                                  </TableHead>
-                                  <TableHead className="w-[140px]">
-                                    Result
-                                  </TableHead>
-                                  <TableHead>Description</TableHead>
-                                  <TableHead className="text-right">
-                                    Score
-                                  </TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody className="min-h-full min-w-full overflow-auto">
-                                {filtered.map((p) => (
-                                  <PlayRow
-                                    key={p.id}
-                                    play={p}
-                                    onClick={onPlayClick}
-                                  />
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </div>
-                        )}
-                      </div>
-                    </ScrollArea>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </TabsContent>
 
@@ -836,7 +821,7 @@ export function PlayByPlay({
                         preload={"true"}
                         autoPlay={true}
                         loop={true}
-                        className={`rounded-md min-w-[150px] max-w-[80%] scale-150 px-4 sm:scale-100 sm:mt-12 sm:max-w-[80%] ${
+                        className={`rounded-md min-w-[150px] max-w-[60%] px-4 sm:mt-12 lg:max-w-50% ${
                           hideHighlights ? "hidden" : "block"
                         }`}
                       >

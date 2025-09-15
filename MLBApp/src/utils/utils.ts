@@ -170,3 +170,32 @@ export const sortGamesArr = (
   });
   return games;
 };
+
+ export function createGameHeader() {
+   return {
+     away: {
+       team: {
+         id: 0,
+         name: "",
+         abbr: undefined,
+       },
+       score: null,
+       logoUrl: undefined,
+     },
+     home: {
+       team: {
+         id: 0,
+         name: "",
+         abbr: undefined,
+       },
+       score: null,
+       logoUrl: undefined,
+     },
+     statusText: "",
+     count: {
+       balls: 0,
+       strikes: 0,
+       outs: 0,
+     },
+   };
+ }
