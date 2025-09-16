@@ -116,7 +116,7 @@ function PlayerHeader({ p }: { p: Person }) {
           <Chip>Bats: {bats || "—"}</Chip>
           <Chip>Throws: {throws || "—"}</Chip>
           {active ? (
-            <Badge className="bg-emerald-600 hover:bg-emerald-600">
+            <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white">
               <ShieldCheck className="mr-1 h-3.5 w-3.5" />
               Active
             </Badge>

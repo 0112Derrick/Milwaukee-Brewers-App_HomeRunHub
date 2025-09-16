@@ -465,7 +465,7 @@ export function PlayByPlay({
     >
       <div className="flex-1 h-full flex flex-col overflow-hidden">
         <Card className="flex flex-col w-full h-full rounded-none overflow-scroll border-t-0">
-          <div className="w-[200px] h-fit text-slate-50 bg-slate-900/95 rounded-2xl rounded-t-none">
+          <div className="w-[200px] h-fit text-slate-50 bg-slate-900/95 rounded-2xl rounded-t-none dark:bg-slate-50/95 dark:text-black">
             <h1 className="text-xl text-center">Play-by-Play</h1>
           </div>
           <div className="flex-shrink-0 p-2">
@@ -667,16 +667,21 @@ export function PlayByPlay({
                                           className="min-h-full"
                                         >
                                           <TableCell>
-                                            <div className="flex gap-3">
-                                              <div>{player.jerseyNumber}</div>
-                                              <div>
-                                                {player.person.boxscoreName}
+                                            <Link
+                                              to={`/players/${player.person.id}`}
+                                              className="cursor-pointer hover:text-blue-300"
+                                            >
+                                              <div className="flex gap-3">
+                                                <div>{player.jerseyNumber}</div>
+                                                <div>
+                                                  {player.person.boxscoreName}
+                                                </div>
+                                                <div>
+                                                  &nbsp;·&nbsp;
+                                                  {player.position.abbreviation}
+                                                </div>
                                               </div>
-                                              <div>
-                                                &nbsp;·&nbsp;
-                                                {player.position.abbreviation}
-                                              </div>
-                                            </div>
+                                            </Link>
                                           </TableCell>
                                           <TableCell>
                                             {player.stats.batting.atBats}
@@ -796,12 +801,10 @@ export function PlayByPlay({
                     {hideVideoHighlights ? (
                       <ImageCarousel
                         images={gameImages}
-                        autoPlay={{
-                          delay: prmRef.current ? 10000 : 5000,
-                        }}
-                        classN="basis-3/4"
+                        autoPlay={{ delay: prmRef.current ? 10000 : 5000 }}
+                        classN="basis-3/4 h-full"
                         opts={{ align: "center", dragFree: true, loop: true }}
-                      ></ImageCarousel>
+                      />
                     ) : (
                       <video
                         ref={video}
