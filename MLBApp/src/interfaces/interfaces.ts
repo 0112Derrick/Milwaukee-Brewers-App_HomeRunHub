@@ -1386,3 +1386,5 @@ interface zoneColorTempValue {
   temp: string;
   value: string;
 }
+
+export type Theme = "light" | "dark";

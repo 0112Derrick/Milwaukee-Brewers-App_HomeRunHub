@@ -10,6 +10,7 @@ import {
   SheetTitle,
 } from "src/@/components/ui/sheet"; // shadcn (Radix) Sheet
 import { Moon, Sun } from "lucide-react";
+import { Theme } from "src/interfaces/interfaces";
 
 const HamburgerButton = ({
   open,
@@ -58,8 +59,8 @@ const MobileMenu = ({
   open: boolean;
   setOpen: (v: boolean) => void;
   onNavigate: (path: string) => void;
-  colorScheme: "light" | "dark";
-  setColorScheme: (e: "light" | "dark") => void;
+  colorScheme: Theme;
+  setColorScheme: (e: Theme) => void;
 }) => {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -152,8 +153,8 @@ const NavBar = ({
   colorScheme,
   setColorScheme,
 }: {
-  colorScheme: "light" | "dark";
-  setColorScheme: (e: "light" | "dark") => void;
+  colorScheme: Theme;
+  setColorScheme: (e: Theme) => void;
 }) => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);

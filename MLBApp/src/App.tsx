@@ -17,9 +17,10 @@ import { LiveGames } from "./pages/LiveGamesPage";
 import { PlayerPage } from "./pages/PlayerPage";
 import { ScoreTicker } from "./components/ScoreTicker";
 import { useState } from "react";
+import { Theme } from "./interfaces/interfaces";
 
 function App() {
-  const [colorScheme, setColorScheme] = useState<"light" | "dark">("light");
+  const [colorScheme, setColorScheme] = useState<Theme>("light");
   return (
     <Router>
       <Routes>
