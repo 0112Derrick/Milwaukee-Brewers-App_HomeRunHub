@@ -6,8 +6,16 @@ import { Card, CardContent, CardHeader } from "src/@/components/ui/card";
 import ErrorPage from "./ErrorPage";
 import { Skeleton } from "src/@/components/ui/skeleton";
 import { DataTable, RosterTable } from "src/components/Table";
-import { columns, gamesColumns } from "src/data/columnDefs";
-import { getRosterResp, getTeamResp } from "src/repository/teams";
+import {
+  columns,
+  gamesColumns,
+  transactionsColumns,
+} from "src/data/columnDefs";
+import {
+  getRosterResp,
+  getTeamResp,
+  getTransactionsResp,
+} from "src/repository/teams";
 import {
   getStandingsResp,
   getTeamScheduleResp,
@@ -23,11 +31,17 @@ import { teamLogoUrl } from "src/utils/utils";
 import { mlbTeamsDetails } from "src/data/teamData";
 import { Button } from "src/@/components/ui/button";
 import { SeasonPicker } from "src/components/SeasonPicker";
+import { Transaction } from "src/interfaces/generated.transactions.types";
+import { DateRangeSelector } from "src/components/DateRangeFilter";
+import { DateRange } from "src/interfaces/generated.game-content.types";
+import { Label } from "src/@/components/ui/label";
 
 export default function TeamPage() {
   const { id, user_season, user_page } = useParams();
 
   const today = new Date();
+  const day = today.getDate().toString().padStart(2, "0");
+  const month = (today.getMonth() + 1).toString().padStart(2, "0");
   const defaultSeason = today.getFullYear();
 
   const pageFromParam = Number(user_page);
@@ -51,6 +65,10 @@ export default function TeamPage() {
   const [divisionData, setDivisionData] = useState<TeamRecord[]>([]);
   const [rosterData, setRosterData] = useState<Player[]>([]);
   const [games, setGames] = useState<MlbGame[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactionsDateRange, setTransactionsDateRange] = useState<
+    DateRange | undefined
+  >({ from: `${season}-01-01`, to: `${season}-${month}-${day}` });
 
   const teamId = useMemo(() => Number(id ?? 0), [id]);
   const logo = useMemo(() => teamLogoUrl(teamId), [teamId]);
@@ -64,6 +82,14 @@ export default function TeamPage() {
   useEffect(() => {
     setSeason(parsedSeason);
   }, [parsedSeason]);
+
+  useEffect(() => {
+    const day = today.getDate().toString().padStart(2, "0");
+    const month = (today.getMonth() + 1).toString().padStart(2, "0");
+    const dt = `${season}-${month}-${day}`;
+    const startDt = `${season}-01-01`;
+    setTransactionsDateRange({ from: startDt, to: dt });
+  }, [season]);
 
   useEffect(() => {
     const ac = new AbortController();
@@ -96,7 +122,7 @@ export default function TeamPage() {
         const day = today.getDate().toString().padStart(2, "0");
         const month = (today.getMonth() + 1).toString().padStart(2, "0");
         const dt = `${season}-${month}-${day}`;
-
+        const startDt = `${season}-01-01`;
         await getTeamData();
 
         if (page === TeamPages.Standings) {
@@ -127,6 +153,17 @@ export default function TeamPage() {
             games.push(...d.games);
           });
           setGames(games);
+        } else if (page === TeamPages.Transactions) {
+          const resp = await getTransactionsResp(ac, {
+            startDt: transactionsDateRange?.from ?? startDt,
+            endDt: transactionsDateRange?.to ?? dt,
+            teamId: teamId,
+          });
+          if (!resp || resp.status !== 200)
+            throw new Error("Unable to get transactions record.");
+          setError(null);
+          const transactions: Transaction[] = [...resp.data.transactions];
+          setTransactions(transactions);
         }
       } catch (e: any) {
         if (axios.isCancel(e)) setError(null);
@@ -138,11 +175,11 @@ export default function TeamPage() {
 
     fetchTeam();
     return () => ac.abort();
-  }, [teamId, page, season]); // ✅ key by teamId, not id
+  }, [teamId, page, season, transactionsDateRange]); // ✅ key by teamId, not id
 
   const InnerNav = () => {
     return (
-      <div className="sticky top-[0.05rem] z-22 bg-gray-500/80 backdrop-blur supports-[backdrop-filter]:bg-gray-500/70">
+      <div className="sticky top-0 z-22 bg-gray-500/80 backdrop-blur supports-[backdrop-filter]:bg-gray-500/70">
         <div className="flex items-center justify-between px-3 py-2">
           {/* Season chip */}
 
@@ -156,6 +193,7 @@ export default function TeamPage() {
                 ["Standings", TeamPages.Standings],
                 ["Schedule", TeamPages.Schedule],
                 ["Roster", TeamPages.Roster],
+                ["Transactions", TeamPages.Transactions],
               ].map(([label, val]) => (
                 <Button
                   key={label}
@@ -418,6 +456,43 @@ export default function TeamPage() {
                 </CardContent>
               </Card>
             </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
+      );
+    }
+    if (page == TeamPages.Transactions) {
+      return (
+        <div className="flex-1 flex flex-col w-full min-h-0">
+          <InnerNav />
+          <ScrollArea className="flex-1 min-h-0 w-full">
+            <Card className="flex flex-col h-full w-full rounded-none">
+              <CardHeader className="flex-shrink-0">
+                <span className="font-semibold text-lg text-card-foreground">
+                  <TeamLogoName
+                    id={teamId}
+                    teamName={team.name}
+                    logo={logo}
+                    isLink={false}
+                  />
+                </span>
+              </CardHeader>
+              <CardContent className="p-0 h-full min-h-0 min-w-full">
+                <Label className="flex flex-col gap-3 p-1 w-fit">
+                  <span className="font-semibold"> Select Date Range</span>
+                  <DateRangeSelector
+                    selectedRange={transactionsDateRange}
+                    setSelectedRange={setTransactionsDateRange}
+                  ></DateRangeSelector>
+                </Label>
+                <DataTable
+                  columns={transactionsColumns}
+                  data={transactions}
+                  showDateRange={false}
+                ></DataTable>
+                ;
+              </CardContent>
+            </Card>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </div>
