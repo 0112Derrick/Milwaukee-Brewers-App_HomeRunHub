@@ -30,7 +30,7 @@ export async function getScheduleResp(
 
     return scheduleResp;
   } catch (e) {
-    console.error(e);
+    // console.error(e);
     return null;
   }
 }
