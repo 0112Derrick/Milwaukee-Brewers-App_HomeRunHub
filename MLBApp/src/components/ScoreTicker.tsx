@@ -91,15 +91,20 @@ export const ScoreTicker = () => {
   }, [date]);
 
   useEffect(() => {
-    const openInterval = setInterval(() => {
-      if (!loading && !error && sortedGames.length > 0) {
-        setVisible(true);
-      }
-    }, FIVE_MINUTES);
-    return () => clearInterval(openInterval);
-  }, [loading, error, sortedGames]);
+    if (loading) return;
+    if (error) return;
+    if (sortedGames.length === 0) return;
+    if (visible) return;
 
-  tickerItems.push(<div className="px-4">Scores: </div>);
+    const t = window.setTimeout(() => setVisible(true), FIVE_MINUTES);
+    return () => window.clearTimeout(t);
+  }, [loading, error, sortedGames.length, visible]);
+
+  tickerItems.push(
+    <div className="px-4" key={"tickItem" + "score_label"}>
+      Scores:{" "}
+    </div>
+  );
   tickerItems.push(
     ...sortedGames.map((game, indx) => {
       try {
@@ -141,10 +146,9 @@ export const ScoreTicker = () => {
             <span>
               {awayAbbr} {awayScore} vs.
             </span>
+            <span>{homeScore}</span>
             <img src={homeLogo} alt={`${homeAbbr} logo`} className="w-4 h-4" />
-            <span>
-              {homeAbbr} {homeScore}
-            </span>
+            <span>{homeAbbr}</span>
             {status !== "live" && status !== "final" && (
               <span className="ml-2 text-xs">
                 {capitalizeFirstLetter(status)} | {gameTime}
@@ -157,7 +161,7 @@ export const ScoreTicker = () => {
       }
     })
   );
-  tickerItems.push(<div className="px-4">Trades: </div>);
+  //tickerItems.push(<div className="px-4">Trades: </div>);
 
   if (!visible) return <div className="sticky top-0 min-h-0"></div>;
 
