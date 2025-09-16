@@ -34,6 +34,7 @@ export enum TeamPages {
   Standings,
   Schedule,
   Roster,
+  Transactions,
 }
 
 export interface TeamsResponse {
