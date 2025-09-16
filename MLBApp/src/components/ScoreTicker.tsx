@@ -17,12 +17,18 @@ import {
   sortGamesArr,
   teamLogoUrl,
 } from "src/utils/utils";
+import {
+  Transaction,
+  TypeCode,
+} from "src/interfaces/generated.transactions.types";
+import { getTransactionsResp } from "src/repository/teams";
 
 export const ScoreTicker = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>(null);
   const [date, setDate] = useState<Date>(() => new Date());
   const [sortedGames, setSortedGames] = useState<MlbGame[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [sort, setSort] = useState<GameStatusBucket>("live");
   const [visible, setVisible] = useState(false);
   const tickerItems: Array<any> = [];
@@ -34,14 +40,30 @@ export const ScoreTicker = () => {
     setLoading(true);
     try {
       const currentDate = formatYMDLocal(date);
-      const resp = await getScheduleResp(abortController, currentDate);
-      if (!resp || resp.status !== 200) return;
+      const [scheduleResp, transactionsResp] = await Promise.all([
+        getScheduleResp(abortController, currentDate),
+        getTransactionsResp(abortController, {
+          startDt: currentDate,
+          endDt: currentDate,
+          order: "desc",
+        }),
+      ]);
+
+      if (
+        !scheduleResp ||
+        scheduleResp.status !== 200 ||
+        !transactionsResp ||
+        transactionsResp.status !== 200
+      )
+        return;
 
       setError(null);
-      const data: ScheduleResponse = resp.data;
+      const scheduleData: ScheduleResponse = scheduleResp.data;
+      const transactionsData: Transaction[] =
+        transactionsResp.data.transactions;
 
       const currentDayGames =
-        data?.dates.find((d) => {
+        scheduleData?.dates.find((d) => {
           const dLocal = parseYMDLocal(d.date) as Date;
           return (
             dLocal.getFullYear() === date.getFullYear() &&
@@ -60,6 +82,7 @@ export const ScoreTicker = () => {
 
       const games = sortGamesArr(currentDayGames.games);
       setSortedGames(games);
+      setTransactions(transactionsData);
 
       // show immediately the first time we have games
       if (!openedOnceRef.current && games.length > 0) {
@@ -100,13 +123,8 @@ export const ScoreTicker = () => {
     return () => window.clearTimeout(t);
   }, [loading, error, sortedGames.length, visible]);
 
-  tickerItems.push(
-    <div className="px-4" key={"tickItem" + "score_label"}>
-      Scores:{" "}
-    </div>
-  );
-  tickerItems.push(
-    ...sortedGames.map((game, indx) => {
+  function mapGameScoresToJSXElements(arr: MlbGame[]) {
+    const mappedElements = arr.map((game, indx) => {
       try {
         const state = game?.status?.detailedState ?? "";
         const status = mlbGameStatus(state);
@@ -159,16 +177,63 @@ export const ScoreTicker = () => {
       } catch {
         return null;
       }
-    })
-  );
-  //tickerItems.push(<div className="px-4">Trades: </div>);
+    });
+
+    return mappedElements;
+  }
+
+  function mapTransactionsToJSXELements(arr: Transaction[], filter?: TypeCode) {
+    let transactions = [...arr];
+    if (filter) {
+      transactions = transactions.filter((item) => {
+        return item.typeCode === filter;
+      });
+    }
+
+    const elements = transactions.map((item) => {
+      if (filter == "TR") {
+        return (
+          <div className="flex gap-2 items-center justify-center">
+            {item.person.fullName ?? ""} {item.fromTeam?.name ?? ""} Traded to
+            {item.toTeam.name ?? ""}
+          </div>
+        );
+      }
+
+      return (
+        <div className="flex gap-2 items-center justify-center">
+          {item.person.fullName ?? ""} {item.description}
+        </div>
+      );
+    });
+    return elements;
+  }
+
+  function setTickerItems() {
+    if (sortedGames.length > 0) {
+      //Current day scores:
+      tickerItems.push(
+        <div className="px-4" key={"tickItem" + "score_label"}>
+          Scores:{" "}
+        </div>
+      );
+      tickerItems.push(...mapGameScoresToJSXElements(sortedGames));
+    }
+    //Transactions:
+    if (transactions.length > 0) {
+      tickerItems.push(<div className="px-4">Trades: </div>);
+      tickerItems.push(...mapTransactionsToJSXELements(transactions, "TR"));
+    }
+  }
+
+  setTickerItems();
 
   if (!visible) return <div className="sticky top-0 min-h-0"></div>;
 
   return (
     <AnimatePresence>
       <motion.div
-        className="sticky top-0 z-50 bg-white text-black w-full h-20 max-h-20 overflow-hidden"
+        className="sticky top-0 z-50 bg-white text-black w-full h-10 max-h-10 min-h-10 overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -176,7 +241,7 @@ export const ScoreTicker = () => {
       >
         <motion.div
           key={sortedGames.length}
-          className="flex h-full max-h-20 whitespace-nowrap items-center"
+          className="flex h-full max-h-10 whitespace-nowrap items-center"
           initial={{ x: 0 }}
           animate={{ x: "-100%" }}
           transition={{
