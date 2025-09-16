@@ -30,10 +30,12 @@ export default function DatePicker({
           <Button
             variant="outline"
             id="date"
-            className="w-32 h-6 justify-between font-normal text-black"
+            className="w-fit h-6 bg-white font-normal text-black ring-1 px-1 hover:bg-white hover:text-black"
           >
-            {date ? date.toLocaleDateString() : "Select date"}
-            <ChevronDownIcon scale={20} />
+            <span className="pr-2">
+              {date ? date.toLocaleDateString() : "Select date"}
+            </span>
+            <ChevronDownIcon className="scale-75 p-0" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto overflow-hidden p-0" align="start">

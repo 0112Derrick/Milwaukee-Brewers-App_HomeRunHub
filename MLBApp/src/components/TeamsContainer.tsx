@@ -124,9 +124,7 @@ export function TeamsContainer({
       <div>
         <div className="flex-1 min-h-0 flex flex-col py-2 overflow-auto">
           <div className="flex items-center justify-center pb-8 mt-20">
-            <h2 className="text-4xl text-neutral-200">
-              Find Your Favorite Teams
-            </h2>
+            <h2 className="text-4xl text-primary">Find Your Favorite Teams</h2>
           </div>
 
           <TeamsFilterSearchBar
@@ -187,9 +185,7 @@ export function TeamsContainer({
     return (
       <div className="p-4 px-8 flex flex-col flex-grow">
         <div className="flex items-center justify-center pb-8">
-          <h2 className="text-4xl text-neutral-200">
-            Find Your Favorite Teams
-          </h2>
+          <h2 className="text-4xl text-primary">Find Your Favorite Teams</h2>
         </div>
         <TeamsFilterSearchBar
           handleSearchChange={handleSearchChange}
@@ -230,9 +226,7 @@ export function TeamsContainer({
           ref={teamSectionRef}
           className="flex items-center justify-center pb-8 mt-20"
         >
-          <h2 className="text-4xl text-neutral-200">
-            Find Your Favorite Teams
-          </h2>
+          <h2 className="text-4xl text-primary">Find Your Favorite Teams</h2>
         </div>
 
         <TeamsFilterSearchBar

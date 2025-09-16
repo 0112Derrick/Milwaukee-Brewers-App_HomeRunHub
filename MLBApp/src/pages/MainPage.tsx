@@ -63,7 +63,7 @@ const MainPage = () => {
               <img
                 src={reducedMotionWorldCupImgSrc}
                 alt="Baseball World Cup"
-                className="aspect-square max-w-[65%] rounded-full"
+                className="aspect-square max-w-[45%] lg:max-w-[65%] rounded-full"
               ></img>
             )}
           </div>

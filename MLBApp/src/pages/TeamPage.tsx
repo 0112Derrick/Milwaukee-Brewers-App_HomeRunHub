@@ -145,7 +145,9 @@ export default function TeamPage() {
       <div className="sticky top-[0.05rem] z-22 bg-gray-500/80 backdrop-blur supports-[backdrop-filter]:bg-gray-500/70">
         <div className="flex items-center justify-between px-3 py-2">
           {/* Season chip */}
+
           <SeasonPicker season={season} setSeason={setSeason}></SeasonPicker>
+
           {/* Pills */}
           <ScrollArea className="w-[70%]">
             <div className="flex gap-2">
@@ -160,7 +162,7 @@ export default function TeamPage() {
                   variant={page === val ? "default" : "outline"}
                   size="sm"
                   disabled={page === val}
-                  className={`rounded-full bg-blue-400 border-blue-300 hover:shadow-md`}
+                  className={`rounded-full text-primary bg-accent border-blue-300 hover:bg-accent-foreground hover:text-secondary hover:shadow-md`}
                   onClick={() => navigate(`/teams/${teamId}/${season}/${val}`)}
                 >
                   {label}
@@ -180,18 +182,18 @@ export default function TeamPage() {
         <div className="w-full self-end flex flex-col mb-4">
           <InnerNav></InnerNav>
         </div>
-        <div className="flex items-center justify-center flex-wrap sm:flex-wrap lg:flex-nowrap border border-white w-3/4 h-fit rounded  gap-8 p-8 min-h-[80%]">
+        <div className="flex items-center justify-center flex-wrap w-3/4 h-fit min-h-[80%] gap-8 p-8 bg-card sm:flex-wrap lg:flex-nowrap border rounded ">
           <div>
-            <Skeleton className="h-8 w-full p-12 bg-white" />
+            <Skeleton className="h-8 w-full p-12 bg-card-foreground" />
           </div>
-          <div className="bg-gray-800 min-h-fit h-1/2 w-full max-w-[1000px] p-6 rounded">
-            <Skeleton className="h-8 w-full p-2 m-2 bg-white" />
-            <Skeleton className="h-8 w-3/4 p-2 m-2 bg-white" />
-            <Skeleton className="h-8 w-3/6 p-2 m-2 bg-white" />
-            <Skeleton className="h-8 w-3/4 p-2 m-2 bg-white" />
-            <Skeleton className="h-8 w-full p-2 m-2 bg-white" />
+          <div className="min-h-fit h-1/2 w-full max-w-[1000px] p-6 rounded">
+            <Skeleton className="h-8 w-full p-2 m-2 bg-card-foreground" />
+            <Skeleton className="h-8 w-3/4 p-2 m-2  bg-card-foreground" />
+            <Skeleton className="h-8 w-3/6 p-2 m-2  bg-card-foreground" />
+            <Skeleton className="h-8 w-3/4 p-2 m-2  bg-card-foreground" />
+            <Skeleton className="h-8 w-full p-2 m-2  bg-card-foreground" />
             <div className="w-full flex items-center justify-center">
-              <Skeleton className="h-8 w-3/12 rounded-full p-2 mt-4 bg-blue-500 shadow-md shadow-black" />
+              <Skeleton className="h-8 w-3/12 rounded-full p-2 mt-4 bg-card-foreground shadow-md shadow-black" />
             </div>
           </div>
         </div>
@@ -225,10 +227,10 @@ export default function TeamPage() {
                 className="w-20 aspect-square sm:w-20 md:w-28 object-contain"
               />
 
-              <div className="flex flex-col items-center bg-gray-800 text-white text-center px-4 py-8 sm:p-8 rounded-lg shadow-lg">
-                <h1 className="text-2xl sm:text-4xl py-4">
+              <div className="flex flex-col items-center bg-inherit/5 text-primary text-center px-4 py-8 sm:p-8 rounded-lg shadow-lg">
+                <h1 className="text-4xl md:text-2xl py-4">
                   <span
-                    className="shadow-md bg-white rounded-md p-1"
+                    className="shadow-md rounded-md p-1"
                     style={{
                       color: team.color,
                       boxShadow: `${team.color} 1px 1px 3px`,
@@ -325,13 +327,13 @@ export default function TeamPage() {
     }
     if (page == TeamPages.Standings) {
       return (
-        <div className="flex-1 flex flex-col gap-4">
+        <div className="flex-1 flex flex-col min-h-0 gap-4 bg-gray-50">
           <InnerNav></InnerNav>
-          <ScrollArea className="h-full flex flex-col bg-slate-50">
-            <div className="w-full flex flex-col flex-1 items-center">
-              <Card className="flex-1 flex flex-col md:w-full lg:w-3/4 border-b-0 overflow-hidden rounded-none">
+          <ScrollArea className="flex-1 min-h-0 flex flex-col">
+            <div className="flex-1 w-full min-h-0 flex flex-col items-center">
+              <Card className="flex-1 flex flex-col bg-card text-card-foreground md:w-full lg:w-3/4 border-b-0 overflow-hidden">
                 <CardHeader className="flex-shrink-0">
-                  <span className="font-semibold text-lg text-card-foreground">
+                  <span className="font-semibold text-lg">
                     <TeamLogoName
                       id={teamId}
                       teamName={team.name}

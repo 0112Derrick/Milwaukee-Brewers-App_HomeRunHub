@@ -27,7 +27,7 @@ export function statusVisuals(bucket: GameStatusBucket) {
         badge: "Live",
         cardShadow: "shadow-emerald-500 hover:shadow-md",
         cardBorder: "border-l-4 border-emerald-500",
-        chip: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+        chip: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/80 dark:text-emerald-300",
         pulse:
           "after:ml-2 after:inline-block after:h-2 after:w-2 after:rounded-full after:bg-emerald-500 after:animate-pulse",
         gradientColors: "from-emerald-400 to-emerald-600",
@@ -38,7 +38,7 @@ export function statusVisuals(bucket: GameStatusBucket) {
         badge: "Scheduled",
         cardShadow: "hover:shadow-slate-400 hover:shadow-md",
         cardBorder: "border-l-4 border-slate-400",
-        chip: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200",
+        chip: "bg-slate-100 text-slate-700 dark:bg-slate-800/80 dark:text-slate-200",
         gradientColors: "from-slate-400 to-slate-600",
       };
     case "pregame":
@@ -47,7 +47,7 @@ export function statusVisuals(bucket: GameStatusBucket) {
         badge: "Warmup",
         cardShadow: "hover:shadow-blue-500 hover:shadow-md",
         cardBorder: "border-l-4 border-blue-500",
-        chip: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+        chip: "bg-blue-100 text-blue-700 dark:bg-blue-900/80 dark:text-blue-300",
         gradientColors: "from-blue-400 to-blue-600",
       };
     case "delayed":
@@ -56,7 +56,7 @@ export function statusVisuals(bucket: GameStatusBucket) {
         badge: "Delayed",
         cardShadow: "hover:shadow-amber-500",
         cardBorder: "border-l-4 border-amber-500",
-        chip: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+        chip: "bg-amber-100 text-amber-800 dark:bg-amber-900/80 dark:text-amber-300",
         gradientColors: "from-amber-400 to-amber-600",
       };
     case "suspended":
@@ -65,7 +65,7 @@ export function statusVisuals(bucket: GameStatusBucket) {
         badge: "Suspended",
         cardShadow: "hover:shadow-orange-500 hover:shadow-md",
         cardBorder: "border-l-4 border-orange-500",
-        chip: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+        chip: "bg-orange-100 text-orange-800 dark:bg-orange-900/80 dark:text-orange-300",
         gradientColors: "from-orange-400 to-orange-600",
       };
     case "postponed":
@@ -74,7 +74,7 @@ export function statusVisuals(bucket: GameStatusBucket) {
         badge: "Postponed",
         cardShadow: "hover:shadow-rose-500 hover:shadow-md",
         cardBorder: "border-l-4 border-rose-500",
-        chip: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300",
+        chip: "bg-rose-100 text-rose-700 dark:bg-rose-900/80 dark:text-rose-300",
         gradientColors: "from-rose-400 to-rose-600",
       };
     case "final":
@@ -83,7 +83,7 @@ export function statusVisuals(bucket: GameStatusBucket) {
         badge: "Final",
         cardShadow: "hover:shadow-zinc-500 hover:shadow-md",
         cardBorder: "border-l-4 border-zinc-500",
-        chip: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200",
+        chip: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-200",
         gradientColors: "from-zinc-400 to-zinc-600",
       };
     default:

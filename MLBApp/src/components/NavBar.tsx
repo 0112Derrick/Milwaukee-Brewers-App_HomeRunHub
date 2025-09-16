@@ -9,6 +9,7 @@ import {
   SheetOverlay,
   SheetTitle,
 } from "src/@/components/ui/sheet"; // shadcn (Radix) Sheet
+import { Moon, Sun } from "lucide-react";
 
 const HamburgerButton = ({
   open,
@@ -51,10 +52,14 @@ const MobileMenu = ({
   open,
   setOpen,
   onNavigate,
+  colorScheme,
+  setColorScheme,
 }: {
   open: boolean;
   setOpen: (v: boolean) => void;
   onNavigate: (path: string) => void;
+  colorScheme: "light" | "dark";
+  setColorScheme: (e: "light" | "dark") => void;
 }) => {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -114,6 +119,24 @@ const MobileMenu = ({
             >
               About
             </Button>
+            <Button
+              variant={"ghost"}
+              className="justify-start bg-inherit outline-none ring-0 border-none hover:bg-inherit"
+              onClick={() => {
+                setColorScheme(colorScheme == "light" ? "dark" : "light");
+              }}
+            >
+              <Sun
+                className={`${
+                  colorScheme == "light" ? "hidden" : "block"
+                } fill-secondary stroke-secondary`}
+              />
+              <Moon
+                className={`${
+                  colorScheme == "dark" ? "hidden" : "block"
+                } fill-secondary stroke-secondary`}
+              />
+            </Button>
           </nav>
 
           <div className="mt-auto text-xs text-white/60">
@@ -125,12 +148,18 @@ const MobileMenu = ({
   );
 };
 
-const NavBar = () => {
+const NavBar = ({
+  colorScheme,
+  setColorScheme,
+}: {
+  colorScheme: "light" | "dark";
+  setColorScheme: (e: "light" | "dark") => void;
+}) => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="sticky top-0 z-[21] w-full overflow-clip bg-gray-900 supports-[backdrop-filter]:bg-gray-900/60">
+    <div className="sticky top-0 z-[21] w-full overflow-clip bg-gray-900">
       <nav className=" flex items-center justify-between w-full h-full bg-inherit px-6 py-2 text-white">
         {/* Brand */}
         <div
@@ -150,6 +179,24 @@ const NavBar = () => {
 
         {/* Desktop actions */}
         <div className="hidden gap-2 lg:flex">
+          <Button
+            variant={"ghost"}
+            className="bg-inherit outline-none ring-0 border-none hover:bg-inherit"
+            onClick={() => {
+              setColorScheme(colorScheme == "light" ? "dark" : "light");
+            }}
+          >
+            <Sun
+              className={`${
+                colorScheme == "light" ? "hidden" : "block"
+              } fill-primary stroke-primary hover:stroke-yellow-400`}
+            />
+            <Moon
+              className={`${
+                colorScheme == "dark" ? "hidden" : "block"
+              } fill-secondary stroke-secondary hover:stroke-yellow-300`}
+            />
+          </Button>
           <Button
             variant="link"
             className="cursor-pointer hover:text-blue-300 no-underline text-inherit"
@@ -182,6 +229,8 @@ const NavBar = () => {
           open={open}
           setOpen={setOpen}
           onNavigate={(path) => navigate(path)}
+          colorScheme={colorScheme}
+          setColorScheme={setColorScheme}
         />
       </nav>
     </div>

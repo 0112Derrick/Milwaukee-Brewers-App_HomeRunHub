@@ -44,7 +44,10 @@ export function MiniGameCard({ game }: { game: MlbGame }) {
 
   const gameHref = `/scores/${ymd}/${game.gamePk}`;
   const checkMlbStoryStatusHref = `/check-mlb-story/${game.gamePk}`;
-  const storyHref = `https://www.mlb.com/stories/game/${game.gamePk}`;
+  const storyHref =
+    status == "pregame"
+      ? `https://www.mlb.com/stories/game-preview/${game.gamePk}`
+      : `https://www.mlb.com/stories/game/${game.gamePk}`;
 
   async function fetchGameStory() {
     try {
@@ -117,7 +120,7 @@ export function MiniGameCard({ game }: { game: MlbGame }) {
         </div>
 
         <div className="min-h-[50%] self-center flex flex-col items-center gap-2 px-2 border-l border-l-black">
-          <Badge variant="secondary" className={cn("gap-1", ui.chip, ui.pulse)}>
+          <Badge variant="default" className={cn("gap-1", ui.chip, ui.pulse)}>
             {ui.icon}
             {ui.badge}
           </Badge>

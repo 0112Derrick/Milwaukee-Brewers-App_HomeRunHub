@@ -14,10 +14,10 @@ function TitleSection({
     <>
       <div className="h-auto w-full my-2 flex flex-col items-center text-center gap-8 px-4 sm:px-0">
         <div className=".semi-circle-gradient"></div>
-        <span className="text-neutral-200 font-bold text-2xl sm:text-4xl">
+        <span className="text-primary font-bold text-4xl lg:text-2xl">
           Baseball, <span className="text-sky-400">Beautifully</span> Organized
         </span>
-        <span className="text-neutral-300 text-xl sm:text-2xl pb-2 sm:pb-4">
+        <span className="text-primary/70 text-2xl pb-4 lg:text-xl lg:pb-2">
           Experience the next evolution in baseball apps.
           <br className="hidden sm:inline" /> Discover, filter, and dive deeper
           into your favorite teams with ease and style.
@@ -25,7 +25,7 @@ function TitleSection({
 
         <Button
           variant={"secondary"}
-          className="outline outline-white p-6 w-fit rounded-full text-sm sm:text-base hover:shadow-md hover:shadow-white"
+          className="outline outline-white p-6 w-fit rounded-full text-sm sm:text-base hover:shadow-md hover:shadow-primary-foreground"
           onClick={() => {
             if (forwardRef && forwardRef.current)
               forwardRef.current?.scrollIntoView({

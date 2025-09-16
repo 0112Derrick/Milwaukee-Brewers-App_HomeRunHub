@@ -26,7 +26,7 @@ const TeamCard = ({
     <>
       {teamColor ? (
         <Card
-          className={`w-[250px] overflow-hidden cursor-pointer hover:border-solid hover:border-x-2 text-white hover:bg-zinc-400 hover:shadow-lg`}
+          className={`w-[250px] overflow-hidden cursor-pointer text-white border-inherit hover:border-solid hover:border-x-2 hover:bg-secondary hover:shadow-lg`}
           onClick={() => {
             navigate(`/teams/${id}`);
           }}
@@ -42,7 +42,7 @@ const TeamCard = ({
           onMouseLeave={() => {
             if (cardRef && cardRef.current) {
               let card = cardRef.current as HTMLElement;
-              card.style.borderColor = "rgb(255,255,255)";
+              card.style.borderColor = "inherit";
               card.style.boxShadow = "none";
             }
           }}

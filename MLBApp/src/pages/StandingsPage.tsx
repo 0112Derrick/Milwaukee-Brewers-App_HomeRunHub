@@ -86,13 +86,13 @@ const StandingsPage: React.FC = () => {
 
   return (
     <ScrollArea>
-      <div className="p-4 flex flex-col flex-grow max-w-[100vw] overflow-auto bg-inherit">
+      <div className="p-4 flex flex-col flex-grow max-w-[100vw] overflow-auto">
         <h1 className="text-2xl font-bold">MLB Standings</h1>
-        <div className="flex flex-wrap gap-2 justify-end text-black">
+        <div className="flex flex-wrap gap-2 justify-end">
           <div className="flex flex-col gap-3">
-            <Label className="text-white">League</Label>
+            <Label>League</Label>
             <select
-              className="ring-0 border-none outline-none text-black w-32 h-6 rounded-md"
+              className="ring-1 border-none bg-inherit outline-none w-32 h-6 rounded-md cursor-pointer"
               defaultValue={league}
               onChange={(e) => {
                 const val = parseInt(e.target.value, 10);
@@ -105,9 +105,9 @@ const StandingsPage: React.FC = () => {
             </select>
           </div>
           <div className="flex flex-col gap-3">
-            <Label className="text-white">Division</Label>
+            <Label>Division</Label>
             <select
-              className="ring-0 border-none outline-none text-black w-32 h-6 rounded-md"
+              className="ring-1 border-none bg-inherit outline-none w-32 h-6 rounded-md cursor-pointer"
               defaultValue={division}
               onChange={(e) => {
                 const val = parseInt(e.target.value, 10);
@@ -121,14 +121,14 @@ const StandingsPage: React.FC = () => {
             </select>
           </div>
         </div>
-        <div className="flex flex-col mt-4 rounded-none border-none bg-slate-50 md:items-start lg:items-center">
+        <div className="flex flex-col mt-4 rounded-none border-none bg-secondary md:items-start lg:items-center">
           {standings.records.map((division) => (
             <Card
               key={division.division.id}
               className="rounded-none overflow-hidden m-0 border-none md:min-w-full md:max-w-full lg:min-w-[70%] lg:max-w-[70%]"
             >
               <CardHeader className="border-none h-fit">
-                <CardTitle className="flex flex-wrap items-center justify-between text-black border-none">
+                <CardTitle className="flex flex-wrap items-center justify-between border-none">
                   <span>
                     {division.division.id
                       ? standings.divisions.find(
@@ -136,7 +136,9 @@ const StandingsPage: React.FC = () => {
                         )?.name
                       : ""}
                   </span>
-                  <Badge>{division.standingsType}</Badge>
+                  <Badge className="bg-secondary text-primary">
+                    {division.standingsType}
+                  </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0 h-full min-h-0 min-w-full">

@@ -9,7 +9,6 @@ import {
 } from "src/interfaces/interfaces";
 import ErrorPage from "./ErrorPage";
 import { formatYMDLocal, parseYMDLocal, sortGamesArr } from "src/utils/utils";
-import { api } from "src/utils/axios";
 import DatePicker from "src/components/DatePicker";
 
 import { ScrollArea } from "src/@/components/ui/scroll-area";
@@ -19,6 +18,7 @@ import { Label } from "src/@/components/ui/label";
 import { ScheduleResponse } from "src/interfaces/teams.types";
 import { MiniGameCard } from "src/components/MiniGameCard";
 import { Spinner } from "src/components/Spinner";
+import { getScheduleResp } from "src/repository/schedules";
 
 export function LiveGames() {
   const { gameDate } = useParams();
@@ -27,7 +27,7 @@ export function LiveGames() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);
   const [date, setDate] = useState<Date>(() =>
-    gameDate ? parseYMDLocal(gameDate) : new Date()
+    gameDate ? (parseYMDLocal(gameDate) as Date) : new Date()
   );
   const [sort, setSort] = useState<GameStatusBucket>("live");
   const [noGamesFound, setNoGamesFound] = useState<boolean>(false);
@@ -36,7 +36,7 @@ export function LiveGames() {
 
   useEffect(() => {
     if (!gameDate) return;
-    setDate(parseYMDLocal(gameDate));
+    setDate(parseYMDLocal(gameDate) as Date);
   }, [gameDate]);
 
   useEffect(() => {
@@ -51,14 +51,15 @@ export function LiveGames() {
       try {
         const currentDate = formatYMDLocal(date);
 
-        const { data } = await api.post<ScheduleResponse>(
-          `mlb/schedule`,
-          {
-            startDt: currentDate,
-            endDt: currentDate,
-          },
-          { signal: ac.signal }
-        );
+        const resp = await getScheduleResp(ac, currentDate);
+
+        if (!resp || resp.status !== 200) {
+          setError("No games found.");
+          return null;
+        }
+        setError(null);
+
+        const data = resp.data;
 
         setGamesData(data);
 
@@ -108,7 +109,7 @@ export function LiveGames() {
     }
 
     if (d && typeof d == "string") {
-      setDate(parseYMDLocal(d));
+      setDate(parseYMDLocal(d) as Date);
     }
 
     if (!d) return;
@@ -158,7 +159,7 @@ export function LiveGames() {
             <Select
               defaultValue={sort}
               onChange={(val) => setSort(val.target.value as GameStatusBucket)}
-              className="rounded text-black outline-none ring-0 h-6 w-20"
+              className="rounded outline-none h-6 w-20 text-black bg-white ring-1 cursor-pointer"
             >
               {GAME_STATUSES.map((val, indx) => {
                 return (
@@ -178,7 +179,7 @@ export function LiveGames() {
       </div>
 
       <ScrollArea>
-        <div className="flex flex-col md:items-center bg-slate-50">
+        <div className="flex flex-col md:items-center bg-[#e6e6e6]">
           <div className="grid shadow-lg md:grid-cols-1 lg:grid-cols-2 md:w-full md:max-w-[400px] lg:max-w-full lg:w-3/4">
             {gamesMiniScreen}
           </div>

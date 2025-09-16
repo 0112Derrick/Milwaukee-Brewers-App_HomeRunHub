@@ -142,12 +142,12 @@ function BioGrid({ p }: { p: Person }) {
       <Fact
         icon={Calendar}
         label="Born"
-        value={formatYYYYMMDD(parseYMDLocal(p.birthDate))}
+        value={formatYYYYMMDD(parseYMDLocal(p.birthDate) as Date)}
       />
       <Fact
         icon={Calendar}
         label="MLB Debut"
-        value={formatYYYYMMDD(parseYMDLocal(p.mlbDebutDate))}
+        value={formatYYYYMMDD(parseYMDLocal(p.mlbDebutDate) as Date)}
       />
       <Fact icon={MapPin} label="Birthplace" value={birthplace} />
       <Fact icon={Ruler} label="Height" value={p.height} />

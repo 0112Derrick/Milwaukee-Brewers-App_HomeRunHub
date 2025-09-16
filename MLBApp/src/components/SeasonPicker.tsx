@@ -32,7 +32,7 @@ export function SeasonPicker({
         <Button
           variant="secondary"
           size="sm"
-          className="rounded-full bg-slate-300"
+          className="rounded-full bg-slate-400"
         >
           Season {season}
         </Button>
