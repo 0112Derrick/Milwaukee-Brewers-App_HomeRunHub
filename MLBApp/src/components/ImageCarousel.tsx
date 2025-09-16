@@ -4,8 +4,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselPrevious,
   CarouselNext,
+  CarouselPrevious,
 } from "src/@/components/ui/carousel";
 import { CarouselOptions } from "src/interfaces/carousel.types";
 
@@ -21,16 +21,28 @@ export default function ImageCarousel({
   opts?: CarouselOptions;
 }) {
   return (
-    <Carousel opts={{}} plugins={[Autoplay(autoPlay)]}>
-      <CarouselContent>
-        {images.map((image, indx) => {
-          return (
-            <CarouselItem key={"carousel" + indx} className={classN}>
-              <img src={`${image}`}></img>
-            </CarouselItem>
-          );
-        })}
+    <Carousel
+      opts={opts ?? {}}
+      plugins={[Autoplay(autoPlay)]}
+      className="h-full w-full overflow-hidden"
+    >
+      <CarouselContent className="h-full">
+        {images.map((image, indx) => (
+          <CarouselItem
+            key={"carousel" + indx}
+            className={`${
+              classN ?? ""
+            } h-full flex items-center justify-center`}
+          >
+            <img
+              src={image}
+              className="max-h-full max-w-full object-contain"
+              alt=""
+            />
+          </CarouselItem>
+        ))}
       </CarouselContent>
+
       <CarouselPrevious className="left-3 top-1/2 -translate-y-1/2" />
       <CarouselNext className="right-3 top-1/2 -translate-y-1/2" />
     </Carousel>

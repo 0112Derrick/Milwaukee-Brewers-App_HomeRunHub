@@ -156,7 +156,7 @@ export function InningPanel({
       value={title}
       className={`border-none min-h-full ${
         isOpen
-          ? "cursor-default text-black-400"
+          ? "cursor-default text-primary"
           : "cursor-pointer hover:text-sky-400 text-stone-600"
       }`}
     >
@@ -180,7 +180,7 @@ export function InningPanel({
             <Badge
               className={`${
                 isOpen ? "block" : "hidden"
-              } flex items-center bg-blue-400`}
+              } flex items-center bg-blue-400 text-white hover:bg-blue-400 hover:text-white`}
             >
               <span className="font-semibold">{plays.length} plays</span>
             </Badge>
@@ -192,7 +192,7 @@ export function InningPanel({
           )}
         </div>
       </AccordionTrigger>
-      <AccordionContent className="min-h-full text-black">
+      <AccordionContent className="min-h-full text-primary">
         <div className="min-h-full">
           <Table className="min-h-full">
             <TableHeader>
