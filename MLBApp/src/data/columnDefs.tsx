@@ -13,6 +13,7 @@ import { Button } from "src/@/components/ui/button";
 import { teamLogoUrl } from "src/utils/utils";
 import { TeamLogoName } from "src/components/TeamLogoName";
 import { Split } from "../interfaces/generated.player.types";
+import { Transaction } from "src/interfaces/generated.transactions.types";
 
 export const columns: ColumnDef<TeamRecord>[] = [
   {
@@ -235,6 +236,43 @@ export const rosterColumns: ColumnDef<Player>[] = [
         </div>
       );
     },
+  },
+];
+export const transactionsColumns: ColumnDef<Transaction>[] = [
+  {
+    accessorKey: "person.fullName",
+    header: "Name",
+    cell: ({ row }) => {
+      const playerId = row.original?.person?.id;
+      return (
+        <Link
+          to={`/players/${playerId}`}
+          className="cursor-pointer hover:text-blue-300"
+        >
+          <p>{row.original?.person?.fullName}</p>
+        </Link>
+      );
+    },
+  },
+  {
+    accessorKey: "effectiveDate",
+    header: "Date",
+  },
+  {
+    accessorKey: "typeDesc",
+    header: "Status",
+  },
+  {
+    accessorKey: "description",
+    header: "Description",
+  },
+  {
+    accessorKey: "fromTeam.name",
+    header: "From-Team",
+  },
+  {
+    accessorKey: "toTeam.name",
+    header: "To-Team",
   },
 ];
 
