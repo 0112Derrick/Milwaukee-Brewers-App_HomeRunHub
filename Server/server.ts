@@ -21,7 +21,12 @@ import {
   fetchSchedule,
   fetchTeamScheduleBySeason,
 } from "./services/schedules.js";
-import { fetchTeams, fetchRoster, fetchPlayer } from "./services/roster.js";
+import {
+  fetchTeams,
+  fetchRoster,
+  fetchPlayer,
+  fetchTransactions,
+} from "./services/roster.js";
 
 const __filenameResolved = fileURLToPath(import.meta.url);
 const __dirnameResolved = path.dirname(__filenameResolved);
@@ -435,6 +440,52 @@ export class Server {
       }
 
       const resp = await fetchGameContent(gamePk);
+
+      res.json(resp);
+    });
+    this.app.post("/mlb/transactions", async (req, res) => {
+      console.log(req.body);
+      const { teamId, startDt, endDt, limit, order } = req.body;
+
+      if (teamId && typeof teamId !== "number") {
+        res.send("teamId expected type is int.");
+        return;
+      }
+
+      const startTest = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startDt);
+      const endTest = /^(\d{4})-(\d{2})-(\d{2})$/.exec(endDt);
+
+      if (
+        typeof startDt !== "string" &&
+        typeof endDt !== "string" &&
+        !startTest &&
+        !endTest
+      ) {
+        res.send(
+          "Error startDt & endDt expected type is string in yyyy-mm-dd format."
+        );
+        return;
+      }
+
+      if (order && order !== "desc" && order !== "asc") {
+        res.send(
+          "Error order expected type is string. Value = 'desc' or 'asc'"
+        );
+        return;
+      }
+
+      if (limit && typeof limit !== "number") {
+        res.send("Error limit expected type is int.");
+        return;
+      }
+
+      const resp = await fetchTransactions({
+        teamId,
+        startDt,
+        endDt,
+        limit,
+        order,
+      });
 
       res.json(resp);
     });

@@ -11,6 +11,7 @@ import {
   Person,
   PlayerResponse,
 } from "../interfaces/generated.player.types.js";
+import { TransactionsResponse } from "../interfaces/generated.transactions.types.js";
 const axios = axiosPkg.default;
 
 export function organizeMLBTeams(data: mlbTeams) {
@@ -81,6 +82,49 @@ export async function fetchTeams(): Promise<{ teams: mlbTeams; error: any }> {
     }
 
     return { teams: null, error: error };
+  }
+}
+
+export async function fetchTransactions({
+  startDt,
+  endDt,
+  limit,
+  order = "desc",
+  teamId,
+}: {
+  startDt: string;
+  endDt: string;
+  order: "desc" | "asc";
+  limit?: number;
+  teamId?: number;
+}) {
+  try {
+    const key = `transactions-${teamId}-${startDt}-${endDt}`; // <-- cache by day
+    const cached = cache.getCache().get(key);
+    if (cached) return cached;
+    const params = new URLSearchParams({
+      startDate: startDt,
+      endDate: endDt,
+      order,
+    });
+
+    if (teamId != null) {
+      params.set("teamId", String(teamId));
+    }
+
+    if (limit != null) {
+      params.set("limit", String(limit));
+    }
+
+    const url = `${mlbApiHost}/api/v1/transactions?${params.toString()}`;
+    console.log(url);
+    const { data } = await axios.get<TransactionsResponse>(url);
+
+    cache.cacheData(data, key);
+    return data;
+  } catch (e) {
+    console.error("An error occurred while fetching transactions info.", e);
+    return { copyright: "", transactions: [] };
   }
 }
 

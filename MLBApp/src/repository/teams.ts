@@ -1,5 +1,6 @@
 import { mlbTeamsDetails } from "src/data/teamData";
 import { PlayerResponse } from "src/interfaces/generated.player.types";
+import { TransactionsResponse } from "src/interfaces/generated.transactions.types";
 import { RosterResponse } from "src/interfaces/interfaces";
 import {
   MlbTeamDataI,
@@ -7,6 +8,7 @@ import {
   TeamsResponse,
 } from "src/interfaces/teams.types";
 import { api } from "src/utils/axios";
+import { formatYYYYMMDD } from "src/utils/utils";
 
 export async function getTeamResp(ac: AbortController, teamId: number = 158) {
   try {
@@ -120,5 +122,53 @@ export async function getTeamsResp(
   } catch (e) {
     // console.error(e);
     return [];
+  }
+}
+
+export async function getTransactionsResp(
+  ac: AbortController,
+  {
+    startDt,
+    endDt,
+    limit,
+    order = "desc",
+    teamId,
+  }: {
+    startDt?: string;
+    endDt?: string;
+    order?: "desc" | "asc";
+    limit?: number;
+    teamId?: number;
+  }
+) {
+  try {
+    const endpoint = `mlb/transactions`;
+
+    if (!startDt) {
+      startDt = formatYYYYMMDD(new Date());
+    }
+
+    if (!endDt) {
+      endDt = startDt;
+    }
+
+    const resp = await api.post<TransactionsResponse>(
+      endpoint,
+      {
+        startDt,
+        endDt,
+        limit,
+        order,
+        teamId,
+      },
+      {
+        signal: ac.signal,
+      }
+    );
+
+    return resp;
+  } catch (e) {
+    // console.error(e);
+    return null;
   }
 }
