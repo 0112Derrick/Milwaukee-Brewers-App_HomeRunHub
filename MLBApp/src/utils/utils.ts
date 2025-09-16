@@ -115,15 +115,43 @@ export function formatYMDLocal(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-/** Parse "YYYY-MM-DD" as a local Date at local midnight. */
-export function parseYMDLocal(ymd: string): Date {
-  // Basic guard
+/**
+ * Parse "YYYY-MM-DD" as a local Date at local midnight.
+ * @param ymd - Date string in "YYYY-MM-DD"
+ * @param asString - If true, returns a locale string instead of a Date
+ * @param options - Intl.DateTimeFormat options to customize output
+ */
+/** Parse "YYYY-MM-DD" or ISO date as a local Date at local midnight.
+ *  If `format` is true, return a localized string instead.
+ */
+export function parseYMDLocal(
+  ymd: string,
+  format = false,
+  opts?: Intl.DateTimeFormatOptions
+): Date | string {
+  // Try YYYY-MM-DD first
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
-  if (!m) throw new Error(`Invalid YMD: ${ymd}`);
-  const year = Number(m[1]);
-  const monthIndex = Number(m[2]) - 1; // 0-based
-  const day = Number(m[3]);
-  return new Date(year, monthIndex, day); // local time, not UTC
+
+  let d: Date;
+  if (m) {
+    const year = Number(m[1]);
+    const monthIndex = Number(m[2]) - 1; // 0-based
+    const day = Number(m[3]);
+    d = new Date(year, monthIndex, day);
+  } else {
+    // fall back to full date parsing (MLB uses ISO strings like 2025-09-15T17:00:00Z)
+    d = new Date(ymd);
+  }
+
+  if (format) {
+    try {
+      return d.toLocaleString(undefined, opts ?? { timeStyle: "short" });
+    } catch {
+      return d.toLocaleString();
+    }
+  }
+
+  return d;
 }
 
 export function pad2(n: number) {
@@ -171,31 +199,31 @@ export const sortGamesArr = (
   return games;
 };
 
- export function createGameHeader() {
-   return {
-     away: {
-       team: {
-         id: 0,
-         name: "",
-         abbr: undefined,
-       },
-       score: null,
-       logoUrl: undefined,
-     },
-     home: {
-       team: {
-         id: 0,
-         name: "",
-         abbr: undefined,
-       },
-       score: null,
-       logoUrl: undefined,
-     },
-     statusText: "",
-     count: {
-       balls: 0,
-       strikes: 0,
-       outs: 0,
-     },
-   };
- }
+export function createGameHeader() {
+  return {
+    away: {
+      team: {
+        id: 0,
+        name: "",
+        abbr: undefined,
+      },
+      score: null,
+      logoUrl: undefined,
+    },
+    home: {
+      team: {
+        id: 0,
+        name: "",
+        abbr: undefined,
+      },
+      score: null,
+      logoUrl: undefined,
+    },
+    statusText: "",
+    count: {
+      balls: 0,
+      strikes: 0,
+      outs: 0,
+    },
+  };
+}
