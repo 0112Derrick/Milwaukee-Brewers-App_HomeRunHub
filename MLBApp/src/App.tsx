@@ -15,16 +15,25 @@ import StandingsPage from "./pages/StandingsPage";
 import { PlayByPlay } from "./pages/PlayByPlayPage";
 import { LiveGames } from "./pages/LiveGamesPage";
 import { PlayerPage } from "./pages/PlayerPage";
+import { ScoreTicker } from "./components/ScoreTicker";
+import { useState } from "react";
 
 function App() {
+  const [colorScheme, setColorScheme] = useState<"light" | "dark">("light");
   return (
     <Router>
       <Routes>
         <Route
           path="/"
           element={
-            <div className="flex flex-col h-screen bg-gray-900 text-white">
-              <NavBar />
+            <div
+              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+            >
+              <NavBar
+                colorScheme={colorScheme}
+                setColorScheme={setColorScheme}
+              />
+              <ScoreTicker />
               <MainPage />
               <Footer />
             </div>
@@ -33,8 +42,14 @@ function App() {
         <Route
           path="/teams/:id/:user_season?/:user_page?"
           element={
-            <div className="flex flex-col h-screen bg-gray-900 text-white">
-              <NavBar />
+            <div
+              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+            >
+              <NavBar
+                colorScheme={colorScheme}
+                setColorScheme={setColorScheme}
+              />
+              <ScoreTicker />
               <TeamPage></TeamPage>
               <Footer />
             </div>
@@ -43,8 +58,13 @@ function App() {
         <Route
           path="/contact"
           element={
-            <div className="flex flex-col h-screen bg-gray-900 text-white">
-              <NavBar />
+            <div
+              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+            >
+              <NavBar
+                colorScheme={colorScheme}
+                setColorScheme={setColorScheme}
+              />
               <ContactUs></ContactUs>
               <Footer />
             </div>
@@ -53,8 +73,14 @@ function App() {
         <Route
           path="/standings"
           element={
-            <div className="flex flex-col h-screen bg-gray-900 text-white">
-              <NavBar />
+            <div
+              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+            >
+              <NavBar
+                colorScheme={colorScheme}
+                setColorScheme={setColorScheme}
+              />
+              <ScoreTicker />
               <StandingsPage></StandingsPage>
               <Footer />
             </div>
@@ -63,8 +89,13 @@ function App() {
         <Route
           path="/about"
           element={
-            <div className="flex flex-col h-screen bg-gray-900 text-white">
-              <NavBar />
+            <div
+              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+            >
+              <NavBar
+                colorScheme={colorScheme}
+                setColorScheme={setColorScheme}
+              />
               <About></About>
               <Footer />
             </div>
@@ -73,8 +104,13 @@ function App() {
         <Route
           path="/scores/:gameDate/:id"
           element={
-            <div className="flex flex-col h-screen bg-gray-900 text-white">
-              <NavBar />
+            <div
+              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+            >
+              <NavBar
+                colorScheme={colorScheme}
+                setColorScheme={setColorScheme}
+              />
               <PlayByPlay></PlayByPlay>
               <Footer />
             </div>
@@ -83,8 +119,13 @@ function App() {
         <Route
           path="/scores/:gameDate?"
           element={
-            <div className="flex flex-col h-screen bg-gray-900 text-white">
-              <NavBar />
+            <div
+              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+            >
+              <NavBar
+                colorScheme={colorScheme}
+                setColorScheme={setColorScheme}
+              />
               <LiveGames></LiveGames>
               <Footer />
             </div>
@@ -93,8 +134,13 @@ function App() {
         <Route
           path="/players/:id"
           element={
-            <div className="flex flex-col h-screen bg-gray-900 text-white">
-              <NavBar />
+            <div
+              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+            >
+              <NavBar
+                colorScheme={colorScheme}
+                setColorScheme={setColorScheme}
+              />
               <PlayerPage></PlayerPage>
               <Footer />
             </div>
