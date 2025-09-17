@@ -233,7 +233,7 @@ export function PlayerProfile({ player }: { player: Person }) {
               transition={{ duration: 0.24 }}
               className="space-y-4 h-full min-h-0"
             >
-              <div className="h-full w-full min-h-0">
+              <div className="h-full w-full min-h-0 pb-5">
                 <h3 className="text-sm font-semibold text-muted-foreground mb-2">
                   Career Stats
                 </h3>
