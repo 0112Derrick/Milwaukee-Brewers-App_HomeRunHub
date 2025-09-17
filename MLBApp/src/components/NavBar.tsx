@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "src/@/components/ui/button";
@@ -11,6 +11,9 @@ import {
 } from "src/@/components/ui/sheet"; // shadcn (Radix) Sheet
 import { Moon, Sun } from "lucide-react";
 import { Theme } from "src/interfaces/interfaces";
+import { getTeamsResp } from "src/repository/teams";
+import { MlbTeamDataModifiedI } from "src/interfaces/teams.types";
+import { DropdownSearch } from "./DropDownSearchBar";
 
 const HamburgerButton = ({
   open,
@@ -159,12 +162,25 @@ const NavBar = ({
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
+  const [teams, setTeams] = useState<MlbTeamDataModifiedI[]>([]);
+
+  useEffect(() => {
+    const ac = new AbortController();
+    async function getTeams() {
+      const resp = await getTeamsResp(ac, 0, 30);
+
+      setTeams(resp);
+    }
+
+    getTeams();
+  }, []);
+
   return (
-    <div className="sticky top-0 z-[21] w-full overflow-clip bg-gray-900">
+    <div className="sticky top-0 z-[21] w-full bg-gray-900">
       <nav className=" flex items-center justify-between w-full h-full bg-inherit px-6 py-2 text-white">
         {/* Brand */}
         <div
-          className="flex cursor-pointer items-center gap-2 text-xl font-bold"
+          className="flex cursor-pointer items-center gap-2 text-xl font-bold overflow-clip"
           onClick={() => {
             navigate("/");
             window.scroll({ top: 0, left: 0, behavior: "smooth" });
@@ -178,61 +194,65 @@ const NavBar = ({
           <span className="cursor-pointer hover:text-white">Home Run Hub</span>
         </div>
 
-        {/* Desktop actions */}
-        <div className="hidden gap-2 lg:flex">
-          <Button
-            variant={"ghost"}
-            className="bg-inherit outline-none ring-0 border-none hover:bg-inherit"
-            onClick={() => {
-              setColorScheme(colorScheme == "light" ? "dark" : "light");
-            }}
-          >
-            <Sun
-              className={`${
-                colorScheme == "light" ? "hidden" : "block"
-              } fill-primary stroke-primary hover:stroke-yellow-400`}
-            />
-            <Moon
-              className={`${
-                colorScheme == "dark" ? "hidden" : "block"
-              } fill-secondary stroke-secondary hover:stroke-yellow-300`}
-            />
-          </Button>
-          <Button
-            variant="link"
-            className="cursor-pointer hover:text-blue-300 no-underline text-inherit"
-            onClick={() => navigate("/standings")}
-          >
-            Standings
-          </Button>
-          <Button
-            variant="link"
-            className="cursor-pointer hover:text-blue-300 no-underline text-inherit"
-            onClick={() => navigate("/scores")}
-          >
-            Scores
-          </Button>
-          <Button
-            variant="link"
-            className="cursor-pointer hover:text-blue-300 no-underline text-inherit"
-            onClick={() => navigate("/about")}
-          >
-            About
-          </Button>
-        </div>
+        <div className="flex items-center justify-center">
+          <DropdownSearch items={teams}></DropdownSearch>
 
-        {/* Mobile hamburger */}
-        <div className="lg:hidden">
-          <HamburgerButton open={open} onToggle={() => setOpen((v) => !v)} />
+          {/* Desktop actions */}
+          <div className="hidden gap-2 lg:flex">
+            <Button
+              variant={"ghost"}
+              className="bg-inherit outline-none ring-0 border-none hover:bg-inherit"
+              onClick={() => {
+                setColorScheme(colorScheme == "light" ? "dark" : "light");
+              }}
+            >
+              <Sun
+                className={`${
+                  colorScheme == "light" ? "hidden" : "block"
+                } fill-primary stroke-primary hover:stroke-yellow-400`}
+              />
+              <Moon
+                className={`${
+                  colorScheme == "dark" ? "hidden" : "block"
+                } fill-secondary stroke-secondary hover:stroke-yellow-300`}
+              />
+            </Button>
+            <Button
+              variant="link"
+              className="cursor-pointer hover:text-blue-300 no-underline text-inherit"
+              onClick={() => navigate("/standings")}
+            >
+              Standings
+            </Button>
+            <Button
+              variant="link"
+              className="cursor-pointer hover:text-blue-300 no-underline text-inherit"
+              onClick={() => navigate("/scores")}
+            >
+              Scores
+            </Button>
+            <Button
+              variant="link"
+              className="cursor-pointer hover:text-blue-300 no-underline text-inherit"
+              onClick={() => navigate("/about")}
+            >
+              About
+            </Button>
+          </div>
+
+          {/* Mobile hamburger */}
+          <div className="lg:hidden">
+            <HamburgerButton open={open} onToggle={() => setOpen((v) => !v)} />
+          </div>
+          {/* Mobile sheet */}
+          <MobileMenu
+            open={open}
+            setOpen={setOpen}
+            onNavigate={(path) => navigate(path)}
+            colorScheme={colorScheme}
+            setColorScheme={setColorScheme}
+          />
         </div>
-        {/* Mobile sheet */}
-        <MobileMenu
-          open={open}
-          setOpen={setOpen}
-          onNavigate={(path) => navigate(path)}
-          colorScheme={colorScheme}
-          setColorScheme={setColorScheme}
-        />
       </nav>
     </div>
   );
