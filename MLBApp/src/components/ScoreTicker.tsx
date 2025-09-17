@@ -29,9 +29,9 @@ export const ScoreTicker = () => {
   const [date, setDate] = useState<Date>(() => new Date());
   const [sortedGames, setSortedGames] = useState<MlbGame[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [sort, setSort] = useState<GameStatusBucket>("live");
+  const [sort, setSort] = useState<GameStatusBucket>("final");
   const [visible, setVisible] = useState(false);
-  const tickerItems: Array<any> = [];
+  const [tickerItems, setTickerItems] = useState<any[]>([]);
 
   // ensure we only auto-open once immediately after the first successful fetch
   const openedOnceRef = useRef(false);
@@ -80,13 +80,12 @@ export const ScoreTicker = () => {
         return;
       }
 
-      const games = sortGamesArr(currentDayGames.games);
-      setSortedGames(games);
+      setSortedGames(currentDayGames.games);
       setTransactions(transactionsData);
 
       // show immediately the first time we have games
-      if (!openedOnceRef.current && games.length > 0) {
-        console.log("Setting visible to true for the first time"); // Debug log
+      if (!openedOnceRef.current && currentDayGames.games.length > 0) {
+        // console.log("Setting visible to true for the first time"); // Debug log
         openedOnceRef.current = true;
         setVisible(true);
       }
@@ -123,12 +122,22 @@ export const ScoreTicker = () => {
     return () => window.clearTimeout(t);
   }, [loading, error, sortedGames.length, visible]);
 
+  useEffect(() => {
+    setAllTickerItems();
+  }, [sortedGames, transactions]);
+
   function mapGameScoresToJSXElements(arr: MlbGame[]) {
-    const mappedElements = arr.map((game, indx) => {
+    let array = sortGamesArr(arr, "final");
+    const mappedElements = array.map((game, indx) => {
       try {
         const state = game?.status?.detailedState ?? "";
         const status = mlbGameStatus(state);
-        if (status === "other") return null;
+        if (
+          status === "other" ||
+          status === "delayed" ||
+          status === "suspended"
+        )
+          return null;
 
         const awayLogo = teamLogoUrl(game.teams.away.team.id);
         const homeLogo = teamLogoUrl(game.teams.home.team.id);
@@ -139,17 +148,14 @@ export const ScoreTicker = () => {
         const homeAbbr = homeName[1] ?? homeName[0];
 
         const homeScore =
-          game.teams.home.score && (status === "live" || status === "final")
-            ? game.teams.home.score
-            : status === "live" || status === "final"
-            ? 0
-            : "-";
+          status === "live" || status === "final"
+            ? game.teams.home.score ?? 0
+            : "";
+
         const awayScore =
-          game.teams.away.score && (status === "live" || status === "final")
-            ? game.teams.away.score
-            : status === "live" || status === "final"
-            ? 0
-            : "-";
+          status === "live" || status === "final"
+            ? game.teams.away.score ?? 0
+            : "";
 
         const gameTime = parseYMDLocal(game.gameDate, true, {
           timeStyle: "short",
@@ -157,8 +163,8 @@ export const ScoreTicker = () => {
 
         return (
           <div
-            key={"tickItem" + indx}
-            className="flex flex-row items-center gap-2 px-4 border-x border-black min-w-fit h-full"
+            key={"score" + indx}
+            className="flex flex-row items-center gap-1 px-4 border-x border-black min-w-fit h-full"
           >
             <img src={awayLogo} alt={`${awayAbbr} logo`} className="w-4 h-4" />
             <span>
@@ -190,10 +196,13 @@ export const ScoreTicker = () => {
       });
     }
 
-    const elements = transactions.map((item) => {
+    const elements = transactions.map((item, indx) => {
       if (filter == "TR") {
         return (
-          <div className="flex gap-2 items-center justify-center">
+          <div
+            key={"transaction" + indx}
+            className="flex gap-2 items-center justify-center"
+          >
             {item.person.fullName ?? ""} {item.fromTeam?.name ?? ""} Traded to
             {item.toTeam.name ?? ""}
           </div>
@@ -201,7 +210,10 @@ export const ScoreTicker = () => {
       }
 
       return (
-        <div className="flex gap-2 items-center justify-center">
+        <div
+          key={"transaction" + indx}
+          className="flex gap-2 items-center justify-center"
+        >
           {item.person.fullName ?? ""} {item.description}
         </div>
       );
@@ -209,45 +221,55 @@ export const ScoreTicker = () => {
     return elements;
   }
 
-  function setTickerItems() {
+  function setAllTickerItems() {
+    const tickerItemsLocal = [];
     if (sortedGames.length > 0) {
       //Current day scores:
-      tickerItems.push(
-        <div className="px-4" key={"tickItem" + "score_label"}>
+      tickerItemsLocal.push(
+        <div
+          key={"scoresLabel"}
+          className="flex items-center justify-center px-4 h-full bg-blue-400 text-white font-semibold"
+        >
           Scores:{" "}
         </div>
       );
-      tickerItems.push(...mapGameScoresToJSXElements(sortedGames));
+      tickerItemsLocal.push(...mapGameScoresToJSXElements(sortedGames));
     }
     //Transactions:
     if (transactions.length > 0) {
-      tickerItems.push(<div className="px-4">Trades: </div>);
-      tickerItems.push(...mapTransactionsToJSXELements(transactions, "TR"));
+      <div
+        key={"transactionLabel"}
+        className="flex items-center justify-center px-4 h-full bg-green-400 text-white font-semibold"
+      >
+        Trades:{" "}
+      </div>;
+      tickerItemsLocal.push(
+        ...mapTransactionsToJSXELements(transactions, "TR")
+      );
     }
-  }
 
-  setTickerItems();
+    setTickerItems(tickerItemsLocal);
+  }
 
   if (!visible) return <div className="sticky top-0 min-h-0"></div>;
 
   return (
     <AnimatePresence>
       <motion.div
-        className="sticky top-0 z-50 bg-white text-black w-full h-10 max-h-10 min-h-10 overflow-hidden"
+        className="sticky top-0 z-20 bg-white text-black w-full h-10 max-h-10 min-h-10 overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.35 }}
       >
         <motion.div
-          key={sortedGames.length}
           className="flex h-full max-h-10 whitespace-nowrap items-center"
-          initial={{ x: 0 }}
-          animate={{ x: "-100%" }}
+          initial={{ x: "100%" }}
+          animate={{ x: "-300%" }}
           transition={{
-            duration: 60, // slow scroll
+            duration: 40, // slow scroll
             ease: "linear",
-            repeat: 2, // go through twice
+            repeat: 2,
             onComplete: () => setVisible(false), // then collapse
           }}
         >
