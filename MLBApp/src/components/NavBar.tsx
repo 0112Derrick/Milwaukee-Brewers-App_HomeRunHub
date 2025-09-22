@@ -74,7 +74,7 @@ const MobileMenu = ({
       </SheetHeader>
       <SheetContent
         side="right"
-        className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right fixed right-0 top-0 z-50 h-dvh w-[80vw] max-w-[420px] border-l border-white/10 bg-gray-900/80 backdrop-blur-xl p-6"
+        className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right fixed right-0 top-0 z-50 h-dvh w-[60vw] max-w-[420px] border-l border-white/10 bg-gray-900/80 backdrop-blur-xl p-6"
       >
         <div className="flex h-full flex-col gap-6">
           <div className="flex items-center justify-between">
