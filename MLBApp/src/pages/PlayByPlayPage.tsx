@@ -556,59 +556,67 @@ export function PlayByPlay({
                   value="pbp"
                   className="flex-1 min-h-max min-w-max mt-0 p-0 flex flex-col items-center"
                 >
-                  <div className="min-h-max min-w-max rounded-md">
-                    <div className="p-3 min-h-full min-w-max">
-                      {groupByInning ? (
-                        <Accordion
-                          type="single"
-                          className="flex flex-col gap-2 min-w-max min-h-full [&>div:nth-child(odd)_button>div]:bg-orange-100/40
+                  {filtered.length > 0 ? (
+                    <div className="min-h-max min-w-max rounded-md">
+                      <div className="p-3 min-h-full min-w-max">
+                        {groupByInning ? (
+                          <Accordion
+                            type="single"
+                            className="flex flex-col gap-2 min-w-max min-h-full [&>div:nth-child(odd)_button>div]:bg-orange-100/40
                             [&>div:nth-child(even)_button>div]:bg-blue-100/40"
-                          value={openPbpItem}
-                          onValueChange={setOpenPbpItem}
-                        >
-                          {grouped.map(({ key, plays }) => {
-                            const title = formatTitle(key);
-                            return (
-                              <InningPanel
-                                key={key}
-                                title={title}
-                                plays={plays}
-                                isOpen={title === openPbpItem}
-                                onPlayClick={handlePlayClick}
-                              />
-                            );
-                          })}
-                        </Accordion>
-                      ) : (
-                        <div className="rounded-md border min-h-full min-w-max">
-                          <Table className="min-h-full">
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead className="w-[44px]">Ct</TableHead>
-                                <TableHead className="w-[44px]">Out</TableHead>
-                                <TableHead className="w-[140px]">
-                                  Result
-                                </TableHead>
-                                <TableHead>Description</TableHead>
-                                <TableHead className="text-right">
-                                  Score
-                                </TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody className="min-h-full min-w-full">
-                              {filtered.map((p) => (
-                                <PlayRow
-                                  key={p.id}
-                                  play={p}
-                                  onClick={onPlayClick}
+                            value={openPbpItem}
+                            onValueChange={setOpenPbpItem}
+                          >
+                            {grouped.map(({ key, plays }) => {
+                              const title = formatTitle(key);
+                              return (
+                                <InningPanel
+                                  key={key}
+                                  title={title}
+                                  plays={plays}
+                                  isOpen={title === openPbpItem}
+                                  onPlayClick={handlePlayClick}
                                 />
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      )}
+                              );
+                            })}
+                          </Accordion>
+                        ) : (
+                          <div className="rounded-md border min-h-full min-w-max">
+                            <Table className="min-h-full">
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead className="w-[44px]">Ct</TableHead>
+                                  <TableHead className="w-[44px]">
+                                    Out
+                                  </TableHead>
+                                  <TableHead className="w-[140px]">
+                                    Result
+                                  </TableHead>
+                                  <TableHead>Description</TableHead>
+                                  <TableHead className="text-right">
+                                    Score
+                                  </TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody className="min-h-full min-w-full">
+                                {filtered.map((p) => (
+                                  <PlayRow
+                                    key={p.id}
+                                    play={p}
+                                    onClick={onPlayClick}
+                                  />
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex flex-col items-center mt-4">
+                      <p className="font-bold">Game has not started</p>
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* //ANCHOR - Lineups */}
