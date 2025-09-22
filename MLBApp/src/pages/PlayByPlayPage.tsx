@@ -11,7 +11,7 @@ import {
   TabsTrigger,
   TabsContent,
 } from "src/@/components/ui/tabs";
-import { ScrollArea } from "src/@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "src/@/components/ui/scroll-area";
 import { Badge } from "src/@/components/ui/badge";
 import { Separator } from "src/@/components/ui/separator";
 import { Accordion } from "src/@/components/ui/accordion";
@@ -68,10 +68,12 @@ export function ScoreBug({
   header,
   gamePk,
   status,
+  showBoxscore = true,
 }: {
   header: GameHeader;
   gamePk: number;
   status: GameStatusBucket;
+  showBoxscore: boolean;
 }) {
   const { away, home, statusText, count } = header;
   const splitAwayName = away.team.name.split(" ");
@@ -85,7 +87,7 @@ export function ScoreBug({
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center">
-      <div className="flex gap-3 flex-col md:flex-row md:justify-around col-span-3">
+      <div className="flex flex-row gap-3 flex-wrap text-sm justify-around items-center md:text-lg col-span-3">
         {/* Away */}
         <div className="flex items-center gap-3">
           {awayLogo ? (
@@ -94,9 +96,7 @@ export function ScoreBug({
             <div className="h-8 w-8 rounded bg-muted" />
           )}
           <div className="font-medium">{awayAbbr}</div>
-          <div className="text-lg font-bold tabular-nums">
-            {away.score ?? "-"}
-          </div>
+          <div className="font-bold tabular-nums">{away.score ?? "-"}</div>
         </div>
 
         {/* Status */}
@@ -106,9 +106,7 @@ export function ScoreBug({
 
         {/* Home */}
         <div className="flex items-center gap-3 justify-end flex-row-reverse sm:justify-start md:flex-row lg:justify-end">
-          <div className="text-lg font-bold tabular-nums">
-            {home.score ?? "-"}
-          </div>
+          <div className="font-bold tabular-nums">{home.score ?? "-"}</div>
           <div className="font-medium">{homeAbbr}</div>
           {homeLogo ? (
             <img src={homeLogo} alt={`${homeAbbr} logo`} className="h-8 w-8" />
@@ -128,7 +126,11 @@ export function ScoreBug({
       </div>
 
       {/* Boxscore */}
-      <div className="w-full col-span-3">
+      <div
+        className={`w-full col-span-3 hidden ${
+          showBoxscore ? "hidden md:block" : "hidden"
+        }`}
+      >
         <Boxscore
           gamePk={gamePk}
           awayAbbr={awayAbbr}
@@ -465,7 +467,7 @@ export function PlayByPlay({
     >
       <div className="flex-1 h-full flex flex-col overflow-hidden">
         <Card className="flex flex-col w-full h-full rounded-none overflow-scroll border-t-0">
-          <div className="w-[200px] h-fit text-slate-50 bg-slate-900/95 rounded-2xl rounded-t-none dark:bg-slate-50/95 dark:text-black">
+          <div className="w-[175px] h-fit text-slate-50 bg-slate-900 rounded-2xl rounded-t-none dark:bg-slate-50/95 dark:text-black">
             <h1 className="text-xl text-center">Play-by-Play</h1>
           </div>
           <div className="flex-shrink-0 p-2">
@@ -493,13 +495,12 @@ export function PlayByPlay({
           </div>
           <CardContent className="min-h-0 flex-1 flex flex-col space-y-3">
             {/* Fixed content section */}
-            <div
-              className={`flex-shrink-0 ${tab === "pbp" ? "block" : "hidden"}`}
-            >
+            <div className={`flex-shrink-0 `}>
               <ScoreBug
                 header={header ?? h}
                 gamePk={parseInt(id ?? "0")}
                 status={bucket}
+                showBoxscore={tab === "pbp"}
               />
               <Separator className="my-2" />
             </div>
@@ -544,17 +545,18 @@ export function PlayByPlay({
             </div>
 
             {/* Scrollable content section */}
-            <div className="flex-1 min-h-0 w-full overflow-x-hidden">
+            <div className="flex-1 min-h-max w-full overflow-x-auto">
               <Tabs
                 value={tab}
                 onValueChange={(e) => setTab(e as PBPTabs)}
-                className="flex-1 min-h-0"
+                className="flex-1 min-h-max"
               >
+                {/* //ANCHOR - Play by Play */}
                 <TabsContent
                   value="pbp"
-                  className="flex-1 min-h-0 mt-0 p-0 flex flex-col items-center"
+                  className="flex-1 min-h-max min-w-max mt-0 p-0 flex flex-col items-center"
                 >
-                  <div className="min-h-full w-full overflow-x-auto rounded-md border">
+                  <div className="min-h-max min-w-max rounded-md">
                     <div className="p-3 min-h-full min-w-max">
                       {groupByInning ? (
                         <Accordion
@@ -563,7 +565,6 @@ export function PlayByPlay({
                             [&>div:nth-child(even)_button>div]:bg-blue-100/40"
                           value={openPbpItem}
                           onValueChange={setOpenPbpItem}
-                          collapsible
                         >
                           {grouped.map(({ key, plays }) => {
                             const title = formatTitle(key);
@@ -594,7 +595,7 @@ export function PlayByPlay({
                                 </TableHead>
                               </TableRow>
                             </TableHeader>
-                            <TableBody className="min-h-full min-w-full overflow-auto">
+                            <TableBody className="min-h-full min-w-full">
                               {filtered.map((p) => (
                                 <PlayRow
                                   key={p.id}
@@ -610,6 +611,7 @@ export function PlayByPlay({
                   </div>
                 </TabsContent>
 
+                {/* //ANCHOR - Lineups */}
                 <TabsContent value="lineups" className="min-h-full h-full mt-0">
                   <div className="min-h-full flex flex-col">
                     <div className="flex-shrink-0 mb-4">
@@ -631,31 +633,29 @@ export function PlayByPlay({
                       </Tabs>
                     </div>
 
-                    <div className="min-h-full rounded-md border">
-                      <ScrollArea className="min-h-full">
-                        <div className="p-4 space-y-6 min-h-full">
-                          <div className="min-h-full">
-                            <p className="font-semibold mb-2">Batting</p>
-                            <div className="rounded-md border">
-                              <Table className="min-h-full">
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead>Player</TableHead>
-                                    <TableHead>AB</TableHead>
-                                    <TableHead>R</TableHead>
-                                    <TableHead>H</TableHead>
-                                    <TableHead>BB</TableHead>
-                                    <TableHead>RBI</TableHead>
-                                    <TableHead>HR</TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody className="min-h-full">
-                                  {boxscore &&
-                                  boxscore.teams[lineupsTab] &&
-                                  boxscore.teams[lineupsTab].battingOrder ? (
-                                    boxscore?.teams[
-                                      lineupsTab
-                                    ].battingOrder.map((id) => {
+                    <div className="min-h-full mb-4">
+                      <ScrollArea className="min-h-full space-x-2">
+                        <div className="min-h-full min-w-max my-4">
+                          <p className="font-semibold mb-2">Batting</p>
+                          <div className="rounded-md min-w-max">
+                            <Table className="min-h-full min-w-max px-4">
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Player</TableHead>
+                                  <TableHead>AB</TableHead>
+                                  <TableHead>R</TableHead>
+                                  <TableHead>H</TableHead>
+                                  <TableHead>BB</TableHead>
+                                  <TableHead>RBI</TableHead>
+                                  <TableHead>HR</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody className="min-h-full min-w-max px-4">
+                                {boxscore &&
+                                boxscore.teams[lineupsTab] &&
+                                boxscore.teams[lineupsTab].battingOrder ? (
+                                  boxscore?.teams[lineupsTab].battingOrder.map(
+                                    (id) => {
                                       const player =
                                         boxscore!.teams[lineupsTab].players[
                                           `ID${id}` as PlayerIdKey
@@ -703,100 +703,100 @@ export function PlayByPlay({
                                           </TableCell>
                                         </TableRow>
                                       );
-                                    })
-                                  ) : (
-                                    <TableRow>
-                                      <TableCell colSpan={7}>No data</TableCell>
-                                    </TableRow>
-                                  )}
-                                </TableBody>
-                              </Table>
-                            </div>
-                          </div>
-
-                          <div className="min-h-full m-0">
-                            <p className="font-semibold mb-2">Pitching</p>
-                            <div className="rounded-md border min-h-full">
-                              <Table className="h-36 overflow-auto">
-                                <TableHeader>
+                                    }
+                                  )
+                                ) : (
                                   <TableRow>
-                                    <TableHead>Player</TableHead>
-                                    <TableHead>IP</TableHead>
-                                    <TableHead>H</TableHead>
-                                    <TableHead>ER</TableHead>
-                                    <TableHead>BB</TableHead>
-                                    <TableHead>SO</TableHead>
+                                    <TableCell colSpan={7}>No data</TableCell>
                                   </TableRow>
-                                </TableHeader>
-                                <TableBody className="min-h-full">
-                                  {boxscore &&
-                                  boxscore.teams[lineupsTab] &&
-                                  boxscore.teams[lineupsTab].pitchers ? (
-                                    boxscore.teams[lineupsTab].pitchers.map(
-                                      (id) => {
-                                        const player =
-                                          boxscore!.teams[lineupsTab].players[
-                                            `ID${id}` as PlayerIdKey
-                                          ];
-
-                                        return (
-                                          <TableRow
-                                            key={id}
-                                            className="min-h-full"
-                                          >
-                                            <TableCell>
-                                              <div className="flex gap-3">
-                                                <div>{player.jerseyNumber}</div>
-                                                <div>
-                                                  {player.person.boxscoreName}
-                                                </div>
-                                                <div>
-                                                  &nbsp;·&nbsp;
-                                                  {player.position.abbreviation}
-                                                </div>
-                                              </div>
-                                            </TableCell>
-                                            <TableCell>
-                                              {
-                                                player.stats.pitching
-                                                  .inningsPitched
-                                              }
-                                            </TableCell>
-                                            <TableCell>
-                                              {player.stats.pitching.hits}
-                                            </TableCell>
-                                            <TableCell>
-                                              {player.stats.pitching.earnedRuns}
-                                            </TableCell>
-                                            <TableCell>
-                                              {
-                                                player.stats.pitching
-                                                  .baseOnBalls
-                                              }
-                                            </TableCell>
-                                            <TableCell>
-                                              {player.stats.pitching.strikeOuts}
-                                            </TableCell>
-                                          </TableRow>
-                                        );
-                                      }
-                                    )
-                                  ) : (
-                                    <TableRow>
-                                      <TableCell colSpan={6}>No data</TableCell>
-                                    </TableRow>
-                                  )}
-                                </TableBody>
-                              </Table>
-                            </div>
+                                )}
+                              </TableBody>
+                            </Table>
                           </div>
                         </div>
+
+                        <div className="min-h-full min-w-max">
+                          <p className="font-semibold mb-2">Pitching</p>
+                          <div className="rounded-md min-h-full">
+                            <Table className="h-36 overflow-auto">
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Player</TableHead>
+                                  <TableHead>IP</TableHead>
+                                  <TableHead>H</TableHead>
+                                  <TableHead>ER</TableHead>
+                                  <TableHead>BB</TableHead>
+                                  <TableHead>SO</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody className="min-h-full">
+                                {boxscore &&
+                                boxscore.teams[lineupsTab] &&
+                                boxscore.teams[lineupsTab].pitchers ? (
+                                  boxscore.teams[lineupsTab].pitchers.map(
+                                    (id) => {
+                                      const player =
+                                        boxscore!.teams[lineupsTab].players[
+                                          `ID${id}` as PlayerIdKey
+                                        ];
+
+                                      return (
+                                        <TableRow
+                                          key={id}
+                                          className="min-h-full"
+                                        >
+                                          <TableCell>
+                                            <div className="flex gap-3">
+                                              <div>{player.jerseyNumber}</div>
+                                              <div>
+                                                {player.person.boxscoreName}
+                                              </div>
+                                              <div>
+                                                &nbsp;·&nbsp;
+                                                {player.position.abbreviation}
+                                              </div>
+                                            </div>
+                                          </TableCell>
+                                          <TableCell>
+                                            {
+                                              player.stats.pitching
+                                                .inningsPitched
+                                            }
+                                          </TableCell>
+                                          <TableCell>
+                                            {player.stats.pitching.hits}
+                                          </TableCell>
+                                          <TableCell>
+                                            {player.stats.pitching.earnedRuns}
+                                          </TableCell>
+                                          <TableCell>
+                                            {player.stats.pitching.baseOnBalls}
+                                          </TableCell>
+                                          <TableCell>
+                                            {player.stats.pitching.strikeOuts}
+                                          </TableCell>
+                                        </TableRow>
+                                      );
+                                    }
+                                  )
+                                ) : (
+                                  <TableRow>
+                                    <TableCell colSpan={6}>No data</TableCell>
+                                  </TableRow>
+                                )}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </div>
+
+                        <ScrollBar></ScrollBar>
                       </ScrollArea>
                     </div>
                   </div>
                 </TabsContent>
 
-                <TabsContent value="highlights" className={`h-full mt-0`}>
+                {/* //ANCHOR - Media */}
+                <TabsContent value="highlights" className={`min-h-max mt-2`}>
                   <div className="h-full flex flex-col items-center justify-center rounded-md">
                     {hideVideoHighlights ? (
                       <ImageCarousel
@@ -824,7 +824,7 @@ export function PlayByPlay({
                         preload={"true"}
                         autoPlay={true}
                         loop={true}
-                        className={`rounded-md min-w-[150px] max-w-[60%] px-4 sm:mt-12 lg:max-w-50% ${
+                        className={`rounded-md min-w-[150px] max-w-[90%] px-4 mt-12 md:max-w-60% md:mt-0 ${
                           hideHighlights ? "hidden" : "block"
                         }`}
                       >

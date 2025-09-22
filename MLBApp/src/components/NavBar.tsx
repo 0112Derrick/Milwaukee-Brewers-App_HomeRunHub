@@ -78,7 +78,9 @@ const MobileMenu = ({
       >
         <div className="flex h-full flex-col gap-6">
           <div className="flex items-center justify-between">
-            <span className="text-lg font-semibold text-white">Menu</span>
+            <span className="text-lg font-semibold text-white">
+              Home Run Hub
+            </span>
             <HamburgerButton open={open} onToggle={() => setOpen(false)} />
           </div>
 
@@ -191,11 +193,13 @@ const NavBar = ({
             src={process.env.PUBLIC_URL + "/images/baseballAppLogo.webp"}
             alt="Home Run Hub Logo"
           />
-          <span className="cursor-pointer hover:text-white">Home Run Hub</span>
+          <span className="cursor-pointer hover:text-white invisible md:visible">
+            Home Run Hub
+          </span>
         </div>
 
         <div className="flex items-center justify-center">
-          <DropdownSearch items={teams}></DropdownSearch>
+          <DropdownSearch items={teams} />
 
           {/* Desktop actions */}
           <div className="hidden gap-2 lg:flex">
