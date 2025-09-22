@@ -40,7 +40,8 @@ export type TypeCode =
   | "OUT"
   | "SE"
   | "DES"
-  | "OPT";
+  | "OPT"
+  | "NUM";
 
 export type TypeDesc =
   | string
@@ -54,4 +55,5 @@ export type TypeDesc =
   | "Outrighted"
   | "Selected"
   | "Designated for Assignment"
-  | "Optioned";
+  | "Optioned"
+  | "Number change";

@@ -8,7 +8,12 @@ import {
 import { TeamPages, TeamRecord } from "src/interfaces/teams.types";
 import { Link } from "react-router-dom";
 import { DateRange } from "src/interfaces/generated.game-content.types";
-import { ArrowUpDown, ArrowBigDownIcon, ArrowBigUpIcon } from "lucide-react";
+import {
+  ArrowUpDown,
+  ArrowBigDownIcon,
+  ArrowBigUpIcon,
+  ArrowRightIcon,
+} from "lucide-react";
 import { Button } from "src/@/components/ui/button";
 import { teamLogoUrl } from "src/utils/utils";
 import { TeamLogoName } from "src/components/TeamLogoName";
@@ -240,6 +245,10 @@ export const rosterColumns: ColumnDef<Player>[] = [
 ];
 export const transactionsColumns: ColumnDef<Transaction>[] = [
   {
+    accessorKey: "effectiveDate",
+    header: "Date",
+  },
+  {
     accessorKey: "person.fullName",
     header: "Name",
     cell: ({ row }) => {
@@ -255,24 +264,38 @@ export const transactionsColumns: ColumnDef<Transaction>[] = [
     },
   },
   {
-    accessorKey: "effectiveDate",
-    header: "Date",
-  },
-  {
     accessorKey: "typeDesc",
     header: "Status",
   },
   {
-    accessorKey: "description",
-    header: "Description",
-  },
-  {
     accessorKey: "fromTeam.name",
-    header: "From-Team",
+    header: "Team",
+    cell: ({ row }) => {
+      if (row.original.fromTeam) {
+        return (
+          <div className="flex justify-center items-center">
+            {row.original.fromTeam.name}{" "}
+            <ArrowRightIcon className="w-4 aspect-square" />{" "}
+            {row.original.toTeam.name}
+          </div>
+        );
+      } else {
+        return <div>{row.original.toTeam.name}</div>;
+      }
+    },
   },
   {
-    accessorKey: "toTeam.name",
-    header: "To-Team",
+    accessorKey: "description",
+    header: () => {
+      return <div className="text-left md:text-center">Description</div>;
+    },
+    cell: ({ row }) => {
+      return (
+        <div className="text-left max-w-[40%] text-wrap md:max-w-full md:text-center">
+          {row.original.description}
+        </div>
+      );
+    },
   },
 ];
 

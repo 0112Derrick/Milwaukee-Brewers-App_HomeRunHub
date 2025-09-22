@@ -162,7 +162,9 @@ export default function TeamPage() {
           if (!resp || resp.status !== 200)
             throw new Error("Unable to get transactions record.");
           setError(null);
-          const transactions: Transaction[] = [...resp.data.transactions];
+          let transactions: Transaction[] = [...resp.data.transactions];
+          //filter out number changes.
+          transactions = transactions.filter((tr) => tr.typeCode !== "NUM");
           setTransactions(transactions);
         }
       } catch (e: any) {
@@ -186,7 +188,7 @@ export default function TeamPage() {
           <SeasonPicker season={season} setSeason={setSeason}></SeasonPicker>
 
           {/* Pills */}
-          <ScrollArea className="w-[70%]">
+          <ScrollArea className="w-[70%] py-4">
             <div className="flex gap-2">
               {[
                 ["Description", TeamPages.Description],
@@ -266,7 +268,7 @@ export default function TeamPage() {
               />
 
               <div className="flex flex-col items-center bg-inherit/5 text-primary text-center px-4 py-8 sm:p-8 rounded-lg shadow-lg">
-                <h1 className="text-4xl md:text-2xl py-4">
+                <h1 className="text-2xl md:text-4xl py-4">
                   <span
                     className="shadow-md rounded-md p-1"
                     style={{

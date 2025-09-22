@@ -251,7 +251,7 @@ export function DataTable<TData, TValue>({
                 className="even:bg-slate-200/20 hover:bg-slate-300/25"
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell key={cell.id} className="">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
