@@ -33,9 +33,18 @@ import {
 import { StatsTable } from "./Table"; // (uses your splitColumns)
 
 // ---------- Types from your API ----------
-import type { Person, StatElement } from "../interfaces/generated.player.types";
-import { formatYYYYMMDD, parseYMDLocal } from "../utils/utils";
+import type {
+  Person,
+  Split,
+  StatElement,
+} from "../interfaces/generated.player.types";
+import {
+  capitalizeFirstLetter,
+  formatYYYYMMDD,
+  parseYMDLocal,
+} from "../utils/utils";
 import { buildSplitColumnsFromData } from "src/data/columnDefs";
+import { ScrollArea, ScrollBar } from "src/@/components/ui/scroll-area";
 
 // ---------- Small utils ----------
 function headshotUrl(personId: number, res: 67 | 100 | 200 = 200) {
@@ -51,6 +60,36 @@ function initials(name: string) {
     .slice(0, 2)
     .toUpperCase();
 }
+
+const InnerNav = ({
+  groups,
+}: {
+  groups: {
+    key: string;
+    label: string;
+    splits: Split[];
+  }[];
+}) => {
+  return (
+    <div className="">
+      {/* Pills */}
+      <ScrollArea>
+        <TabsList className="flex py-4 min-h-0 h-[50px] gap-2 bg-background border-y-2 border-primary rounded-none">
+          {groups.map((g) => (
+            <TabsTrigger
+              key={g.key}
+              value={g.key}
+              className="min-h-0 rounded-full text-primary bg-accent border-blue-300 hover:bg-accent-foreground hover:text-secondary hover:shadow-md"
+            >
+              {capitalizeFirstLetter(g.label)}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
+    </div>
+  );
+};
 
 // ---------- Small UI atoms ----------
 function Fact({
@@ -109,7 +148,7 @@ function PlayerHeader({ p }: { p: Person }) {
           {number && (
             <span className="inline-flex items-center gap-1 text-sm">
               <Hash className="h-3.5 w-3.5" />
-              {number}
+              {number.replace("#", "")}
             </span>
           )}
           <Chip>{pos || "—"}</Chip>
@@ -177,13 +216,7 @@ function PlayerStatsTabs({ stats }: { stats: StatElement[] }) {
 
   return (
     <Tabs defaultValue={first} className="w-full">
-      <TabsList className="flex w-full flex-wrap justify-start gap-2">
-        {groups.map((g) => (
-          <TabsTrigger key={g.key} value={g.key} className="px-3">
-            {g.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+      <InnerNav groups={groups} />
 
       {groups.map((g) => {
         // 🔑 Build the columns from the data in THIS tab
@@ -194,7 +227,7 @@ function PlayerStatsTabs({ stats }: { stats: StatElement[] }) {
             value={g.key}
             className="mt-4 overflow-hidden"
           >
-            <div className="rounded-md border overflow-hidden">
+            <div className="rounded-md overflow-hidden">
               {/* keep your existing StatsTable behavior */}
               <StatsTable data={g.splits} columnDefs={cols} />
             </div>
