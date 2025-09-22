@@ -182,7 +182,7 @@ export const BaseballField = forwardRef<
     <div
       className={`relative ${
         props.displayField ? "block" : "hidden"
-      } block w-full max-w-sm bg-emerald-900/40 border self-center aspect-square md:max-w-md lg:self-auto `}
+      } block w-full max-h-[300px] bg-emerald-900/40 border aspect-square lg:max-h-none lg:max-w-md lg:self-auto `}
     >
       <div className="absolute inset-0 grid place-items-center">
         <svg viewBox="0 0 100 100" className="w-4/5 h-4/5">
