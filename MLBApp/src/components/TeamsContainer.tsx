@@ -5,11 +5,13 @@ import { MlbTeamDataModifiedI } from "src/interfaces/teams.types";
 import axios from "axios";
 import DOMPurify from "dompurify";
 import TeamsFilterSearchBar from "./TeamsFilterSearchBar";
-import TeamFilterRadioButtons from "./TeamFilterRadioButtons";
+import LeagueAndDivisionFilterInputs from "./TeamFilterRadioButtons";
 import { Button } from "src/@/components/ui/button";
 import ErrorPage from "src/pages/ErrorPage";
 import SkeletonCard from "./SkeletonCard";
 import { getTeamsResp } from "src/repository/teams";
+import { Division, League } from "src/interfaces/interfaces";
+import { Label } from "src/@/components/ui/label";
 
 export function TeamsContainer({
   teamSectionRef,
@@ -18,17 +20,18 @@ export function TeamsContainer({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [inputSearch, setInputSearch] = useState("");
+  const [inputItemsPerPage, setInputItemsPerPage] = useState(9);
   const debouncedSearch = useDebounce<string>(inputSearch, 500);
-  const [league, setLeague] = useState("any");
-  const [division, setDivision] = useState("any");
+  const debouncedItemsPerPage = useDebounce<number>(inputItemsPerPage, 500);
+  const [league, setLeague] = useState<League>(League.ANY);
+  const [division, setDivision] = useState<Division>(Division.ANY);
 
   const [teams, setTeams] = useState<MlbTeamDataModifiedI[]>([]);
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [start, setStart] = useState<number>(0);
-
-  const itemsPerPage = 9;
-  let maxNumberOfTeams = 30;
+  const [maxNumberOfTeams, setMaxNumberOfTeams] = useState<number>(30);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(9);
 
   const ac = new AbortController();
   // Fetch teams from the server.
@@ -47,7 +50,8 @@ export function TeamsContainer({
         division
       );
 
-      setTeams(resp);
+      setTeams(resp.teams);
+      setMaxNumberOfTeams(resp.totalTeams);
 
       if (searchTerm) {
         setStart(0);
@@ -72,10 +76,23 @@ export function TeamsContainer({
   };
 
   useEffect(() => {
+    if (league !== League.ANY || division !== Division.ANY) setStart(0);
     fetchTeams();
-  }, [searchTerm, start, league, division]);
+  }, [division, league]);
 
-  // Delays the fetch operation by 500ms after the user stops typing to avoid excessive API calls (Live search)
+  useEffect(() => {
+    if (debouncedItemsPerPage !== itemsPerPage) {
+      const currentPage = Math.floor(start / itemsPerPage);
+      setItemsPerPage(debouncedItemsPerPage);
+
+      setStart(currentPage * debouncedItemsPerPage);
+    }
+  }, [debouncedItemsPerPage]);
+
+  useEffect(() => {
+    fetchTeams();
+  }, [searchTerm, start, itemsPerPage]);
+
   useEffect(() => {
     if (debouncedSearch !== searchTerm) {
       setSearchTerm(debouncedSearch);
@@ -85,16 +102,6 @@ export function TeamsContainer({
   const handleSearchChange = (e: any) => {
     let sanitizedSearchInput = DOMPurify.sanitize(e.target.value);
     setInputSearch(sanitizedSearchInput);
-  };
-
-  // Handles league or division filter changes and triggers a fetch with the new filters
-  const handleFilterChange = (e: any) => {
-    const { name, value } = e.target;
-    if (name === "league") {
-      setLeague(value);
-    } else if (name === "division") {
-      setDivision(value);
-    }
   };
 
   // Loads the previous page of teams, ensuring the start index does not go below zero
@@ -131,12 +138,28 @@ export function TeamsContainer({
             handleSearchChange={handleSearchChange}
             searchTerm={inputSearch}
           ></TeamsFilterSearchBar>
-
-          <TeamFilterRadioButtons
-            league={league}
-            division={division}
-            handleFilterChange={handleFilterChange}
-          ></TeamFilterRadioButtons>
+          <div className="flex flex-row items-center justify-end gap-4">
+            <div className="flex flex-col gap-3 items-start justify-center">
+              <Label>Items per page</Label>
+              <input
+                type="number"
+                min={1}
+                max={30}
+                defaultValue={itemsPerPage}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  setInputItemsPerPage(val);
+                }}
+                className="p-2 ring-1 border-none bg-inherit outline-none w-20 h-6 rounded-md cursor-pointer"
+              ></input>
+            </div>
+            <LeagueAndDivisionFilterInputs
+              league={league}
+              division={division}
+              setDivision={setDivision}
+              setLeague={setLeague}
+            ></LeagueAndDivisionFilterInputs>
+          </div>
 
           <div ref={teamSectionRef}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-items-center gap-4">
@@ -191,11 +214,28 @@ export function TeamsContainer({
           handleSearchChange={handleSearchChange}
           searchTerm={searchTerm}
         ></TeamsFilterSearchBar>
-        <TeamFilterRadioButtons
-          league={league}
-          division={division}
-          handleFilterChange={handleFilterChange}
-        ></TeamFilterRadioButtons>
+        <div className="flex flex-row items-center justify-end gap-4">
+          <div className="flex flex-col gap-3 items-start justify-center">
+            <Label>Items per page</Label>
+            <input
+              type="number"
+              min={1}
+              max={30}
+              defaultValue={itemsPerPage}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                setInputItemsPerPage(val);
+              }}
+              className="p-2 ring-1 border-none bg-inherit outline-none w-20 h-6 rounded-md cursor-pointer"
+            ></input>
+          </div>
+          <LeagueAndDivisionFilterInputs
+            league={league}
+            division={division}
+            setDivision={setDivision}
+            setLeague={setLeague}
+          ></LeagueAndDivisionFilterInputs>
+        </div>
 
         <ErrorPage pageError={error}></ErrorPage>
 
@@ -234,11 +274,28 @@ export function TeamsContainer({
           searchTerm={inputSearch}
         ></TeamsFilterSearchBar>
 
-        <TeamFilterRadioButtons
-          league={league}
-          division={division}
-          handleFilterChange={handleFilterChange}
-        ></TeamFilterRadioButtons>
+        <div className="flex flex-row flex-wrap items-center justify-end gap-4">
+          <div className="flex flex-col gap-3 items-start justify-center">
+            <Label>Items per page</Label>
+            <input
+              type="number"
+              min={1}
+              max={30}
+              defaultValue={itemsPerPage}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                setInputItemsPerPage(val);
+              }}
+              className="p-2 ring-1 border-none bg-inherit outline-none w-20 h-6 rounded-md cursor-pointer"
+            ></input>
+          </div>
+          <LeagueAndDivisionFilterInputs
+            league={league}
+            division={division}
+            setDivision={setDivision}
+            setLeague={setLeague}
+          ></LeagueAndDivisionFilterInputs>
+        </div>
 
         <div>
           {teams.length ? (
