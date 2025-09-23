@@ -1,5 +1,6 @@
 import {
   BoxscoreResponse,
+  LiveFeedResponse,
   PlayByPlayResponse,
 } from "src/interfaces/interfaces";
 import { api } from "src/utils/axios";
@@ -71,7 +72,7 @@ export async function getLinescoreResp(ac: AbortController, gamePk: number) {
       return;
     }
 
-    const resp = await api.post<any>(
+    const resp = await api.post<LiveFeedResponse>(
       endpoint,
       {
         gamePk,

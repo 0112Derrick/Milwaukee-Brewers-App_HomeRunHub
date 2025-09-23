@@ -131,12 +131,7 @@ export function ScoreBug({
           showBoxscore ? "hidden md:block" : "hidden"
         }`}
       >
-        <Boxscore
-          gamePk={gamePk}
-          awayAbbr={awayAbbr}
-          homeAbbr={homeAbbr}
-          gameStatus={status}
-        ></Boxscore>
+        <Boxscore gamePk={gamePk} gameStatus={status}></Boxscore>
       </div>
     </div>
   );
@@ -346,7 +341,7 @@ export function PlayByPlay({
         const scoreTick = async () => {
           try {
             const pk = currentGame.gamePk;
-            const dt = currentGame.gameDate;
+            const dt = date;
             const [pbpResp, boxScoreResp] = await Promise.all([
               getPlayByPlayResp(ac, pk, dt),
               getBoxscoreResp(ac, pk, dt),
@@ -614,7 +609,7 @@ export function PlayByPlay({
                     </div>
                   ) : (
                     <div className="flex flex-col items-center mt-4">
-                      <p className="font-bold">Game has not started</p>
+                      <p className="font-bold">No data found.</p>
                     </div>
                   )}
                 </TabsContent>

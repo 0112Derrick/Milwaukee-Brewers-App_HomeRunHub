@@ -1101,32 +1101,32 @@ export interface LiveFeedResponse {
         }[];
         playEvents: {
           details: {
-            description: "Status Change - Pre-Game";
-            event: "Game Advisory";
-            eventType: "game_advisory";
-            awayScore: 0;
-            homeScore: 0;
-            isScoringPlay: false;
-            isOut: false;
-            hasReview: false;
+            description: string;
+            event: string;
+            eventType: string;
+            awayScore: number;
+            homeScore: number;
+            isScoringPlay: boolean;
+            isOut: boolean;
+            hasReview: boolean;
           };
           count: {
-            balls: 0;
-            strikes: 0;
-            outs: 0;
+            balls: number;
+            strikes: number;
+            outs: number;
           };
-          index: 0;
-          startTime: "2025-08-08T20:51:25.833Z";
-          endTime: "2025-08-08T23:43:11.680Z";
+          index: number;
+          startTime: string; //ISO string
+          endTime: string; //ISO string
           isPitch: false;
-          type: "action";
+          type: string;
           player: {
-            id: 596019;
-            link: "/api/v1/people/596019";
+            id: number;
+            link: string;
           };
         }[];
-        playEndTime: "2025-08-09T00:11:55.265Z";
-        atBatIndex: 0;
+        playEndTime: string; //ISO string
+        atBatIndex: number;
       };
       currentPlay: {
         result: {
@@ -1374,7 +1374,7 @@ export interface LiveFeedResponse {
       outs: number;
     };
     boxscore: {
-      teams: object;
+      teams: { home: LiveFeedTeam; away: LiveFeedTeam };
       officials: { officials: idNameLink2; officialType: string }[];
       info: any[];
       pitchingNotes: any[];
@@ -1401,3 +1401,41 @@ interface zoneColorTempValue {
 }
 
 export type Theme = "light" | "dark";
+
+interface LiveFeedTeam {
+  team: {
+    springLeague: {
+      id: number;
+      name: string;
+      link: string;
+      abbreviation: string;
+    };
+    allStarStatus: string;
+    id: number;
+    name: string;
+    link: string;
+  };
+  teamStats: BoxscoreTeamStats;
+  players: BoxscorePlayersMap;
+  batters: number[];
+  pitchers: number[];
+  bench: number[];
+  bullpen: number[];
+  battingOrder: number[];
+  info: [
+    {
+      title: string;
+      fieldList: LV[];
+    },
+    {
+      title: string;
+      fieldList: LV[];
+    }
+  ];
+  note: [];
+}
+
+interface LV {
+  label: string;
+  value: string;
+}

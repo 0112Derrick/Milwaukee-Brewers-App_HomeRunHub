@@ -17,12 +17,8 @@ type InningRow = { inning: number; away?: number; home?: number };
 export function Boxscore({
   gamePk,
   gameStatus,
-  homeAbbr,
-  awayAbbr,
 }: {
   gamePk: number;
-  homeAbbr?: string;
-  awayAbbr?: string;
   gameStatus: GameStatusBucket;
 }) {
   const [inningsData, setInningsData] = useState<InningRow[]>([]);
@@ -41,11 +37,29 @@ export function Boxscore({
     async function fetchBoxscore() {
       try {
         const resp = await getLinescoreResp(ac, gamePk);
-        if (!resp) {
+        if (!resp || resp.status !== 200) {
           return;
         }
 
-        if (resp.status !== 200) return;
+        const homeName = resp.data.liveData.boxscore.teams.home.team.name ?? "";
+        const awayName = resp.data.liveData.boxscore.teams.away.team.name ?? "";
+
+        let homeAbbr = "HOM";
+        let awayAbbr = "AWY";
+
+        const hSplit = homeName.split(" ");
+        const aSplit = awayName.split(" ");
+        if (hSplit.length > 1) {
+          homeAbbr = hSplit[hSplit.length - 1] ?? "HOM";
+        } else {
+          homeAbbr = hSplit[0] ?? "HOM";
+        }
+
+        if (aSplit.length > 1) {
+          awayAbbr = aSplit[aSplit.length - 1] ?? "AWY";
+        } else {
+          awayAbbr = aSplit[0] ?? "AWY";
+        }
 
         const ls = resp.data?.liveData?.linescore;
         const homeRuns = ls?.teams?.home?.runs;
@@ -70,13 +84,13 @@ export function Boxscore({
             R: ls?.teams?.away?.runs ?? 0,
             H: ls?.teams?.away?.hits ?? 0,
             E: ls?.teams?.away?.errors ?? 0,
-            abbr: awayAbbr ?? "AWY",
+            abbr: awayAbbr,
           },
           home: {
             R: ls?.teams?.home?.runs ?? 0,
             H: ls?.teams?.home?.hits ?? 0,
             E: ls?.teams?.home?.errors ?? 0,
-            abbr: homeAbbr ?? "HOM",
+            abbr: homeAbbr,
           },
         };
 
