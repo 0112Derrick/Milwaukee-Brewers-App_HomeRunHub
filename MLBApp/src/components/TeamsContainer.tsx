@@ -138,7 +138,8 @@ export function TeamsContainer({
             handleSearchChange={handleSearchChange}
             searchTerm={inputSearch}
           ></TeamsFilterSearchBar>
-          <div className="flex flex-row items-center justify-end gap-4">
+
+          <div className="flex flex-row flex-wrap items-center justify-end gap-4">
             <div className="flex flex-col gap-3 items-start justify-center">
               <Label>Items per page</Label>
               <input
@@ -259,6 +260,15 @@ export function TeamsContainer({
     );
   }
 
+  let startPageNumb = Math.min(
+    Math.max(1, Math.floor(start / itemsPerPage) + 1),
+    Math.max(1, Math.ceil(maxNumberOfTeams / itemsPerPage))
+  );
+
+  if (isNaN(startPageNumb)) {
+    startPageNumb = 1;
+  }
+
   return (
     <div>
       <div className="flex-1 min-h-0 flex flex-col py-2 overflow-auto">
@@ -317,12 +327,8 @@ export function TeamsContainer({
         </Button>
 
         <div className="text-muted-foreground">
-          Page:{" "}
-          {Math.min(
-            Math.max(1, Math.floor(start / itemsPerPage) + 1),
-            Math.max(1, Math.ceil(maxNumberOfTeams / itemsPerPage))
-          )}{" "}
-          of {Math.max(1, Math.ceil(maxNumberOfTeams / itemsPerPage))}
+          Page: {startPageNumb} of{" "}
+          {Math.max(1, Math.ceil(maxNumberOfTeams / itemsPerPage))}
         </div>
 
         <Button
