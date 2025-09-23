@@ -7,9 +7,15 @@ export enum MlbDivisionsEnum {
   NationalLeagueCentral = 205,
 }
 
-export enum DivisionsEnum {
-  WEST = 1,
-  EAST = 2,
-  CENTRAL = 3,
-  All = 0,
+export enum DivisionEnum {
+  ANY,
+  WEST,
+  EAST,
+  CENTRAL,
+}
+
+export enum LeagueEnum {
+  ANY = 105,
+  AMERICAN = 103,
+  NATIONAL = 104,
 }

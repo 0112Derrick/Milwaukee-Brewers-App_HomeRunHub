@@ -27,6 +27,7 @@ import {
   fetchPlayer,
   fetchTransactions,
 } from "./services/roster.js";
+import { DivisionEnum, LeagueEnum } from "./interfaces/enums.js";
 
 const __filenameResolved = fileURLToPath(import.meta.url);
 const __dirnameResolved = path.dirname(__filenameResolved);
@@ -105,14 +106,20 @@ export class Server {
       let version =
         req.query.version !== undefined ? String(req.query.version) : "v1";
 
-      let league =
+      const parsedLeague = parseInt(req.query.league);
+      let league: LeagueEnum =
         req.query.league !== undefined
-          ? String(req.query.league).toLowerCase()
+          ? !isNaN(parsedLeague)
+            ? parsedLeague
+            : null
           : null;
 
-      let division =
+      const parsedDivision = parseInt(req.query.division);
+      let division: DivisionEnum =
         req.query.division !== undefined
-          ? String(req.query.division).toLowerCase()
+          ? !isNaN(parsedDivision)
+            ? parsedDivision
+            : null
           : null;
 
       let id = req.query.id !== undefined ? parseInt(String(req.query.id)) : 0;
@@ -127,15 +134,19 @@ export class Server {
           ? String(req.query.location).toLowerCase()
           : null;
 
-      if (league != null && league != "american" && league != "national") {
+      if (
+        league != null &&
+        league !== LeagueEnum.AMERICAN &&
+        league !== LeagueEnum.NATIONAL
+      ) {
         league = null;
       }
 
       if (
         division != null &&
-        division != "east" &&
-        division != "central" &&
-        division != "west"
+        division != DivisionEnum.CENTRAL &&
+        division != DivisionEnum.EAST &&
+        division != DivisionEnum.WEST
       ) {
         division = null;
       }
@@ -165,10 +176,8 @@ export class Server {
 
         if (version == "v1" || version == "") {
           let filteredTeams: MlbTeamApp[] = mlbTeams.filter((team) => {
-            let matchesLeague =
-              !league || team.league.toLowerCase().includes(league);
-            let matchesDivision =
-              !division || team.division.toLowerCase().includes(division);
+            let matchesLeague = !league || team.leagueId == league;
+            let matchesDivision = !division || team.divisionId == division;
             let matchesLocation =
               !location || team.location.toLowerCase().includes(location);
             let matchesId = id === 0 || team.id === id;
@@ -192,18 +201,21 @@ export class Server {
 
           //Removes duplicate teams
           filteredTeams = Array.from(new Set(filteredTeams));
+          const maxTeamsLen = filteredTeams.length;
 
           paginatedTeams = filteredTeams.slice(start, start + limit);
 
           res.status(200).json({
             teams: paginatedTeams,
             options: this.apiEndpoints,
+            maxLen: maxTeamsLen,
           });
         } else {
           res.status(404).json({
             message:
               "An unknown version was detected. Please see the options for available versions.",
             options: this.apiEndpoints,
+            maxLen: 0,
           });
         }
       } catch (error) {
@@ -211,6 +223,7 @@ export class Server {
         res.status(500).json({
           message: "Sorry an error occurred while retrieving the teams.",
           options: this.apiEndpoints,
+          maxLen: 0,
         });
       }
     });

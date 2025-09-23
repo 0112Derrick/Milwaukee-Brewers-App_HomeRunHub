@@ -1,3 +1,5 @@
+import { DivisionEnum, LeagueEnum } from "./enums.js";
+
 export enum MLBLeagueIds {
   nationalLeagueId = 104,
   americanLeagueId = 103,
@@ -42,6 +44,8 @@ export type MlbTeamApp = {
   logo: string;
   league: string;
   division: string;
+  leagueId: LeagueEnum;
+  divisionId: DivisionEnum;
 };
 
 export type mlbTeams = Array<MlbTeamApp>;
