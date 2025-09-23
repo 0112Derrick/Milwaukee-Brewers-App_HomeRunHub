@@ -20,9 +20,14 @@ export function TeamsContainer({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [inputSearch, setInputSearch] = useState("");
-  const [inputItemsPerPage, setInputItemsPerPage] = useState(9);
+  const [inputItemsPerPage, setInputItemsPerPage] = useState<
+    number | undefined
+  >(9);
   const debouncedSearch = useDebounce<string>(inputSearch, 500);
-  const debouncedItemsPerPage = useDebounce<number>(inputItemsPerPage, 500);
+  const debouncedItemsPerPage = useDebounce<number>(
+    inputItemsPerPage ?? 9,
+    500
+  );
   const [league, setLeague] = useState<League>(League.ANY);
   const [division, setDivision] = useState<Division>(Division.ANY);
 
@@ -81,13 +86,16 @@ export function TeamsContainer({
   }, [division, league]);
 
   useEffect(() => {
-    if (debouncedItemsPerPage !== itemsPerPage) {
+    if (debouncedItemsPerPage && debouncedItemsPerPage > 0) {
       const currentPage = Math.floor(start / itemsPerPage);
-      setItemsPerPage(debouncedItemsPerPage);
+      const newItemsPerPage = debouncedItemsPerPage;
 
-      setStart(currentPage * debouncedItemsPerPage);
+      setItemsPerPage(newItemsPerPage);
+
+      const newStart = currentPage * newItemsPerPage;
+      setStart(Math.min(newStart, maxNumberOfTeams - newItemsPerPage));
     }
-  }, [debouncedItemsPerPage]);
+  }, [debouncedItemsPerPage, maxNumberOfTeams]);
 
   useEffect(() => {
     fetchTeams();
@@ -106,14 +114,15 @@ export function TeamsContainer({
 
   // Loads the previous page of teams, ensuring the start index does not go below zero
   const handlePreviousPage = () => {
-    setStart(Math.max(0, start - itemsPerPage));
+    setStart((prev) => Math.max(0, prev - itemsPerPage));
   };
 
   // Advances to the next page of teams by increasing the start index by the items per page
   const handleNextPage = () => {
-    setStart(start + itemsPerPage);
+    setStart((prev) =>
+      Math.min(prev + itemsPerPage, maxNumberOfTeams - itemsPerPage)
+    );
   };
-
   const teamsList = teams.map((team) => (
     <TeamCard
       key={team.id}
@@ -291,13 +300,23 @@ export function TeamsContainer({
               type="number"
               min={1}
               max={30}
-              defaultValue={itemsPerPage}
+              value={inputItemsPerPage ?? ""}
               onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
-                setInputItemsPerPage(val);
+                const raw = e.target.value;
+
+                if (raw === "") {
+                  // Allow user to clear the field
+                  setInputItemsPerPage(undefined);
+                  return;
+                }
+
+                const val = parseInt(raw, 10);
+                if (!isNaN(val)) {
+                  setInputItemsPerPage(val);
+                }
               }}
               className="p-2 ring-1 border-none bg-inherit outline-none w-20 h-6 rounded-md cursor-pointer"
-            ></input>
+            />
           </div>
           <LeagueAndDivisionFilterInputs
             league={league}
@@ -332,7 +351,7 @@ export function TeamsContainer({
         </div>
 
         <Button
-          className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 hover:shadow-lg"
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 hover:shadow-lg"
           onClick={handleNextPage}
           disabled={
             teams.length < itemsPerPage ||
