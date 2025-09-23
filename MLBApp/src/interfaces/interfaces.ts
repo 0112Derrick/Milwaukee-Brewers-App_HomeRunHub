@@ -2,6 +2,19 @@ import { ColumnDef } from "@tanstack/react-table";
 import { PlayEvent } from "./baseballField.types";
 import { TeamPerformance2, TeamPerformance } from "./teams.types";
 
+export enum League {
+  ANY = 105,
+  AMERICAN = 103,
+  NATIONAL = 104,
+}
+
+export enum Division {
+  ANY,
+  WEST,
+  EAST,
+  CENTRAL,
+}
+
 export interface Link {
   link: string;
 }

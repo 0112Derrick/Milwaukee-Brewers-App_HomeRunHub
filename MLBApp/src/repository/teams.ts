@@ -1,7 +1,7 @@
 import { mlbTeamsDetails } from "src/data/teamData";
 import { PlayerResponse } from "src/interfaces/generated.player.types";
 import { TransactionsResponse } from "src/interfaces/generated.transactions.types";
-import { RosterResponse } from "src/interfaces/interfaces";
+import { Division, League, RosterResponse } from "src/interfaces/interfaces";
 import {
   MlbTeamDataI,
   MlbTeamDataModifiedI,
@@ -74,9 +74,9 @@ export async function getTeamsResp(
   start: number,
   itemsPerPage: number,
   searchTerm: string = "",
-  league: string = "",
-  division: string = ""
-): Promise<MlbTeamDataModifiedI[]> {
+  league?: League,
+  division?: Division
+): Promise<{ totalTeams: number; teams: MlbTeamDataModifiedI[] }> {
   try {
     // Constructing query parameters based on inputs and pagination.
     let params = `start=${start}&limit=${itemsPerPage}`;
@@ -87,11 +87,11 @@ export async function getTeamsResp(
       params += `&name=${searchTerm}`;
     }
 
-    if (league && typeof league == "string" && league !== "any") {
+    if (league && league !== League.ANY) {
       params += `&league=${league}`;
     }
 
-    if (division && typeof division == "string" && division !== "any") {
+    if (division) {
       params += `&division=${division}`;
     }
 
@@ -100,6 +100,7 @@ export async function getTeamsResp(
     const resp = await api.get<{
       teams: MlbTeamDataI[];
       options: string[];
+      maxLen: number;
     }>(endpoint, {
       signal: ac.signal,
     });
@@ -118,10 +119,12 @@ export async function getTeamsResp(
       }
     }
 
-    return teams;
+    const maxLen = resp.data.maxLen ?? 0;
+
+    return { totalTeams: maxLen, teams: teams };
   } catch (e) {
     // console.error(e);
-    return [];
+    return { totalTeams: 0, teams: [] };
   }
 }
 

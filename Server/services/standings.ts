@@ -6,14 +6,14 @@ import {
   StandingsResponse,
   StandingsResponseV2,
 } from "../interfaces/interfaces.js";
-import { DivisionsEnum, MlbDivisionsEnum } from "../interfaces/enums.js";
+import { DivisionEnum, MlbDivisionsEnum } from "../interfaces/enums.js";
 
 import axiosPkg from "axios";
 import cache from "./cache.js";
 const axios = axiosPkg.default;
 
-export function isDivisionsEnum(value: number): value is DivisionsEnum {
-  return Object.values(DivisionsEnum).includes(value);
+export function isDivisionsEnum(value: number): value is DivisionEnum {
+  return Object.values(DivisionEnum).includes(value);
 }
 
 export const divisions = {
@@ -52,10 +52,10 @@ export function filterStandingsByLeague(
 }
 
 export function filterStandingsByDivision(
-  filter: DivisionsEnum,
+  filter: DivisionEnum,
   records: DivisionRecord[]
 ) {
-  if (filter == DivisionsEnum.All) {
+  if (filter == DivisionEnum.ANY) {
     return records;
   }
 
@@ -72,11 +72,11 @@ export function filterStandingsByDivision(
     MlbDivisionsEnum.NationalLeagueCentral,
   ];
 
-  if (filter == DivisionsEnum.WEST) {
+  if (filter == DivisionEnum.WEST) {
     records = records.filter((division) => {
       return west.includes(division.division.id);
     });
-  } else if (filter == DivisionsEnum.EAST) {
+  } else if (filter == DivisionEnum.EAST) {
     records = records.filter((division) => {
       return east.includes(division.division.id);
     });

@@ -171,7 +171,7 @@ const NavBar = ({
     async function getTeams() {
       const resp = await getTeamsResp(ac, 0, 30);
 
-      setTeams(resp);
+      setTeams(resp.teams);
     }
 
     getTeams();

@@ -1,106 +1,52 @@
-import React from "react";
+import { Label } from "src/@/components/ui/label";
+import { Division, League } from "src/interfaces/interfaces";
 
-function TeamFilterRadioButtons({
+function LeagueAndDivisionFilterInputs({
   division,
   league,
-  handleFilterChange,
+  setLeague,
+  setDivision,
 }: {
-  division: string;
-  league: string;
-  handleFilterChange: any;
+  division: Division;
+  league: League;
+  setLeague: (val: number) => void;
+  setDivision: (val: number) => void;
 }) {
   return (
-    <>
-      {/* League Filters */}
-      <div className="flex flex-wrap sm:flex-nowrap mb-4 gap-2">
-        <div className="flex gap-1">
-          <input
-            type="radio"
-            id="any-league"
-            name="league"
-            value="any"
-            checked={league === "any"}
-            onChange={handleFilterChange}
-          />
-          <label htmlFor="any-league">Any League</label>
-        </div>
-
-        <div className="flex gap-1">
-          <input
-            type="radio"
-            id="american-league"
-            name="league"
-            value="american"
-            checked={league === "american"}
-            onChange={handleFilterChange}
-          />
-          <label htmlFor="american-league">American</label>
-        </div>
-
-        <div className="flex gap-1">
-          <input
-            type="radio"
-            id="national-league"
-            name="league"
-            value="national"
-            checked={league === "national"}
-            onChange={handleFilterChange}
-          />
-          <label htmlFor="national-league">National</label>
-        </div>
+    <div className="flex flex-wrap gap-2 py-4 px-2 justify-end">
+      <div className="flex flex-col gap-3">
+        <Label>League</Label>
+        <select
+          className="ring-1 border-none bg-inherit outline-none w-32 h-6 rounded-md cursor-pointer"
+          defaultValue={league}
+          onChange={(e) => {
+            const val = parseInt(e.target.value, 10);
+            setLeague(val);
+          }}
+        >
+          <option value={League.ANY}>Any</option>
+          <option value={League.AMERICAN}>American</option>
+          <option value={League.NATIONAL}>National</option>
+        </select>
       </div>
-      {/* Division Filters */}
-      <div className="flex flex-wrap sm:flex-nowrap mb-4 gap-2">
-        <div className="flex gap-1">
-          <input
-            type="radio"
-            id="any-division"
-            name="division"
-            value="any"
-            checked={division === "any"}
-            onChange={handleFilterChange}
-          />
-          <label htmlFor="any-division">Any Division</label>
-        </div>
-
-        <div className="flex gap-1">
-          <input
-            type="radio"
-            id="east-division"
-            name="division"
-            value="east"
-            checked={division === "east"}
-            onChange={handleFilterChange}
-          />
-          <label htmlFor="east-division">East</label>
-        </div>
-
-        <div className="flex gap-1">
-          <input
-            type="radio"
-            id="central-division"
-            name="division"
-            value="central"
-            checked={division === "central"}
-            onChange={handleFilterChange}
-          />
-          <label htmlFor="central-division">Central</label>
-        </div>
-
-        <div className="flex gap-1">
-          <input
-            type="radio"
-            id="west-division"
-            name="division"
-            value="west"
-            checked={division === "west"}
-            onChange={handleFilterChange}
-          />
-          <label htmlFor="west-division">West</label>
-        </div>
+      <div className="flex flex-col gap-3">
+        <Label>Division</Label>
+        <select
+          className="ring-1 border-none bg-inherit outline-none w-32 h-6 rounded-md cursor-pointer"
+          defaultValue={division}
+          onChange={(e) => {
+            const val = parseInt(e.target.value, 10);
+            setDivision(val);
+          }}
+        >
+          <option value={Division.ANY}>Any</option>
+          <option value={Division.WEST}>West</option>
+          <option value={Division.EAST}>East</option>
+          <option value={Division.CENTRAL}>Central</option>
+        </select>
       </div>
-    </>
+    </div>
   );
 }
 
-export default TeamFilterRadioButtons;
+export default LeagueAndDivisionFilterInputs;

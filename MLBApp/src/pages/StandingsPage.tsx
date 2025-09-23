@@ -13,7 +13,7 @@ import { getStandingsResp } from "src/repository/schedules";
 import { StandingsResponseV2 } from "src/interfaces/teams.types";
 import { DataTable } from "src/components/Table";
 import { columns } from "src/data/columnDefs";
-import { Label } from "src/@/components/ui/label";
+import LeagueAndDivisionFilterInputs from "src/components/TeamFilterRadioButtons";
 
 const StandingsPage: React.FC = () => {
   const [standings, setStandings] = useState<StandingsResponseV2 | null>(null);
@@ -88,39 +88,12 @@ const StandingsPage: React.FC = () => {
     <ScrollArea>
       <div className="p-4 flex flex-col flex-grow max-w-[100vw] overflow-auto">
         <h1 className="text-2xl font-bold">MLB Standings</h1>
-        <div className="flex flex-wrap gap-2 justify-end">
-          <div className="flex flex-col gap-3">
-            <Label>League</Label>
-            <select
-              className="ring-1 border-none bg-inherit outline-none w-32 h-6 rounded-md cursor-pointer"
-              defaultValue={league}
-              onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
-                setLeague(val);
-              }}
-            >
-              <option value={105}>Any</option>
-              <option value={103}>American league</option>
-              <option value={104}>National league</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-3">
-            <Label>Division</Label>
-            <select
-              className="ring-1 border-none bg-inherit outline-none w-32 h-6 rounded-md cursor-pointer"
-              defaultValue={division}
-              onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
-                setDivision(val);
-              }}
-            >
-              <option value={0}>Any</option>
-              <option value={1}>West</option>
-              <option value={2}>East</option>
-              <option value={3}>Central</option>
-            </select>
-          </div>
-        </div>
+        <LeagueAndDivisionFilterInputs
+          league={league}
+          division={division}
+          setDivision={setDivision}
+          setLeague={setLeague}
+        ></LeagueAndDivisionFilterInputs>
         <div className="flex flex-col mt-4 rounded-none border-none bg-secondary md:items-start lg:items-center">
           {standings.records.map((division) => (
             <Card
