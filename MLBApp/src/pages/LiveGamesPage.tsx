@@ -58,6 +58,7 @@ export function LiveGames() {
           return null;
         }
         setError(null);
+        setNoGamesFound(false);
 
         const data = resp.data;
 
@@ -130,15 +131,36 @@ export function LiveGames() {
 
   if (noGamesFound) {
     return (
-      <div className="flex flex-col flex-grow">
-        <div className="w-full self-end">
+      <div className="flex flex-col flex-grow gap-4 p-4 bg-slate-100/50">
+        <div className="flex flex-wrap items-end gap-4 self-end px-2">
+          <Label className="flex flex-col gap-3">
+            <span className="font-semibold"> Sort Games</span>
+            <Select
+              defaultValue={sort}
+              onChange={(val) => setSort(val.target.value as GameStatusBucket)}
+              className="rounded outline-none h-6 w-20 text-black bg-white ring-1 cursor-pointer"
+            >
+              {GAME_STATUSES.map((val, indx) => {
+                return (
+                  <Option key={indx} value={val}>
+                    {val}
+                  </Option>
+                );
+              })}
+            </Select>
+          </Label>
           <DatePicker
-            label="Search for games by date"
             date={date}
             setDate={setDateWrapper}
+            label="Search for games by date"
           ></DatePicker>
         </div>
-        No games
+        <div className="self-center text-xl font-semibold italic">
+          No games found
+        </div>
+        <div className="self-center text-muted-foreground">
+          Try changing the date.
+        </div>
       </div>
     );
   }
@@ -178,13 +200,15 @@ export function LiveGames() {
         </div>
       </div>
 
-      <ScrollArea>
-        <div className="flex flex-col md:items-center bg-[#e6e6e6]">
-          <div className="grid shadow-lg md:grid-cols-1 lg:grid-cols-2 md:w-full md:max-w-[400px] lg:max-w-full lg:w-3/4">
-            {gamesMiniScreen}
+      <div className="flex-1 bg-[#e6e6e6]">
+        <ScrollArea>
+          <div className="flex flex-col flex-grow md:items-center">
+            <div className="grid shadow-lg md:grid-cols-1 lg:grid-cols-2 md:w-full md:max-w-[400px] lg:max-w-full lg:w-3/4">
+              {gamesMiniScreen}
+            </div>
           </div>
-        </div>
-      </ScrollArea>
+        </ScrollArea>
+      </div>
     </div>
   );
 }
