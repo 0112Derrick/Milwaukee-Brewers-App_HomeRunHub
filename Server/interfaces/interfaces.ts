@@ -1730,4 +1730,48 @@ export interface ExternalLink {
   [key: string]: unknown;
 }
 
-export const mlbApiHost = "https://statsapi.mlb.com";
+// --- Types (lightweight) ---
+export type PlayoffTeam = {
+  id: number;
+  name: string;
+  abbreviation?: string;
+  seed?: number; // StatsAPI doesn't give seed here; fill later if you want.
+  leagueId?: number;
+  logoUrl?: string; // if you keep a teamId->logo map elsewhere
+};
+
+export type PlayoffSeries = {
+  id: string; // `${seriesNumber}-${round}-${leagueId}`
+  round: "WC" | "LDS" | "LCS" | "WS";
+  leagueId?: number; // 103 AL, 104 NL (WS has no leagueId)
+  bestOf?: 3 | 5 | 7; // inferred from round
+  status: "scheduled" | "in_progress" | "final";
+  startDate?: string; // YYYY-MM-DD
+  winsHome: number;
+  winsAway: number;
+  home: PlayoffTeam;
+  away: PlayoffTeam;
+  games: PlayoffGame[];
+};
+
+export type PlayoffBracket = {
+  season: number;
+  series: PlayoffSeries[];
+};
+
+export type PlayoffGameStatus = "scheduled" | "in_progress" | "final";
+
+export type PlayoffGame = {
+  gamePk: number;
+  date: string; // ISO, e.g. "2025-10-12"
+  state: PlayoffGameStatus; // mapped from detailedState
+  seriesGameNumber?: number; // e.g. 1..7
+  gameNumber?: number; // schedule’s gameNumber (not always present)
+  venue?: string;
+
+  // Teams & score at game time
+  homeId: number | undefined;
+  awayId: number | undefined;
+  homeScore: number | null; // null for not-started
+  awayScore: number | null; // null for not-started
+};

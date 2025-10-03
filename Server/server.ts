@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { MLBLeagueIds, MlbTeamApp } from "./interfaces/interfaces.js";
 import {
+  fetchPlayoffBracket,
   fetchStandings,
   filterStandingsByDivision,
   filterStandingsByLeague,
@@ -309,6 +310,23 @@ export class Server {
       }
 
       res.json(resp);
+    });
+    this.app.get("/mlb/playoffs/bracket", async (req, res) => {
+      const season = Number(req.query.season) || new Date().getFullYear();
+      let result = { season, series: [] };
+
+      console.log(`S: ${season}`);
+      try {
+        const r = await fetchPlayoffBracket(season);
+        if (r.series.length > 0) {
+          result = r;
+        }
+        // const series = transformToBracketSeries(raw);
+      } catch (e: any) {
+        console.error("An error occurred while fetching playoff brackets");
+      }
+
+      return res.json(result);
     });
     this.app.post("/mlb/schedule", async (req, res) => {
       const { leagueId: sportsLeagueId, startDt, endDt } = req.body;

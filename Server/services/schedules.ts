@@ -1,10 +1,7 @@
 import axiosPkg from "axios";
-import {
-  mlbApiHost,
-  ScheduleResponse,
-  SportsLeagueId,
-} from "../interfaces/interfaces.js";
+import { ScheduleResponse, SportsLeagueId } from "../interfaces/interfaces.js";
 import cache from "./cache.js";
+import { mlbApiHost } from "../interfaces/constants.js";
 const axios = axiosPkg.default;
 
 export async function fetchSchedule(

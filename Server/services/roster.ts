@@ -1,10 +1,6 @@
 import axiosPkg from "axios";
 import cache from "./cache.js";
-import {
-  mlbApiHost,
-  mlbTeams,
-  RosterResponse,
-} from "../interfaces/interfaces.js";
+import { mlbTeams, RosterResponse } from "../interfaces/interfaces.js";
 import { Database } from "../jsonManager.js";
 import { formatYYYYMMDD } from "./utils.js";
 import {
@@ -12,6 +8,7 @@ import {
   PlayerResponse,
 } from "../interfaces/generated.player.types.js";
 import { TransactionsResponse } from "../interfaces/generated.transactions.types.js";
+import { mlbApiHost } from "../interfaces/constants.js";
 const axios = axiosPkg.default;
 
 export function organizeMLBTeams(data: mlbTeams) {

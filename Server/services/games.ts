@@ -2,7 +2,6 @@ import {
   BoxscoreResponse,
   GameContentResponse,
   LiveFeedResponse,
-  mlbApiHost,
   MlbGame,
   PlayByPlayResponse,
   ScheduleResponse,
@@ -11,6 +10,7 @@ import {
 import axiosPkg from "axios";
 import { fetchSchedule } from "./schedules.js";
 import cache from "./cache.js";
+import { mlbApiHost } from "../interfaces/constants.js";
 const axios = axiosPkg.default;
 
 export async function fetchGameLineScore(gamePk: number): Promise<any> {
