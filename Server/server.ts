@@ -233,7 +233,9 @@ export class Server {
       let season =
         parseInt(String(req.query.season)) || new Date().getFullYear();
       try {
+        console.log("Schedule: " + season + " Team: " + teamId);
         const data = await fetchTeamScheduleBySeason(teamId, season);
+        console.log("Data: ", data);
         res.send(data);
         return;
       } catch (e) {

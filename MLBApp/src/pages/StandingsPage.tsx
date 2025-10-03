@@ -23,35 +23,11 @@ import {
   TabsContent,
 } from "src/@/components/ui/tabs";
 import { PlayoffBracket } from "src/components/PlayoffBrackets";
-import { formatYYYYMMDD } from "src/utils/utils";
+import { candidateStandingsDates, seasonYear } from "src/utils/utils";
 import LeagueAndDivisionFilterInputs from "src/components/TeamFilterRadioButtons";
 import { BracketPayload } from "src/interfaces/playoff.series.types";
 
 const today = new Date();
-
-function seasonYear(today = new Date()) {
-  // MLB season spans spring -> fall; Jan/Feb are the prior season.
-  const m = today.getMonth(); // 0-based
-  return m <= 1 ? today.getFullYear() - 1 : today.getFullYear();
-}
-
-function candidateStandingsDates(today = new Date()): string[] {
-  const dates: string[] = [];
-  // Try today, then the last 7 days
-  for (let i = 0; i <= 7; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const strDt = formatYYYYMMDD(d);
-    dates.push(strDt);
-  }
-  // Safe late-season anchors for the current season (avoid hard-coded "end dates")
-  const sy = seasonYear(today);
-  const anchors = [`${sy}-10-31`, `${sy}-10-15`, `${sy}-10-01`, `${sy}-09-30`];
-  for (const a of anchors) dates.push(a);
-  // Deduplicate while preserving order
-  const uniqueDates = Array.from(new Set(dates));
-  return uniqueDates;
-}
 
 // ---------- component ----------
 const StandingsPage: React.FC = () => {

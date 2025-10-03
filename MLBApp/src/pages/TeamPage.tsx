@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
-import { MlbGame, Player } from "src/interfaces/interfaces";
+import { League, MlbGame, Player } from "src/interfaces/interfaces";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "src/@/components/ui/card";
 import ErrorPage from "./ErrorPage";
@@ -22,12 +22,13 @@ import {
 } from "src/repository/schedules";
 import {
   MlbTeamDataModifiedI,
+  StandingsResponseV2,
   TeamPages,
   TeamRecord,
 } from "src/interfaces/teams.types";
 import { ScrollArea, ScrollBar } from "src/@/components/ui/scroll-area";
 import { TeamLogoName } from "src/components/TeamLogoName";
-import { teamLogoUrl } from "src/utils/utils";
+import { candidateStandingsDates, teamLogoUrl } from "src/utils/utils";
 import { mlbTeamsDetails } from "src/data/teamData";
 import { Button } from "src/@/components/ui/button";
 import { SeasonPicker } from "src/components/SeasonPicker";
@@ -91,13 +92,23 @@ export default function TeamPage() {
     setTransactionsDateRange({ from: startDt, to: dt });
   }, [season]);
 
+  // AbortController should survive renders
+  const acRef = useRef<AbortController | null>(null);
   useEffect(() => {
-    const ac = new AbortController();
+    return () => {
+      if (acRef.current) acRef.current.abort();
+    };
+  }, []);
+
+  // ---- regular standings fetch with resilient date fallback ----
+  const reqIdRef = useRef(0);
+
+  useEffect(() => {
     navigate(`/teams/${teamId}/${season}/${page}`, {
       replace: true,
     });
 
-    const getTeamData = async () => {
+    const getTeamData = async (ac: AbortController) => {
       const response = await getTeamResp(ac, teamId); // ✅ use derived teamId
       if (!response) return;
 
@@ -115,6 +126,10 @@ export default function TeamPage() {
     };
 
     const fetchTeam = async () => {
+      const myReq = ++reqIdRef.current; // mark this as the latest request
+      // abort any in-flight request
+      if (acRef.current) acRef.current.abort();
+      acRef.current = new AbortController();
       setLoading(true);
 
       setTeam(null);
@@ -123,28 +138,42 @@ export default function TeamPage() {
         const month = (today.getMonth() + 1).toString().padStart(2, "0");
         const dt = `${season}-${month}-${day}`;
         const startDt = `${season}-01-01`;
-        await getTeamData();
+        await getTeamData(acRef.current);
 
         if (page === TeamPages.Standings) {
-          const division = 105;
-          const resp = await getStandingsResp(ac, dt, division);
-          if (!resp || resp.status !== 200)
-            throw new Error("Unable to get teams record.");
-          setError(null);
+          let found: StandingsResponseV2 | null = null;
+          const candidates = candidateStandingsDates(new Date());
 
-          const foundDivision =
-            resp.data.records.find((div: any) =>
-              div.teamRecords.some((tr: any) => tr.team.id === teamId)
-            )?.teamRecords ?? [];
-          setDivisionData(foundDivision);
+          for (const date of candidates) {
+            const resp = await getStandingsResp(
+              acRef.current,
+              date,
+              League.ANY
+            );
+            if (myReq !== reqIdRef.current) return; // a newer request started; bail
+
+            if (resp?.status === 200 && resp.data?.records?.length) {
+              found = resp.data;
+              break;
+            }
+          }
+
+          setError(null);
+          if (found) {
+            const foundDivision =
+              found.records.find((div: any) =>
+                div.teamRecords.some((tr: any) => tr.team.id === teamId)
+              )?.teamRecords ?? [];
+            setDivisionData(foundDivision);
+          }
         } else if (page === TeamPages.Roster) {
-          const resp = await getRosterResp(ac, teamId, dt);
+          const resp = await getRosterResp(acRef.current, teamId, dt);
           if (!resp || resp.status !== 200)
             throw new Error("Unable to get teams record.");
           setError(null);
           setRosterData(resp.data.roster);
         } else if (page === TeamPages.Schedule) {
-          const resp = await getTeamScheduleResp(ac, teamId, season);
+          const resp = await getTeamScheduleResp(acRef.current, teamId, season);
           if (!resp || resp.status !== 200)
             throw new Error("Unable to get teams record.");
           setError(null);
@@ -154,7 +183,7 @@ export default function TeamPage() {
           });
           setGames(games);
         } else if (page === TeamPages.Transactions) {
-          const resp = await getTransactionsResp(ac, {
+          const resp = await getTransactionsResp(acRef.current, {
             startDt: transactionsDateRange?.from ?? startDt,
             endDt: transactionsDateRange?.to ?? dt,
             teamId: teamId,
@@ -176,7 +205,6 @@ export default function TeamPage() {
     };
 
     fetchTeam();
-    return () => ac.abort();
   }, [teamId, page, season, transactionsDateRange]); // ✅ key by teamId, not id
 
   const InnerNav = () => {

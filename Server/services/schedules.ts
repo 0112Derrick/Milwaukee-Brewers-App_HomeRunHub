@@ -41,26 +41,63 @@ export async function fetchSchedule(
   }
 }
 
+type ScheduleOpts = {
+  startDate?: string; // YYYY-MM-DD
+  endDate?: string; // YYYY-MM-DD
+  // 'regular' => R only, 'postseason' => F,D,L,W only, 'all' => both
+  phase?: "regular" | "postseason" | "all";
+};
+
 export async function fetchTeamScheduleBySeason(
   teamId: number,
-  season: number
+  season: number,
+  opts: ScheduleOpts = {}
 ) {
+  const {
+    startDate = `${season}-01-01`,
+    endDate = `${season}-12-31`,
+    phase = "all",
+  } = opts;
+
+  const gameTypes =
+    phase === "regular"
+      ? "R"
+      : phase === "postseason"
+      ? "F,D,L,W"
+      : "R,F,D,L,W";
+
+  const api =
+    `${mlbApiHost}/api/v1/schedule` +
+    `?sportId=1` +
+    `&teamId=${teamId}` +
+    `&startDate=${startDate}` +
+    `&endDate=${endDate}` +
+    `&gameTypes=${encodeURIComponent(gameTypes)}` +
+    `&hydrate=linescore,decisions,teams`;
+
+  const key = `schedule-${teamId}-${season}-${startDate}-${endDate}-${gameTypes}`;
+  const c = cache.getCache();
+  const cached = c.get(key);
+  if (cached) return cached;
+
   try {
-    const api =
-      mlbApiHost +
-      `/api/v1/schedule?sportId=1&teamId=${teamId}&season=${season}&gameTypes=R,F,D,L,W&hydrate=linescore,decisions,teams`;
-    // R=Regular, F/D/L/W=Postseason rounds (optional)
-
-    const key = `schedule-${teamId}-${season}`;
-    const _cache = cache.getCache();
-    const cachedData = _cache.get(key);
-
-    if (cachedData) {
-      return cachedData; // Returns cached data if available, reducing API calls.
-    }
-
     const res = await axios.get(api);
     cache.cacheData(res.data, key);
+
+    // If you *only* want playoff games and this came back empty, fall back to postseason endpoint
+    if (
+      phase !== "regular" &&
+      (!res.data?.totalGames || res.data.totalGames === 0)
+    ) {
+      const psApi =
+        `${mlbApiHost}/api/v1/schedule/postseason` +
+        `?sportId=1&teamId=${teamId}&season=${season}` +
+        `&hydrate=linescore,decisions,teams`;
+      const ps = await axios.get(psApi); // same hydrate is supported
+      // cache separately so you don’t refetch
+      cache.cacheData(ps.data, `${key}-ps`);
+      return ps.data;
+    }
 
     return res.data;
   } catch (e) {
