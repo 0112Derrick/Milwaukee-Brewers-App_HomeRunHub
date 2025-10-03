@@ -8,6 +8,7 @@ export const mlbTeamsDetails = [
     founded: 1998,
     hallOfFamePlayers: 2,
     url: "https://www.mlb.com/dbacks",
+    logo: "https://www.mlbstatic.com/team-logos/109.svg",
   },
   {
     team: "Atlanta Braves",
@@ -18,6 +19,7 @@ export const mlbTeamsDetails = [
     founded: 1871,
     hallOfFamePlayers: 32,
     url: "https://www.mlb.com/braves",
+    logo: "https://www.mlbstatic.com/team-logos/144.svg",
   },
   {
     team: "Baltimore Orioles",
@@ -28,6 +30,7 @@ export const mlbTeamsDetails = [
     founded: 1901,
     hallOfFamePlayers: 27,
     url: "https://www.mlb.com/orioles",
+    logo: "https://www.mlbstatic.com/team-logos/110.svg",
   },
   {
     team: "Boston Red Sox",
@@ -38,6 +41,7 @@ export const mlbTeamsDetails = [
     founded: 1901,
     hallOfFamePlayers: 36,
     url: "https://www.mlb.com/redsox",
+    logo: "https://www.mlbstatic.com/team-logos/111.svg",
   },
   {
     team: "Chicago White Sox",
@@ -48,6 +52,7 @@ export const mlbTeamsDetails = [
     founded: 1901,
     hallOfFamePlayers: 11,
     url: "https://www.mlb.com/whitesox",
+    logo: "https://www.mlbstatic.com/team-logos/145.svg",
   },
   {
     team: "Chicago Cubs",
@@ -58,6 +63,7 @@ export const mlbTeamsDetails = [
     founded: 1876,
     hallOfFamePlayers: 16,
     url: "https://www.mlb.com/cubs",
+    logo: "https://www.mlbstatic.com/team-logos/112.svg",
   },
   {
     team: "Cincinnati Reds",
@@ -68,6 +74,7 @@ export const mlbTeamsDetails = [
     founded: 1882,
     hallOfFamePlayers: 10,
     url: "https://www.mlb.com/reds",
+    logo: "https://www.mlbstatic.com/team-logos/113.svg",
   },
   {
     team: "Cleveland Guardians",
@@ -78,6 +85,7 @@ export const mlbTeamsDetails = [
     founded: 1901,
     hallOfFamePlayers: 13,
     url: "https://www.mlb.com/guardians",
+    logo: "https://www.mlbstatic.com/team-logos/114.svg",
   },
   {
     team: "Colorado Rockies",
@@ -88,6 +96,7 @@ export const mlbTeamsDetails = [
     founded: 1993,
     hallOfFamePlayers: 1,
     url: "https://www.mlb.com/rockies",
+    logo: "https://www.mlbstatic.com/team-logos/115.svg",
   },
   {
     team: "Detroit Tigers",
@@ -98,6 +107,7 @@ export const mlbTeamsDetails = [
     founded: 1901,
     hallOfFamePlayers: 11,
     url: "https://www.mlb.com/tigers",
+    logo: "https://www.mlbstatic.com/team-logos/116.svg",
   },
   {
     team: "Houston Astros",
@@ -108,6 +118,7 @@ export const mlbTeamsDetails = [
     founded: 1962,
     hallOfFamePlayers: 2,
     url: "https://www.mlb.com/astros",
+    logo: "https://www.mlbstatic.com/team-logos/117.svg",
   },
   {
     team: "Kansas City Royals",
@@ -118,6 +129,7 @@ export const mlbTeamsDetails = [
     founded: 1969,
     hallOfFamePlayers: 1,
     url: "https://www.mlb.com/royals",
+    logo: "https://www.mlbstatic.com/team-logos/118.svg",
   },
   {
     team: "Los Angeles Angels",
@@ -128,6 +140,7 @@ export const mlbTeamsDetails = [
     founded: 1961,
     hallOfFamePlayers: 0,
     url: "https://www.mlb.com/angels",
+    logo: "https://www.mlbstatic.com/team-logos/108.svg",
   },
   {
     team: "Los Angeles Dodgers",
@@ -138,6 +151,7 @@ export const mlbTeamsDetails = [
     founded: 1883,
     hallOfFamePlayers: 26,
     url: "https://www.mlb.com/dodgers",
+    logo: "https://www.mlbstatic.com/team-logos/119.svg",
   },
   {
     team: "Miami Marlins",
@@ -148,6 +162,7 @@ export const mlbTeamsDetails = [
     founded: 1993,
     hallOfFamePlayers: 0,
     url: "https://www.mlb.com/marlins",
+    logo: "https://www.mlbstatic.com/team-logos/146.svg",
   },
   {
     team: "Milwaukee Brewers",
@@ -158,6 +173,7 @@ export const mlbTeamsDetails = [
     founded: 1969,
     hallOfFamePlayers: 1,
     url: "https://www.mlb.com/brewers",
+    logo: "https://www.mlbstatic.com/team-logos/158.svg",
   },
   {
     team: "Minnesota Twins",
@@ -168,6 +184,7 @@ export const mlbTeamsDetails = [
     founded: 1901,
     hallOfFamePlayers: 6,
     url: "https://www.mlb.com/twins",
+    logo: "https://www.mlbstatic.com/team-logos/142.svg",
   },
   {
     team: "New York Yankees",
@@ -178,6 +195,7 @@ export const mlbTeamsDetails = [
     founded: 1901,
     hallOfFamePlayers: 44,
     url: "https://www.mlb.com/yankees",
+    logo: "https://www.mlbstatic.com/team-logos/147.svg",
   },
   {
     team: "New York Mets",
@@ -188,6 +206,7 @@ export const mlbTeamsDetails = [
     founded: 1962,
     hallOfFamePlayers: 2,
     url: "https://www.mlb.com/mets",
+    logo: "https://www.mlbstatic.com/team-logos/121.svg",
   },
   {
     team: "Oakland Athletics",
@@ -198,6 +217,7 @@ export const mlbTeamsDetails = [
     founded: 1901,
     hallOfFamePlayers: 17,
     url: "https://www.mlb.com/athletics",
+    logo: "https://www.mlbstatic.com/team-logos/133.svg",
   },
   {
     team: "Philadelphia Phillies",
@@ -208,6 +228,7 @@ export const mlbTeamsDetails = [
     founded: 1883,
     hallOfFamePlayers: 7,
     url: "phillies",
+    logo: "https://www.mlbstatic.com/team-logos/143.svg",
   },
   {
     team: "Pittsburgh Pirates",
@@ -218,6 +239,7 @@ export const mlbTeamsDetails = [
     founded: 1887,
     hallOfFamePlayers: 17,
     url: "https://www.mlb.com/pirates",
+    logo: "https://www.mlbstatic.com/team-logos/134.svg",
   },
   {
     team: "San Diego Padres",
@@ -228,6 +250,7 @@ export const mlbTeamsDetails = [
     founded: 1969,
     hallOfFamePlayers: 3,
     url: "https://www.mlb.com/padres",
+    logo: "https://www.mlbstatic.com/team-logos/135.svg",
   },
   {
     team: "San Francisco Giants",
@@ -238,6 +261,7 @@ export const mlbTeamsDetails = [
     founded: 1883,
     hallOfFamePlayers: 23,
     url: "https://www.mlb.com/giants",
+    logo: "https://www.mlbstatic.com/team-logos/137.svg",
   },
   {
     team: "Seattle Mariners",
@@ -248,6 +272,7 @@ export const mlbTeamsDetails = [
     founded: 1977,
     hallOfFamePlayers: 1,
     url: "https://www.mlb.com/mariners",
+    logo: "https://www.mlbstatic.com/team-logos/136.svg",
   },
   {
     team: "St. Louis Cardinals",
@@ -258,6 +283,7 @@ export const mlbTeamsDetails = [
     founded: 1882,
     hallOfFamePlayers: 24,
     url: "https://www.mlb.com/cardinals",
+    logo: "https://www.mlbstatic.com/team-logos/138.svg",
   },
   {
     team: "Tampa Bay Rays",
@@ -268,6 +294,7 @@ export const mlbTeamsDetails = [
     founded: 1998,
     hallOfFamePlayers: 0,
     url: "https://www.mlb.com/rays",
+    logo: "https://www.mlbstatic.com/team-logos/139.svg",
   },
   {
     team: "Texas Rangers",
@@ -278,6 +305,7 @@ export const mlbTeamsDetails = [
     founded: 1972,
     hallOfFamePlayers: 1,
     url: "https://www.mlb.com/rangers",
+    logo: "https://www.mlbstatic.com/team-logos/140.svg",
   },
   {
     team: "Toronto Blue Jays",
@@ -288,6 +316,7 @@ export const mlbTeamsDetails = [
     founded: 1977,
     hallOfFamePlayers: 2,
     url: "https://www.mlb.com/jays",
+    logo: "https://www.mlbstatic.com/team-logos/141.svg",
   },
   {
     team: "Washington Nationals",
@@ -298,5 +327,6 @@ export const mlbTeamsDetails = [
     founded: 1969,
     hallOfFamePlayers: 0,
     url: "https://www.mlb.com/nationals",
+    logo: "https://www.mlbstatic.com/team-logos/120.svg",
   },
 ];

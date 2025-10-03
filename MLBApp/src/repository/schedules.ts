@@ -1,3 +1,4 @@
+import { PlayoffSeries } from "src/interfaces/playoff.series.types";
 import {
   ScheduleResponse,
   StandingsResponseV2,
@@ -56,7 +57,7 @@ export async function getTeamScheduleResp(
 
 export async function getStandingsResp(
   ac: AbortController,
-  seasonDt: string,
+  seasonDt: string | null,
   leagueId: number = 105,
   divisionId: number = 0
 ) {
@@ -81,4 +82,27 @@ export async function getStandingsResp(
     // console.error(e);
     return null;
   }
+}
+
+export async function getPlayoffBracketResp(
+  ac: AbortController | null,
+  season: number,
+  leagueId: number
+) {
+  let result: { season: number; series: PlayoffSeries[] } = {
+    season,
+    series: [],
+  };
+  try {
+    result = await (
+      await api.get(`/mlb/playoffs/bracket`, {
+        signal: ac?.signal,
+        params: { season, leagueId },
+      })
+    ).data;
+  } catch (e) {
+    // console.error(e);
+  }
+  console.log(result);
+  return result;
 }
