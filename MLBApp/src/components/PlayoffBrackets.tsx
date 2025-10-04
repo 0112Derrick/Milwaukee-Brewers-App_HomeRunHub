@@ -68,7 +68,7 @@ function getAccent(team?: BracketTeam): string {
   const n = team?.name?.toLowerCase() || "";
   if (n.includes("american")) return "#1d4ed8"; // blue-ish
   if (n.includes("national")) return "#b45309"; // amber-ish
-  return "#38bdf8"; // sky
+  return "#69d2ff"; // sky
 }
 
 function getTeamImageUrl(team?: BracketTeam): string {
@@ -169,13 +169,13 @@ const MatchupCard: React.FC<{
 
   return (
     <Card
-      className="
+      className={`
         overflow-hidden cursor-pointer rounded-2xl border-slate-200/20
-        bg-slate-950/40 backdrop-blur
+        bg-gradient-to-br from-primary-foreground/10 via-transparent to-secondary backdrop-blur
         shadow-[0_0_0_1px_rgba(56,189,248,0.15),0_12px_30px_-10px_rgba(56,189,248,0.2)]
         transition-transform
         hover:scale-[1.01]
-      "
+      `}
       onClick={onToggle}
     >
       <CardHeader className="py-3">
@@ -284,7 +284,15 @@ const TeamRow: React.FC<{
   accent: string;
 }> = ({ t, w, oppW, accent }) => {
   const label = t?.name ? prettyPlaceholder(t.name) : "";
-  const href = t?.id ? `/#/teams/${t.id}` : undefined;
+  const href = t?.id ? `/teams/${t.id}` : undefined;
+  const [isHovered, setIsHovered] = useState(false);
+
+  const style = {
+    color: isHovered ? accent : "inherit",
+    background: isHovered
+      ? "linear-gradient(hsl(0 100% 100% / .6)) 0 0"
+      : "inherit",
+  };
 
   return (
     <div
@@ -303,23 +311,25 @@ const TeamRow: React.FC<{
         boxShadow: "inset 0 0 0 0 rgba(0,0,0,0)",
       }}
     >
-      {/* left: logo + name + record */}
       <div className="flex items-center gap-2">
-        {getTeamImageUrl(t) ? (
-          <Link to={href ?? "#"}>
-            {" "}
+        <Link
+          to={href ?? "#"}
+          className="flex items-center gap-2 p-2 rounded"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          style={style}
+        >
+          {getTeamImageUrl(t) ? (
             <img
               src={getTeamImageUrl(t)}
               alt={label}
-              className="w-6 h-6 rounded-sm object-contain transition-transform group-hover:scale-105"
+              className="w-6 h-6 rounded-sm object-contain transition-transform group-hover:scale-105 dark:brightness-150 dark:contrast-110"
             />
-          </Link>
-        ) : (
-          <Link to={href ?? "#"}>
+          ) : (
             <div className="w-6 h-6 rounded-sm bg-slate-700/40" />
-          </Link>
-        )}
-        <span className="font-medium">{label}</span>
+          )}
+          <span className="font-medium">{label}</span>
+        </Link>
         {t.record && <span className="text-xs opacity-70">{t.record}</span>}
         {t.seed != null && (
           <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full border border-white/15 bg-white/5">
@@ -332,15 +342,6 @@ const TeamRow: React.FC<{
       <div className="tabular-nums font-semibold">
         {w}–{oppW}
       </div>
-
-      {/* hover glow border */}
-      <span
-        className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-offset-0 opacity-0 group-hover:opacity-100 transition-opacity"
-        style={{
-          boxShadow: `0 0 24px ${accent}55`,
-          borderColor: `${accent}88`,
-        }}
-      />
     </div>
   );
 };

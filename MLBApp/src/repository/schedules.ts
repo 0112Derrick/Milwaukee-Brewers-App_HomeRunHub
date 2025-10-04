@@ -103,6 +103,5 @@ export async function getPlayoffBracketResp(
   } catch (e) {
     // console.error(e);
   }
-  console.log(result);
   return result;
 }
