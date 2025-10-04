@@ -18,9 +18,17 @@ import { PlayerPage } from "./pages/PlayerPage";
 import { ScoreTicker } from "./components/ScoreTicker";
 import { useState } from "react";
 import { Theme } from "./interfaces/interfaces";
+import { getItemLocalStorage, saveItemLocalStorage } from "./utils/utils";
 
 function App() {
-  const [colorScheme, setColorScheme] = useState<Theme>("light");
+  const [colorScheme, setColorScheme] = useState<Theme>(
+    (getItemLocalStorage("theme") as Theme) ?? "light"
+  );
+  function saveTheme(color: Theme) {
+    saveItemLocalStorage("theme", color);
+    setColorScheme(color);
+  }
+
   return (
     <Router>
       <Routes>
@@ -30,10 +38,7 @@ function App() {
             <div
               className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
             >
-              <NavBar
-                colorScheme={colorScheme}
-                setColorScheme={setColorScheme}
-              />
+              <NavBar colorScheme={colorScheme} setColorScheme={saveTheme} />
               <ScoreTicker />
               <MainPage />
               <Footer />

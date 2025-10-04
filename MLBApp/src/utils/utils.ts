@@ -251,3 +251,15 @@ export function candidateStandingsDates(today = new Date()): string[] {
   const uniqueDates = Array.from(new Set(dates));
   return uniqueDates;
 }
+
+export function saveItemLocalStorage(key: string, data: string) {
+  localStorage.setItem(key, data);
+}
+
+export function getItemLocalStorage(key: string) {
+  return localStorage.getItem(key);
+}
+
+export function removeItemLocalStorage(key: string) {
+  localStorage.removeItem(key);
+}
