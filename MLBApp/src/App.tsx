@@ -18,13 +18,18 @@ import { PlayerPage } from "./pages/PlayerPage";
 import { ScoreTicker } from "./components/ScoreTicker";
 import { useState } from "react";
 import { Theme } from "./interfaces/interfaces";
-import { getItemLocalStorage, saveItemLocalStorage } from "./utils/utils";
+import {
+  getItemLocalStorage,
+  removeItemLocalStorage,
+  saveItemLocalStorage,
+} from "./utils/utils";
 
 function App() {
   const [colorScheme, setColorScheme] = useState<Theme>(
     (getItemLocalStorage("theme") as Theme) ?? "light"
   );
   function saveTheme(color: Theme) {
+    removeItemLocalStorage("theme");
     saveItemLocalStorage("theme", color);
     setColorScheme(color);
   }
@@ -36,7 +41,7 @@ function App() {
           path="/"
           element={
             <div
-              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+              className={`flex flex-col h-screen bg-background text-primary-foreground-foreground ${colorScheme}`}
             >
               <NavBar colorScheme={colorScheme} setColorScheme={saveTheme} />
               <ScoreTicker />
@@ -49,12 +54,9 @@ function App() {
           path="/teams/:id/:user_season?/:user_page?"
           element={
             <div
-              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+              className={`flex flex-col h-screen bg-background text-primary-foreground ${colorScheme}`}
             >
-              <NavBar
-                colorScheme={colorScheme}
-                setColorScheme={setColorScheme}
-              />
+              <NavBar colorScheme={colorScheme} setColorScheme={saveTheme} />
               <ScoreTicker />
               <TeamPage></TeamPage>
               <Footer />
@@ -65,12 +67,9 @@ function App() {
           path="/contact"
           element={
             <div
-              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+              className={`flex flex-col h-screen bg-background text-primary-foreground ${colorScheme}`}
             >
-              <NavBar
-                colorScheme={colorScheme}
-                setColorScheme={setColorScheme}
-              />
+              <NavBar colorScheme={colorScheme} setColorScheme={saveTheme} />
               <ContactUs></ContactUs>
               <Footer />
             </div>
@@ -80,12 +79,9 @@ function App() {
           path="/standings"
           element={
             <div
-              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+              className={`flex flex-col h-screen bg-background text-primary-foreground ${colorScheme}`}
             >
-              <NavBar
-                colorScheme={colorScheme}
-                setColorScheme={setColorScheme}
-              />
+              <NavBar colorScheme={colorScheme} setColorScheme={saveTheme} />
               <ScoreTicker />
               <StandingsPage></StandingsPage>
               <Footer />
@@ -96,12 +92,9 @@ function App() {
           path="/about"
           element={
             <div
-              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+              className={`flex flex-col h-screen bg-background text-primary-foreground ${colorScheme}`}
             >
-              <NavBar
-                colorScheme={colorScheme}
-                setColorScheme={setColorScheme}
-              />
+              <NavBar colorScheme={colorScheme} setColorScheme={saveTheme} />
               <About></About>
               <Footer />
             </div>
@@ -111,12 +104,9 @@ function App() {
           path="/scores/:gameDate/:id"
           element={
             <div
-              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+              className={`flex flex-col h-screen bg-background text-primary-foreground ${colorScheme}`}
             >
-              <NavBar
-                colorScheme={colorScheme}
-                setColorScheme={setColorScheme}
-              />
+              <NavBar colorScheme={colorScheme} setColorScheme={saveTheme} />
               <PlayByPlay></PlayByPlay>
               <Footer />
             </div>
@@ -126,12 +116,9 @@ function App() {
           path="/scores/:gameDate?"
           element={
             <div
-              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+              className={`flex flex-col h-screen bg-background text-primary-foreground ${colorScheme}`}
             >
-              <NavBar
-                colorScheme={colorScheme}
-                setColorScheme={setColorScheme}
-              />
+              <NavBar colorScheme={colorScheme} setColorScheme={saveTheme} />
               <LiveGames></LiveGames>
               <Footer />
             </div>
@@ -141,12 +128,9 @@ function App() {
           path="/players/:id"
           element={
             <div
-              className={`flex flex-col h-screen bg-background text-primary ${colorScheme}`}
+              className={`flex flex-col h-screen bg-background text-primary-foreground ${colorScheme}`}
             >
-              <NavBar
-                colorScheme={colorScheme}
-                setColorScheme={setColorScheme}
-              />
+              <NavBar colorScheme={colorScheme} setColorScheme={saveTheme} />
               <PlayerPage></PlayerPage>
               <Footer />
             </div>

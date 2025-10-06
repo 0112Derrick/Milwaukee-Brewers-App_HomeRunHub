@@ -4,6 +4,8 @@
 
 @layer base {
   :root {
+    --tertiary: 217.2 91.2% 59.8%;
+
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
@@ -57,8 +59,10 @@
     --accent-foreground: 220.9 39.3% 11%;
 
     /* Brand primary (kept blue for CTAs; adjust if you prefer slate-primary) */
-    --primary: 0 0% 10%;
-    --primary-foreground: 217.2 91.2% 59.8%;
+    --primary: 217 10% 91%;
+    --primary-foreground: 217 1% 26%;
+
+    --tertiary-foreground: 217 91% 59%;
 
     /* Destructive */
     --destructive: 0 72% 51%;
@@ -85,8 +89,8 @@
     --muted-foreground: 0 0% 92%; /* slight off-white for normal/secondary text */
 
     /* Accents & roles (kept close to your existing setup) */
-    --primary: 210 40% 98%;
-    --primary-foreground: 0 0% 90%;
+    --primary: 210 0% 0%;
+    --primary-foreground: 210 40% 98%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 0 0% 100%;
