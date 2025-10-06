@@ -19,7 +19,7 @@ function LeagueAndDivisionFilterInputs({
       <div className="flex flex-col gap-3">
         <Label>League</Label>
         <select
-          className="ring-1 border-none bg-inherit outline-none w-32 h-6 rounded-md cursor-pointer"
+          className="ring-1 border-none bg-inherit outline-none w-32 h-6 rounded-md cursor-pointer focus:ring-primary-foreground"
           defaultValue={league}
           onChange={(e) => {
             const val = parseInt(e.target.value, 10);
@@ -34,7 +34,7 @@ function LeagueAndDivisionFilterInputs({
       <div className="flex flex-col gap-3">
         <Label>Division</Label>
         <select
-          className="ring-1 border-none bg-inherit outline-none w-32 h-6 rounded-md cursor-pointer"
+          className="ring-1 border-none bg-inherit outline-none w-32 h-6 rounded-md cursor-pointer focus:ring-primary-foreground"
           defaultValue={division}
           onChange={(e) => {
             const val = parseInt(e.target.value, 10);

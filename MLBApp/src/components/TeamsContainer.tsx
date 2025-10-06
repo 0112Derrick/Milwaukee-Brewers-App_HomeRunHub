@@ -12,6 +12,8 @@ import SkeletonCard from "./SkeletonCard";
 import { getTeamsResp } from "src/repository/teams";
 import { Division, League } from "src/interfaces/interfaces";
 import { Label } from "src/@/components/ui/label";
+import { Checkbox } from "src/@/components/ui/checkbox";
+import { getItemLocalStorage, saveItemLocalStorage } from "src/utils/utils";
 
 export function TeamsContainer({
   teamSectionRef,
@@ -37,6 +39,8 @@ export function TeamsContainer({
   const [start, setStart] = useState<number>(0);
   const [maxNumberOfTeams, setMaxNumberOfTeams] = useState<number>(30);
   const [itemsPerPage, setItemsPerPage] = useState<number>(9);
+  const [sortByFavorites, setSortByFavorites] = useState<boolean>(false);
+  const favoriteTeamsStrLS = "favorite-teams";
 
   const ac = new AbortController();
   // Fetch teams from the server.
@@ -46,19 +50,22 @@ export function TeamsContainer({
     const prevScroll = teamSectionDiv ? teamSectionDiv.scrollTop : 0;
 
     try {
+      const favTeams = getFavoriteTeams();
+      const favsStr = sortByFavorites ? favTeams.toString() : "";
       const resp = await getTeamsResp(
         ac,
         start,
         itemsPerPage,
         searchTerm,
         league,
-        division
+        division,
+        favsStr
       );
 
       setTeams(resp.teams);
       setMaxNumberOfTeams(resp.totalTeams);
 
-      if (searchTerm) {
+      if (searchTerm || (sortByFavorites && favTeams.length < itemsPerPage)) {
         setStart(0);
       }
     } catch (error) {
@@ -99,7 +106,7 @@ export function TeamsContainer({
 
   useEffect(() => {
     fetchTeams();
-  }, [searchTerm, start, itemsPerPage]);
+  }, [searchTerm, start, itemsPerPage, sortByFavorites]);
 
   useEffect(() => {
     if (debouncedSearch !== searchTerm) {
@@ -123,6 +130,30 @@ export function TeamsContainer({
       Math.min(prev + itemsPerPage, maxNumberOfTeams - itemsPerPage)
     );
   };
+
+  function getFavoriteTeams() {
+    const favoriteTeamsStr = getItemLocalStorage(favoriteTeamsStrLS) ?? "";
+    const favoriteTeamsArr = favoriteTeamsStr
+      .split(",")
+      .map((val) => Number(val))
+      .filter((val) => isFinite(Number(val)) && val > 0);
+    return favoriteTeamsArr;
+  }
+
+  function addFavoriteTeam(id: number) {
+    let teams = getFavoriteTeams();
+    teams.push(id);
+    saveItemLocalStorage(favoriteTeamsStrLS, teams.toString());
+  }
+
+  function removeFavoriteTeam(id: number) {
+    let teams = getFavoriteTeams();
+    teams = teams.filter((tId) => tId !== id);
+    saveItemLocalStorage(favoriteTeamsStrLS, teams.toString());
+  }
+
+  const favoriteTeams = getFavoriteTeams();
+
   const teamsList = teams.map((team) => (
     <TeamCard
       key={team.id}
@@ -131,16 +162,19 @@ export function TeamsContainer({
       imageUrl={team.logo}
       id={team.id}
       teamColor={team.color}
+      _isFavorite={favoriteTeams.includes(team.id)}
+      addFavTeam={addFavoriteTeam}
+      removeFavTeam={removeFavoriteTeam}
     />
   ));
 
   if (loading) {
     /* loading state UI */
     return (
-      <div>
+      <div className="text-primary-foreground">
         <div className="flex-1 min-h-0 flex flex-col py-2 overflow-auto">
           <div className="flex items-center justify-center pb-8 mt-20">
-            <h2 className="text-4xl text-primary">Find Your Favorite Teams</h2>
+            <h2 className="text-4xl">Find Your Favorite Teams</h2>
           </div>
 
           <TeamsFilterSearchBar
@@ -149,6 +183,19 @@ export function TeamsContainer({
           ></TeamsFilterSearchBar>
 
           <div className="flex flex-row flex-wrap items-center justify-end gap-4">
+            <div className="flex flex-col gap-3 items-center justify-center">
+              <Label>Filter Favorites</Label>
+
+              <Checkbox
+                className="dark:border-white"
+                checked={sortByFavorites}
+                onCheckedChange={(checked) => {
+                  return checked
+                    ? setSortByFavorites(true)
+                    : setSortByFavorites(false);
+                }}
+              />
+            </div>
             <div className="flex flex-col gap-3 items-start justify-center">
               <Label>Items per page</Label>
               <input
@@ -279,13 +326,13 @@ export function TeamsContainer({
   }
 
   return (
-    <div>
+    <div className="text-primary-foreground">
       <div className="flex-1 min-h-0 flex flex-col py-2 overflow-auto">
         <div
           ref={teamSectionRef}
           className="flex items-center justify-center pb-8 mt-20"
         >
-          <h2 className="text-4xl text-primary">Find Your Favorite Teams</h2>
+          <h2 className="text-4xl">Find Your Favorite Teams</h2>
         </div>
 
         <TeamsFilterSearchBar
@@ -294,6 +341,19 @@ export function TeamsContainer({
         ></TeamsFilterSearchBar>
 
         <div className="flex flex-row flex-wrap items-center justify-end gap-4">
+          <div className="flex flex-col gap-3 items-center justify-center">
+            <Label>Filter Favorites</Label>
+
+            <Checkbox
+              className="dark:border-white"
+              checked={sortByFavorites}
+              onCheckedChange={(checked) => {
+                return checked
+                  ? setSortByFavorites(true)
+                  : setSortByFavorites(false);
+              }}
+            />
+          </div>
           <div className="flex flex-col gap-3 items-start justify-center">
             <Label>Items per page</Label>
             <input
@@ -336,11 +396,12 @@ export function TeamsContainer({
           )}
         </div>
       </div>
-      <div className="flex justify-between mt-4">
+      <div className="flex justify-between mt-4 px-4 [&_button]:outline-none focus:[&_button]:ring-1 focus:[&_button]:ring-primary-foreground focus:[&_button]:bg-blue-600 hover:[&_button]:bg-blue-600 hover:dark:[&_button]:shadow-white focus:dark:[&_button]:shadow-white [&_button]:shadow-md [&_button]:rounded [&_button]:text-white [&_button]:bg-blue-500">
         <Button
-          className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 hover:shadow-lg"
+          className="p-2"
           onClick={handlePreviousPage}
           disabled={!start}
+          tabIndex={1}
         >
           Previous
         </Button>
@@ -351,12 +412,13 @@ export function TeamsContainer({
         </div>
 
         <Button
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 hover:shadow-lg"
+          className="px-4 py-2"
           onClick={handleNextPage}
           disabled={
             teams.length < itemsPerPage ||
             start + itemsPerPage >= maxNumberOfTeams
           }
+          tabIndex={1}
         >
           Next
         </Button>

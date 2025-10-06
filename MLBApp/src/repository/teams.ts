@@ -75,7 +75,8 @@ export async function getTeamsResp(
   itemsPerPage: number,
   searchTerm: string = "",
   league?: League,
-  division?: Division
+  division?: Division,
+  favorites?: string
 ): Promise<{ totalTeams: number; teams: MlbTeamDataModifiedI[] }> {
   try {
     // Constructing query parameters based on inputs and pagination.
@@ -93,6 +94,10 @@ export async function getTeamsResp(
 
     if (division) {
       params += `&division=${division}`;
+    }
+
+    if (favorites) {
+      params += `&favorites=${favorites}`;
     }
 
     const endpoint = `teams?${params}`;

@@ -135,12 +135,12 @@ const MobileMenu = ({
               <Sun
                 className={`${
                   colorScheme == "light" ? "hidden" : "block"
-                } fill-secondary stroke-secondary`}
+                } fill-secondary stroke-primary-foreground`}
               />
               <Moon
                 className={`${
                   colorScheme == "dark" ? "hidden" : "block"
-                } fill-secondary stroke-secondary`}
+                } fill-secondary stroke-primary-foreground`}
               />
             </Button>
           </nav>
@@ -213,12 +213,12 @@ const NavBar = ({
               <Sun
                 className={`${
                   colorScheme == "light" ? "hidden" : "block"
-                } fill-primary stroke-primary hover:stroke-yellow-400`}
+                } fill-primary stroke-primary-foreground hover:stroke-yellow-400`}
               />
               <Moon
                 className={`${
                   colorScheme == "dark" ? "hidden" : "block"
-                } fill-secondary stroke-secondary hover:stroke-yellow-300`}
+                } fill-secondary stroke-primary-foreground hover:stroke-yellow-300`}
               />
             </Button>
             <Button

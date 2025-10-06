@@ -135,6 +135,19 @@ export class Server {
           ? String(req.query.location).toLowerCase()
           : null;
 
+      let favorites =
+        req.query.favorites !== undefined ? String(req.query.favorites) : null;
+
+      let favoritesArr = [];
+
+      if (favorites) {
+        let fs = favorites
+          .split(",")
+          .map((val) => Number(val))
+          .filter((val) => isFinite(val) && val > 0);
+        favoritesArr.push(...fs);
+      }
+
       if (
         league != null &&
         league !== LeagueEnum.AMERICAN &&
@@ -183,18 +196,28 @@ export class Server {
               !location || team.location.toLowerCase().includes(location);
             let matchesId = id === 0 || team.id === id;
             let matchesName = !name || team.name.toLowerCase().includes(name);
+            let matchFavorites =
+              favoritesArr.length > 0 ? favoritesArr.includes(team.id) : true;
 
             return (
               matchesLeague &&
               matchesDivision &&
               matchesLocation &&
               matchesId &&
-              matchesName
+              matchesName &&
+              matchFavorites
             );
           });
 
           // Check if no filters are applied
-          if (!league && !division && !location && id === 0 && !name) {
+          if (
+            !league &&
+            !division &&
+            !location &&
+            !favorites &&
+            id === 0 &&
+            !name
+          ) {
             filteredTeams = mlbTeams;
           }
 
