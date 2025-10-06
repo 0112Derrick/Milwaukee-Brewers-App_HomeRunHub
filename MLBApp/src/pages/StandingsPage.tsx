@@ -15,7 +15,6 @@ import {
 import { StandingsResponseV2 } from "src/interfaces/teams.types";
 import { DataTable } from "src/components/Table";
 import { columns } from "src/data/columnDefs";
-import { Label } from "src/@/components/ui/label";
 import {
   Tabs,
   TabsList,
@@ -24,15 +23,16 @@ import {
 } from "src/@/components/ui/tabs";
 import { PlayoffBracket } from "src/components/PlayoffBrackets";
 import { candidateStandingsDates, seasonYear } from "src/utils/utils";
-import LeagueAndDivisionFilterInputs from "src/components/TeamFilterRadioButtons";
 import { BracketPayload } from "src/interfaces/playoff.series.types";
+import { Label } from "src/@/components/ui/label";
+import LeagueAndDivisionFilterInputs from "src/components/TeamFilterRadioButtons";
 
 const today = new Date();
 
 // ---------- component ----------
 const StandingsPage: React.FC = () => {
-  // view state
-  const [tab, setTab] = useState<"regular" | "playoffs">("regular");
+  type standingsPageTab = "regular" | "playoffs";
+  const [tab, setTab] = useState<standingsPageTab>("regular");
 
   // regular standings state
   const [standings, setStandings] = useState<StandingsResponseV2 | null>(null);
@@ -164,13 +164,47 @@ const StandingsPage: React.FC = () => {
 
         <Tabs
           value={tab}
-          onValueChange={(v) => setTab(v as any)}
+          onValueChange={(v) => setTab(v as standingsPageTab)}
           className="mt-4"
         >
-          <TabsList className="mb-4 mx-4">
-            <TabsTrigger value="regular">Regular</TabsTrigger>
-            <TabsTrigger value="playoffs">Playoffs</TabsTrigger>
-          </TabsList>
+          <div className="flex flex-wrap items-center justify-between px-4">
+            <TabsList>
+              <TabsTrigger value="regular">Regular</TabsTrigger>
+              <TabsTrigger value="playoffs">Playoffs</TabsTrigger>
+            </TabsList>
+
+            <div className="flex flex-wrap items-center">
+              <div
+                className={`flex flex-col gap-3 px-4 ${
+                  tab == "playoffs" ? "block" : "hidden"
+                }`}
+              >
+                <Label>Season</Label>
+                <select
+                  className="ring-1 border-none bg-inherit outline-none w-32 h-6 rounded-md cursor-pointer"
+                  value={season}
+                  onChange={(e) => setSeason(parseInt(e.target.value, 10))}
+                >
+                  {Array.from({ length: 8 }).map((_, i) => {
+                    const y = new Date().getFullYear() - i;
+                    return (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <LeagueAndDivisionFilterInputs
+                league={league}
+                division={division}
+                setDivision={setDivision}
+                setLeague={setLeague}
+                className={tab == "regular" ? "block" : "hidden"}
+              ></LeagueAndDivisionFilterInputs>
+            </div>
+          </div>
 
           {/* ---------- REGULAR STANDINGS ---------- */}
           <TabsContent value="regular" className="m-0">
@@ -187,15 +221,6 @@ const StandingsPage: React.FC = () => {
             {standings && (
               <ScrollArea>
                 <div className="flex flex-col flex-grow max-w-[100vw] overflow-auto">
-                  <div className="px-4">
-                    <LeagueAndDivisionFilterInputs
-                      league={league}
-                      division={division}
-                      setDivision={setDivision}
-                      setLeague={setLeague}
-                    ></LeagueAndDivisionFilterInputs>
-                  </div>
-
                   <div className="flex flex-col mt-4 rounded-none border-none bg-secondary md:items-start lg:items-center">
                     {standings.records.map((division) => (
                       <Card
@@ -211,7 +236,7 @@ const StandingsPage: React.FC = () => {
                                   )?.name
                                 : ""}
                             </span>
-                            <Badge className="bg-secondary text-primary">
+                            <Badge className="bg-secondary">
                               {division.standingsType}
                             </Badge>
                           </CardTitle>
@@ -237,26 +262,6 @@ const StandingsPage: React.FC = () => {
 
           {/* ---------- PLAYOFFS TAB ---------- */}
           <TabsContent value="playoffs" className="m-0">
-            <div className="flex-grow flex flex-wrap gap-2 justify-end">
-              <div className="flex flex-col gap-3 px-4">
-                <Label>Season</Label>
-                <select
-                  className="ring-1 border-none bg-inherit outline-none w-32 h-6 rounded-md cursor-pointer"
-                  value={season}
-                  onChange={(e) => setSeason(parseInt(e.target.value, 10))}
-                >
-                  {Array.from({ length: 8 }).map((_, i) => {
-                    const y = new Date().getFullYear() - i;
-                    return (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-            </div>
-
             {bracketLoading && (
               <div className="flex flex-col items-center justify-center flex-grow py-10">
                 <Spinner />

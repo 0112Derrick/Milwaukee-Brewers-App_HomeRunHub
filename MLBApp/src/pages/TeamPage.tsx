@@ -230,7 +230,7 @@ export default function TeamPage() {
                   variant={page === val ? "default" : "outline"}
                   size="sm"
                   disabled={page === val}
-                  className={`rounded-full text-primary bg-accent border-blue-300 hover:bg-accent-foreground hover:text-secondary hover:shadow-md`}
+                  className={`rounded-full text-primary-foreground bg-accent border-blue-300 hover:bg-accent-foreground hover:text-secondary hover:shadow-md`}
                   onClick={() => navigate(`/teams/${teamId}/${season}/${val}`)}
                 >
                   {label}
@@ -287,15 +287,15 @@ export default function TeamPage() {
           <div className="w-full self-end flex flex-col h-fit">
             <InnerNav></InnerNav>
           </div>
-          <Card className="flex items-center flex-wrap justify-evenly flex-1 p-4 gap-4 border-0 sm:gap-12 sm:p-24 md:w-4/5 md:p-4 bg-inherit rounded-md">
-            <CardContent className="flex flex-wrap gap-8 items-center justify-center sm:items-center ">
+          <Card className="flex items-center flex-wrap justify-evenly flex-1 p-4 mt-4 gap-4 border-0 sm:gap-12 sm:p-24 md:w-4/5 md:p-4 bg-inherit rounded-md shadow-none">
+            <CardContent className="flex flex-wrap gap-8 items-center justify-center sm:items-center">
               <img
                 src={team.logo}
                 alt={`${team.name} Logo`}
                 className="w-20 aspect-square sm:w-20 md:w-28 object-contain"
               />
 
-              <div className="flex flex-col items-center bg-inherit/5 text-primary text-center px-4 py-8 sm:p-8 rounded-lg shadow-lg">
+              <div className="flex flex-col items-center bg-inherit/5 text-primary-foreground text-center px-4 py-8 sm:p-8 rounded-lg shadow-lg dark:shadow-slate-50/15">
                 <h1 className="text-2xl md:text-4xl py-4">
                   <span
                     className="shadow-md rounded-md p-1"
@@ -380,13 +380,6 @@ export default function TeamPage() {
                     Learn More About Us
                   </a>
                 </div>
-                <iframe
-                  src="https://www.mlb.com/stories/game-preview/776370?teamId=114&amp;landscape=true&amp;suppressPoll=true&amp;suppressOutlink=true&amp;suppressOutlinkSponsor=true&amp;suppressDrawer=true&amp;ap=1#embedMode=2"
-                  allow="autoplay"
-                  sandbox="allow-top-navigation-by-user-activation allow-popups-to-escape-sandbox allow-forms allow-modals allow-pointer-lock allow-popups allow-same-origin allow-scripts allow-top-navigation"
-                  aria-label="Game Story"
-                  className="hidden TapStorystyle__TapStoryIFrame-sc-d3dkf9-1 jFsZhX"
-                ></iframe>
               </div>
             </CardContent>
           </Card>
@@ -395,12 +388,12 @@ export default function TeamPage() {
     }
     if (page == TeamPages.Standings) {
       return (
-        <div className="flex-1 flex flex-col min-h-0 gap-4 bg-gray-50">
+        <div className="flex-1 flex flex-col min-h-0 gap-4">
           <InnerNav></InnerNav>
           <ScrollArea className="flex-1 min-h-0 flex flex-col">
             <div className="flex-1 w-full min-h-0 flex flex-col items-center">
-              <Card className="flex-1 flex flex-col bg-card text-card-foreground md:w-full lg:w-3/4 border-b-0 overflow-hidden">
-                <CardHeader className="flex-shrink-0">
+              <Card className="flex-1 flex flex-col bg-card text-card-foreground w-full border-b-0 overflow-hidden border-none">
+                <CardHeader className="flex-shrink-0 sticky">
                   <span className="font-semibold text-lg">
                     <TeamLogoName
                       id={teamId}
@@ -428,18 +421,16 @@ export default function TeamPage() {
       return (
         <div className="flex-1 flex flex-col w-full min-h-0">
           <InnerNav />
+          <span className="font-semibold text-lg text-card-foreground py-4">
+            <TeamLogoName
+              id={teamId}
+              teamName={team.name}
+              logo={logo}
+              isLink={false}
+            />
+          </span>
           <ScrollArea className="flex-1 min-h-0 w-full">
             <Card className="flex flex-col h-full w-full rounded-none">
-              <CardHeader className="flex-shrink-0">
-                <span className="font-semibold text-lg text-card-foreground">
-                  <TeamLogoName
-                    id={teamId}
-                    teamName={team.name}
-                    logo={logo}
-                    isLink={false}
-                  />
-                </span>
-              </CardHeader>
               <CardContent className="p-0 h-full min-h-0 min-w-full">
                 <RosterTable data={rosterData} />
               </CardContent>
@@ -451,22 +442,20 @@ export default function TeamPage() {
     }
     if (page == TeamPages.Schedule) {
       return (
-        <div className="flex-1 flex flex-col gap-4 overflow-hidden bg-gray-50">
+        <div className="flex-1 flex flex-col gap-4 overflow-hidden">
           <InnerNav></InnerNav>
+          <span className="font-semibold text-lg text-card-foreground py-4">
+            <TeamLogoName
+              id={teamId}
+              teamName={team.name}
+              logo={logo}
+              isLink={false}
+            />
+          </span>
           <ScrollArea>
-            <div className="w-full flex flex-col flex-1 mt-6 items-center ">
-              <Card className="flex-1 flex flex-col md:w-full lg:w-3/4 border-b-0 overflow-hidden rounded-none">
-                <CardHeader className="flex-shrink-0">
-                  <span className="font-semibold text-lg text-card-foreground">
-                    <TeamLogoName
-                      id={teamId}
-                      teamName={team.name}
-                      logo={logo}
-                      isLink={false}
-                    />
-                  </span>
-                </CardHeader>
-                <CardContent className="p-0 h-full min-h-0 min-w-full">
+            <div className="w-full flex flex-col flex-1 mt-2 items-center ">
+              <Card className="flex-1 flex flex-col w-full border-b-0 overflow-hidden rounded-none shadow-none border-none">
+                <CardContent className="px-2 py-0 min-w-full">
                   <DataTable
                     columns={gamesColumns}
                     data={games}
@@ -495,20 +484,18 @@ export default function TeamPage() {
       return (
         <div className="flex-1 flex flex-col w-full min-h-0">
           <InnerNav />
+          <span className="font-semibold text-lg text-card-foreground py-4">
+            <TeamLogoName
+              id={teamId}
+              teamName={team.name}
+              logo={logo}
+              isLink={false}
+            />
+          </span>
           <ScrollArea className="flex-1 min-h-0 w-full">
             <Card className="flex flex-col h-full w-full rounded-none">
-              <CardHeader className="flex-shrink-0">
-                <span className="font-semibold text-lg text-card-foreground">
-                  <TeamLogoName
-                    id={teamId}
-                    teamName={team.name}
-                    logo={logo}
-                    isLink={false}
-                  />
-                </span>
-              </CardHeader>
               <CardContent className="p-0 h-full min-h-0 min-w-full">
-                <Label className="flex flex-col gap-3 p-1 w-fit">
+                <Label className="flex flex-col gap-3 p-2 w-fit">
                   <span className="font-semibold"> Select Date Range</span>
                   <DateRangeSelector
                     selectedRange={transactionsDateRange}

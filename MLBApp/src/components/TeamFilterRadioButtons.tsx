@@ -6,14 +6,16 @@ function LeagueAndDivisionFilterInputs({
   league,
   setLeague,
   setDivision,
+  className,
 }: {
   division: Division;
   league: League;
   setLeague: (val: number) => void;
   setDivision: (val: number) => void;
+  className?: string;
 }) {
   return (
-    <div className="flex flex-wrap gap-2 py-4 px-2 justify-end">
+    <div className={`flex flex-wrap gap-2 py-4 px-2 justify-end ${className}`}>
       <div className="flex flex-col gap-3">
         <Label>League</Label>
         <select

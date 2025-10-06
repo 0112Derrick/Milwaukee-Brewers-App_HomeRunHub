@@ -14,10 +14,10 @@ function TitleSection({
     <>
       <div className="h-auto w-full my-2 flex flex-col items-center text-center gap-8 px-4 sm:px-0">
         <div className=".semi-circle-gradient"></div>
-        <span className="text-primary font-bold text-4xl lg:text-2xl">
+        <span className="text-primary-foreground font-bold text-4xl lg:text-2xl">
           Baseball, <span className="text-sky-400">Beautifully</span> Organized
         </span>
-        <span className="text-primary/70 text-2xl pb-4 lg:text-xl lg:pb-2">
+        <span className="text-primary-foreground/70 text-2xl pb-4 lg:text-xl lg:pb-2">
           Experience the next evolution in baseball apps.
           <br className="hidden sm:inline" /> Discover, filter, and dive deeper
           into your favorite teams with ease and style.
