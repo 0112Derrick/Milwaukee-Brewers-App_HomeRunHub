@@ -53,9 +53,34 @@ const prettyPlaceholder = (name: string) =>
     .replace(/\bNL\b/g, "National League")
     .replace(/Winner\s+ALWC\s*(\d)/gi, "Winner American League Wild Card $1")
     .replace(/Winner\s+NLWC\s*(\d)/gi, "Winner National League Wild Card $1")
-    .replace(/\bWPCT\b/gi, "Winning %")
+    .replace(/\bHigher WPCT\b/gi, "American League Higher Seed")
+    .replace(/\bLower WPCT\b/gi, "National League Higher Seed")
     .replace(/\bHigher Seed\b/gi, "Higher Seed")
     .replace(/\bLower Seed\b/gi, "Lower Seed");
+
+const determineSeriesScore = (series: PlayoffSeries) => {
+  let homeWins = 0;
+  let awayWins = 0;
+  let draws = 0;
+
+  const filteredGames = series.games.filter(
+    (game) => game.state === "final" && (game.homeScore || game.awayScore)
+  );
+
+  filteredGames.forEach((game) => {
+    let away = game.awayScore ?? 0;
+    let home = game.homeScore ?? 0;
+    if (away < home) {
+      homeWins += 1;
+    } else if (away > home) {
+      awayWins += 1;
+    } else {
+      draws += 1;
+    }
+  });
+
+  return { home: homeWins, away: awayWins, draws };
+};
 
 // derive accent from team or friendly fallback
 function getAccent(team?: BracketTeam): string {
@@ -99,7 +124,7 @@ export const PlayoffBracket: React.FC<PlayoffBracketProps> = ({ bracket }) => {
   );
 
   return (
-    <div className="w-full">
+    <div className="mt-2 w-full bg-secondary/90">
       <ScrollArea>
         <div
           id={rootId}
@@ -123,7 +148,7 @@ export const PlayoffBracket: React.FC<PlayoffBracketProps> = ({ bracket }) => {
                   colIdx < byRound.length - 1 ? columnGlow : ""
                 }`}
               >
-                <h2 className="text-2xl font-semibold tracking-tight">
+                <h2 className="text-2xl font-semibold tracking-tight text-center">
                   {roundTitle[round]}
                 </h2>
 
@@ -166,7 +191,7 @@ const MatchupCard: React.FC<{
 }> = ({ series, expanded, onToggle }) => {
   const accentA = getAccent(series.home);
   const accentB = getAccent(series.away);
-
+  const { home, away, draws } = determineSeriesScore(series);
   return (
     <Card
       className={`
@@ -195,14 +220,16 @@ const MatchupCard: React.FC<{
         <div className="divide-y divide-white/10">
           <TeamRow
             t={series.home}
-            w={series.winsHome}
-            oppW={series.winsAway}
+            w={home}
+            oppW={away}
+            draws={draws}
             accent={accentA}
           />
           <TeamRow
             t={series.away}
-            w={series.winsAway}
-            oppW={series.winsHome}
+            w={away}
+            oppW={home}
+            draws={draws}
             accent={accentB}
           />
         </div>
@@ -242,26 +269,28 @@ const MatchupCard: React.FC<{
                 {series.status !== "scheduled" && (
                   <li className="flex flex-col items-start justify-start">
                     • Scores:
-                    {series.games.map((game) => {
-                      return (
-                        <Link
-                          to={`/scores/${game.date}/${game.gamePk}`}
-                          className="hover:text-white"
-                        >
-                          <div className="flex flex-col">
-                            <div className="flex flex-row flex-wrap gap-1">
-                              <span>
-                                {series.away.abbreviation} {game.awayScore}
-                              </span>
-                              -
-                              <span>
-                                {game.homeScore} {series.home.abbreviation}
-                              </span>
+                    {series.games
+                      .filter((game) => game.awayScore || game.homeScore)
+                      .map((game) => {
+                        return (
+                          <Link
+                            to={`/scores/${game.date}/${game.gamePk}`}
+                            className="hover:text-white"
+                          >
+                            <div className="flex flex-col">
+                              <div className="flex flex-row flex-wrap gap-1">
+                                <span>
+                                  {series.away.abbreviation} {game.awayScore}
+                                </span>
+                                -
+                                <span>
+                                  {game.homeScore} {series.home.abbreviation}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        </Link>
-                      );
-                    })}
+                          </Link>
+                        );
+                      })}
                   </li>
                 )}
                 {/* Add highlight clips */}
@@ -281,18 +310,12 @@ const TeamRow: React.FC<{
   t: BracketTeam;
   w: number;
   oppW: number;
+  draws: number;
   accent: string;
-}> = ({ t, w, oppW, accent }) => {
+}> = ({ t, w, oppW, accent, draws }) => {
   const label = t?.name ? prettyPlaceholder(t.name) : "";
   const href = t?.id ? `/teams/${t.id}` : undefined;
-  const [isHovered, setIsHovered] = useState(false);
-
-  const style = {
-    color: isHovered ? accent : "inherit",
-    background: isHovered
-      ? "linear-gradient(hsl(0 100% 100% / .6)) 0 0"
-      : "inherit",
-  };
+  const showScore = oppW > 0 || draws > 0 || w > 0;
 
   return (
     <div
@@ -314,10 +337,8 @@ const TeamRow: React.FC<{
       <div className="flex items-center gap-2">
         <Link
           to={href ?? "#"}
-          className="flex items-center gap-2 p-2 rounded"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          style={style}
+          style={{ "--teamColor": accent } as React.CSSProperties}
+          className="flex items-center gap-2 p-2 rounded hover:text-[var(--teamColor)] dark:hover:text-sky-400"
         >
           {getTeamImageUrl(t) ? (
             <img
@@ -339,8 +360,12 @@ const TeamRow: React.FC<{
       </div>
 
       {/* right: score */}
-      <div className="tabular-nums font-semibold">
-        {w}–{oppW}
+      <div
+        className={`tabular-nums font-semibold ${
+          showScore ? "block" : "hidden"
+        }`}
+      >
+        {draws > 0 ? `${w}–${draws}-${oppW}` : `${w}–${oppW}`}
       </div>
     </div>
   );
