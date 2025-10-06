@@ -13,6 +13,8 @@ import {
   ArrowBigDownIcon,
   ArrowBigUpIcon,
   ArrowRightIcon,
+  CheckCircle,
+  CircleX,
 } from "lucide-react";
 import { Button } from "src/@/components/ui/button";
 import { teamLogoUrl } from "src/utils/utils";
@@ -76,8 +78,12 @@ export const columns: ColumnDef<TeamRecord>[] = [
     cell({ getValue }) {
       const isClinched = getValue<boolean>();
       return (
-        <div className={isClinched ? "text-green-600" : "text-red-600"}>
-          {isClinched ? "✔️" : "❌"}
+        <div
+          className={`${
+            isClinched ? "text-green-600" : "text-red-600"
+          } flex items-center justify-center`}
+        >
+          {isClinched ? <CheckCircle /> : <CircleX />}
         </div>
       );
     },
@@ -236,8 +242,12 @@ export const rosterColumns: ColumnDef<Player>[] = [
     cell({ getValue }) {
       const isActive = getValue<boolean>();
       return (
-        <div className={isActive ? "text-green-600" : "text-red-600"}>
-          {isActive ? "✔️" : "❌"}
+        <div
+          className={`${
+            isActive ? "text-green-600" : "text-red-600"
+          } flex items-center justify-center`}
+        >
+          {isActive ? <CheckCircle /> : <CircleX />}
         </div>
       );
     },
@@ -286,16 +296,7 @@ export const transactionsColumns: ColumnDef<Transaction>[] = [
   },
   {
     accessorKey: "description",
-    header: () => {
-      return <div className="text-left md:text-center">Description</div>;
-    },
-    cell: ({ row }) => {
-      return (
-        <div className="text-left max-w-[40%] text-wrap md:max-w-full md:text-center">
-          {row.original.description}
-        </div>
-      );
-    },
+    header: "Description",
   },
 ];
 
