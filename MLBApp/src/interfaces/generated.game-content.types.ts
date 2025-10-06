@@ -1,12 +1,13 @@
 // Generated from https://statsapi.mlb.com/api/v1/game/776755/content
 export interface GameContentResponse {
-  copyright: string;
-  editorial: Editorial;
-  gameNotes: GameNotes;
-  highlights: GameContentResponseHighlights;
-  link: string;
-  media: GameContentResponseMedia;
-  summary: Summary;
+  stories?: string[];
+  copyright?: string;
+  editorial?: Editorial;
+  gameNotes?: GameNotes;
+  highlights?: GameContentResponseHighlights;
+  link?: string;
+  media?: GameContentResponseMedia;
+  summary?: Summary;
 }
 
 export interface Editorial {

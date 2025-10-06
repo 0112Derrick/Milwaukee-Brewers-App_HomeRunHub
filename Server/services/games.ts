@@ -26,6 +26,7 @@ export async function fetchGameLineScore(gamePk: number): Promise<any> {
   }
 }
 
+//FIXME - remove multiple returns
 export async function fetchGameContent(gamePk: number): Promise<any> {
   try {
     const resp = await axios.get<GameContentResponse>(
@@ -35,6 +36,7 @@ export async function fetchGameContent(gamePk: number): Promise<any> {
     if (resp.status !== 200 || !resp.data.media) {
       return null;
     }
+    resp.data.stories = await getMlbStories(gamePk);
 
     return resp.data;
   } catch (e) {
@@ -145,22 +147,29 @@ export async function fetchPlayByPlay(
   }
 }
 
-export async function checkMlbStory(gamePk: number) {
-  const videoHref = `https://www.mlb.com/stories/game/${gamePk}`;
-  let result = false;
+export async function getMlbStories(gamePk: number) {
+  const gameStoryHref = `https://www.mlb.com/stories/game/${gamePk}`;
+  const preGameStoryHref = `https://www.mlb.com/stories/game-preview/${gamePk}`;
+  const activeStories = [];
+
   try {
-    const apiRes = await axios.get(videoHref);
+    const [gameStory, preGameStory] = await Promise.all([
+      axios.get(gameStoryHref),
+      axios.get(preGameStoryHref),
+    ]);
     // console.log(`Status: ${apiRes.status} | Result: ${apiRes.data}`);
-    if (apiRes.status < 400) {
-      result = true;
-    } else {
-      result = false;
+    if (gameStory.status < 400) {
+      activeStories.push(gameStoryHref);
+    }
+
+    if (preGameStory.status < 400) {
+      activeStories.push(preGameStoryHref);
     }
   } catch (e) {
-    result = false;
+    console.error("Get MLB story error: " + e);
   }
 
-  return result;
+  return activeStories;
 }
 
 export function findGameByGamePk(

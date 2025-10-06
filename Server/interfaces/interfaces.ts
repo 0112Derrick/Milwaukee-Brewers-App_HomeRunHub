@@ -1613,6 +1613,7 @@ export interface GameContentResponse {
   // Misc frequently present bits
   keywordsAll?: Keyword[];
   externalLinks?: Record<string, ExternalLink[] | undefined>;
+  stories: string[];
 
   // The API sometimes returns extra top-level props
   [key: string]: unknown;

@@ -16,7 +16,7 @@ import {
   fetchGameLineScore,
   fetchPlayByPlay,
   fetchBoxScores,
-  checkMlbStory,
+  getMlbStories,
 } from "./services/games.js";
 import {
   fetchSchedule,
@@ -255,7 +255,7 @@ export class Server {
         return;
       }
 
-      const results = await checkMlbStory(gamePk);
+      const results = await getMlbStories(gamePk);
 
       res.send({ exists: results });
     });

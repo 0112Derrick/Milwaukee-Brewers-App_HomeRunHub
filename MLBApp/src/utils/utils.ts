@@ -1,3 +1,4 @@
+import { mlbTeamsDetails } from "src/data/teamData";
 import { PlayEvent } from "../interfaces/baseballField.types";
 import {
   GameHeader,
@@ -262,4 +263,32 @@ export function getItemLocalStorage(key: string) {
 
 export function removeItemLocalStorage(key: string) {
   localStorage.removeItem(key);
+}
+
+export const withAlpha = (hexOrRgb: string, a = 0.4) => {
+  // supports #RGB, #RRGGBB, rgb()
+  if (hexOrRgb.startsWith("#")) {
+    let h = hexOrRgb.slice(1);
+    if (h.length === 3)
+      h = h
+        .split("")
+        .map((x) => x + x)
+        .join("");
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
+  }
+  if (hexOrRgb.startsWith("rgb(")) {
+    return hexOrRgb.replace("rgb(", "rgba(").replace(")", `, ${a})`);
+  }
+  return hexOrRgb; // let browser handle other formats
+};
+
+export function getTeamColor(team: string) {
+  const teamDetail = mlbTeamsDetails.find((_team) =>
+    _team.team.includes(team ?? "")
+  );
+
+  return teamDetail?.color;
 }
