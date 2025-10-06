@@ -251,7 +251,10 @@ export function DataTable<TData, TValue>({
                 className="even:bg-slate-200/20 hover:bg-slate-300/25"
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className="">
+                  <TableCell
+                    key={cell.id}
+                    className="max-w-[700px] overflow-x-scroll break-words"
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
