@@ -13,7 +13,6 @@ import {
   PlayIcon,
   Trophy,
   CircleCheck,
-  ChevronRight,
 } from "lucide-react";
 import { Badge } from "src/@/components/ui/badge";
 import {
@@ -156,8 +155,8 @@ export function InningPanel({
       value={title}
       className={`border-none min-h-full ${
         isOpen
-          ? "cursor-default text-primary"
-          : "cursor-pointer hover:text-sky-400 text-stone-600"
+          ? "cursor-default text-primary-foreground"
+          : "cursor-pointer hover:text-sky-400 text-secondary-foreground"
       }`}
     >
       <AccordionTrigger
@@ -167,32 +166,33 @@ export function InningPanel({
         title="Open play by play list"
       >
         <div
-          className={`flex items-center justify-between w-full gap-2 p-2 rounded rounded-b-none ${
-            isOpen ? "!bg-sky-300/30" : ""
-          }`}
+          className={`flex items-center justify-between w-full gap-2 p-2 rounded rounded-b-none`}
         >
           <div className="flex items-center gap-4">
-            <CircleCheck className={`h-4 w-4 fill-blue-400 stroke-white`} />
-            <span className="font-semibold">{title}</span>
+            <CircleCheck
+              className={`h-4 w-4 fill-blue-400 stroke-white ${
+                isOpen ? "block" : "hidden"
+              }`}
+            />
+            <Badge
+              className={`flex justify-center text-white hover:bg-blue-400 hover:text-white min-w-20 ${
+                isOpen ? "bg-sky-300/60" : "bg-black/45"
+              }`}
+            >
+              {title}
+            </Badge>
           </div>
 
-          {isOpen ? (
-            <Badge
-              className={`${
-                isOpen ? "block" : "hidden"
-              } flex items-center bg-blue-400 text-white hover:bg-blue-400 hover:text-white`}
-            >
-              <span className="font-semibold">{plays.length} plays</span>
-            </Badge>
-          ) : (
-            <div className={`${isOpen ? "hidden" : "block"} flex items-center`}>
-              <span className="font-semibold">{plays.length} plays</span>
-              <ChevronRight className="h-4 w-4" />
-            </div>
-          )}
+          <Badge
+            className={`${
+              isOpen ? "block" : "hidden"
+            } flex items-center bg-blue-400/45 text-white hover:bg-blue-400 hover:text-white`}
+          >
+            <span className="font-semibold">{plays.length} plays</span>
+          </Badge>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="min-h-full text-primary">
+      <AccordionContent className="min-h-full text-primary-foreground">
         <div className="min-h-full">
           <Table className="min-h-full">
             <TableHeader>
