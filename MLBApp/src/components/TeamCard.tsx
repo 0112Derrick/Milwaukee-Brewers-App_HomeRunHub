@@ -26,26 +26,16 @@ const TeamCard = ({
     <>
       {teamColor ? (
         <Card
-          className={`w-[250px] overflow-hidden cursor-pointer text-white border-inherit hover:border-solid hover:border-x-2 hover:bg-secondary hover:shadow-lg`}
+          style={
+            {
+              "--teamColor": teamColor,
+            } as React.CSSProperties
+          }
+          className={`w-[250px] overflow-hidden cursor-pointer text-white border-inherit hover:shadow-[var(--teamColor)] hover:border-[var(--teamColor)] hover:border-solid hover:border-x-2 hover:bg-secondary hover:shadow-md`}
           onClick={() => {
             navigate(`/teams/${id}`);
           }}
           ref={cardRef}
-          onMouseEnter={() => {
-            if (cardRef && cardRef.current) {
-              let card = cardRef.current as HTMLElement;
-
-              card.style.borderColor = teamColor;
-              card.style.boxShadow = `2px 2px 5px ${teamColor}`;
-            }
-          }}
-          onMouseLeave={() => {
-            if (cardRef && cardRef.current) {
-              let card = cardRef.current as HTMLElement;
-              card.style.borderColor = "inherit";
-              card.style.boxShadow = "none";
-            }
-          }}
         >
           <img
             src={imageUrl}
@@ -58,7 +48,6 @@ const TeamCard = ({
               {description}
             </CardDescription>
           </CardHeader>
-          {/* If you had more content, you'd include <CardContent> here */}
         </Card>
       ) : null}
     </>

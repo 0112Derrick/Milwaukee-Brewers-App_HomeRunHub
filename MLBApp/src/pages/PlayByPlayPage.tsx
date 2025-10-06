@@ -39,6 +39,8 @@ import {
   adaptHeader,
   mlbGameStatus,
   createGameHeader,
+  withAlpha,
+  getTeamColor,
 } from "src/utils/utils";
 import axios from "axios";
 import { Spinner } from "src/components/Spinner";
@@ -47,7 +49,6 @@ import { Button } from "src/@/components/ui/button";
 import { Boxscore } from "src/components/Boxscore";
 import { GameContentResponse } from "src/interfaces/generated.game-content.types";
 import { getImagesFromGameContent, getVideo } from "src/repository/images";
-import ImageCarousel from "src/components/ImageCarousel";
 import { InningPanel, PlayRow } from "src/components/InningPanel";
 import {
   BaseballFieldHandle,
@@ -61,8 +62,9 @@ import {
 import { getScheduleResp } from "src/repository/schedules";
 import { getGameContentResp } from "src/repository/gameContent";
 import { getBoxscoreResp, getPlayByPlayResp } from "src/repository/playByPlay";
-import { LucideArrowRightCircle } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "src/@/components/ui/toggle-group";
+import ImageCarousel from "src/components/ImageCarousel";
+import { LucideArrowRightCircle } from "lucide-react";
 
 export function ScoreBug({
   header,
@@ -137,7 +139,7 @@ export function ScoreBug({
   );
 }
 
-type PBPTabs = "pbp" | "lineups" | "highlights";
+type PBPTabs = "pbp" | "lineups" | "video" | "stories" | "gallery";
 
 export function PlayByPlay({
   groupByInning = true,
@@ -169,10 +171,13 @@ export function PlayByPlay({
   );
   const [boxscore, setBoxscore] = useState<BoxscoreResponse | null>(null);
   const [gameImages, setGameImages] = useState<string[]>([]);
+  const [story, setStory] = useState<string>("");
 
-  const [hideHighlights, setHideHighlights] = useState<boolean>(true);
-  const [hideVideoHighlights, setHideVideoHighlights] =
+  const [showGallery, setShowGallery] = useState<boolean>(false);
+  const [showVideoHighlights, setShowVideoHighlights] =
     useState<boolean>(false);
+  const [showStories, setShowStories] = useState<boolean>(false);
+
   const [lastUpdateTime, setLastUpdateTime] = useState<string>(
     today.toLocaleString()
   );
@@ -191,6 +196,20 @@ export function PlayByPlay({
       return true;
     });
   }, [plays, filter]);
+
+  const homeAccent = getTeamColor(
+    boxscore?.teams.home.team.name ?? "rgba(255,237,213,0.4)"
+  );
+  const awayAccent = getTeamColor(
+    boxscore?.teams.away.team.name ?? "rgba(219,234,254,0.4)"
+  );
+
+  const oddBG = homeAccent
+    ? withAlpha(homeAccent, 0.8)
+    : "rgba(255,237,213,0.4)";
+  const evenBG = awayAccent
+    ? withAlpha(awayAccent, 0.8)
+    : "rgba(219,234,254,0.4)";
 
   const handlePlayClick = (play: PlayEvent) => {
     setDisplayPlayByPlay(true);
@@ -315,20 +334,25 @@ export function PlayByPlay({
             const imagesExist = images.length > 0;
 
             const videoExist =
-              gameContentResp.data.media.epgAlternate &&
-              gameContentResp.data.media.epgAlternate.length > 0;
+              gameContentResp.data.media?.epgAlternate &&
+              gameContentResp.data.media?.epgAlternate.length > 0;
 
-            if (
-              !gameContentResp.data ||
-              (!imagesExist && !videoExist) ||
-              (!imagesExist && videoExist && prmRef.current)
-            ) {
-              setHideHighlights(true);
-            } else {
-              if (!videoExist || prmRef.current) {
-                setHideVideoHighlights(true);
-              }
-              setHideHighlights(false);
+            const storiesHref = gameContentResp.data.stories ?? [];
+            const storiesExist = storiesHref.length > 0;
+
+            if (storiesExist) {
+              setShowStories(true);
+              setStory(storiesHref[0]);
+            }
+            if (imagesExist) {
+              setShowGallery(true);
+            }
+            if (videoExist) {
+              setShowVideoHighlights(true);
+            }
+
+            console.log(gameContentResp.data);
+            if (gameContentResp.data) {
               setGameContent(gameContentResp.data);
               setGameImages(images);
             }
@@ -461,33 +485,51 @@ export function PlayByPlay({
       className={`flex-1 flex flex-col w-full min-h-0 overflow-hidden lg:flex-row`}
     >
       <div className="flex-1 h-full flex flex-col overflow-hidden">
+        <div className="grid grid-cols-1 justify-items-center items-center md:grid-cols-3 gap-4 py-2 mb-2 sticky top-0 z-22  w-full bg-card">
+          <h1 className="text-xl text-center">Play-by-Play</h1>
+          <Tabs
+            value={tab}
+            onValueChange={(e) => {
+              setTab(e as PBPTabs);
+              setDisplayPlayByPlay(false);
+            }}
+          >
+            <TabsList className="bg-card-foreground text-card">
+              <TabsTrigger value="pbp">PBP</TabsTrigger>
+              <TabsTrigger value="lineups">Lineups</TabsTrigger>
+              <TabsTrigger
+                value="stories"
+                className={showStories ? "block" : "hidden"}
+              >
+                Stories
+              </TabsTrigger>
+              <TabsTrigger
+                value="gallery"
+                className={showGallery ? "block" : "hidden"}
+              >
+                Gallery
+              </TabsTrigger>
+              <TabsTrigger
+                value="video"
+                className={showVideoHighlights ? "block" : "hidden"}
+              >
+                Video
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <div className="flex flex-wrap items-center justify-end gap-4">
+            <p className="text-xs">Last update time: {lastUpdateTime}</p>
+            <LucideArrowRightCircle
+              onClick={() => setDisplayPlayByPlay(false)}
+              className={`w-8 aspect-square cursor-pointer hover:fill-black hover:stroke-blue-300 ${
+                displayPlayByPlay ? "block" : "hidden"
+              }`}
+            />
+          </div>
+        </div>
+
         <Card className="flex flex-col w-full h-full rounded-none overflow-scroll border-t-0">
-          <div className="w-[175px] h-fit text-slate-50 bg-slate-900 rounded-2xl rounded-t-none dark:bg-slate-50/95 dark:text-black">
-            <h1 className="text-xl text-center">Play-by-Play</h1>
-          </div>
-          <div className="flex-shrink-0 p-2">
-            <div className="w-full gap-4 flex flex-col justify-center items-end">
-              <div className="flex flex-wrap items-center justify-center gap-4">
-                <Link to={`/scores/${date}`}>
-                  <Button
-                    variant={"secondary"}
-                    className="bg-blue-400 text-white font-semibold shadow-md w-fit h-8 hover:bg-blue-500 focus:bg-blue-500 hover:shadow-none focus:shadow-none"
-                  >
-                    Scores Page
-                  </Button>
-                </Link>
-
-                <LucideArrowRightCircle
-                  onClick={() => setDisplayPlayByPlay(false)}
-                  className={`w-8 aspect-square cursor-pointer hover:fill-black hover:stroke-blue-300 ${
-                    displayPlayByPlay ? "block" : "hidden"
-                  }`}
-                />
-              </div>
-
-              <p className="text-xs">Last update time: {lastUpdateTime}</p>
-            </div>
-          </div>
           <CardContent className="min-h-0 flex-1 flex flex-col space-y-3">
             {/* Fixed content section */}
             <div className={`flex-shrink-0 `}>
@@ -516,26 +558,6 @@ export function PlayByPlay({
                   <ToggleGroupItem value="home">Home batting</ToggleGroupItem>
                   <ToggleGroupItem value="away">Away batting</ToggleGroupItem>
                 </ToggleGroup>
-
-                <Tabs
-                  value={tab}
-                  onValueChange={(e) => {
-                    setTab(e as PBPTabs);
-                    setDisplayPlayByPlay(false);
-                  }}
-                  className="ml-auto"
-                >
-                  <TabsList>
-                    <TabsTrigger value="pbp">PBP</TabsTrigger>
-                    <TabsTrigger value="lineups">Lineups</TabsTrigger>
-                    <TabsTrigger
-                      value="highlights"
-                      className={`${hideHighlights ? "hidden" : "block"}`}
-                    >
-                      Media
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
               </div>
             </div>
 
@@ -544,21 +566,28 @@ export function PlayByPlay({
               <Tabs
                 value={tab}
                 onValueChange={(e) => setTab(e as PBPTabs)}
-                className="flex-1 min-h-max"
+                className="w-full min-h-0"
               >
                 {/* //ANCHOR - Play by Play */}
+                {/* //FIXME - Implement the inline styles properties in other locations that use mouse over */}
                 <TabsContent
                   value="pbp"
                   className="flex-1 min-h-max min-w-max mt-0 p-0 flex flex-col items-center"
                 >
                   {filtered.length > 0 ? (
-                    <div className="min-h-max min-w-max rounded-md">
-                      <div className="p-3 min-h-full min-w-max">
+                    <div className="min-h-max min-w-max w-full mb-3 md:w-4/5 rounded-md">
+                      <div>
                         {groupByInning ? (
                           <Accordion
                             type="single"
-                            className="flex flex-col gap-2 min-w-max min-h-full [&>div:nth-child(odd)_button>div]:bg-orange-100/40
-                            [&>div:nth-child(even)_button>div]:bg-blue-100/40"
+                            style={
+                              {
+                                "--odd-bg": evenBG,
+                                "--even-bg": oddBG,
+                              } as React.CSSProperties
+                            }
+                            className="flex flex-col gap-2 min-w-max min-h-full [&>div:nth-child(odd)_button>div]:bg-[var(--odd-bg)]
+                              [&>div:nth-child(even)_button>div]:bg-[var(--even-bg)]"
                             value={openPbpItem}
                             onValueChange={setOpenPbpItem}
                           >
@@ -798,47 +827,60 @@ export function PlayByPlay({
                   </div>
                 </TabsContent>
 
-                {/* //ANCHOR - Media */}
-                <TabsContent value="highlights" className={`min-h-max mt-2`}>
-                  <div className="h-full flex flex-col items-center justify-center rounded-md">
-                    {hideVideoHighlights ? (
-                      <ImageCarousel
-                        images={gameImages}
-                        autoPlay={{ delay: prmRef.current ? 10000 : 5000 }}
-                        classN="basis-3/4 h-full"
-                        opts={{ align: "center", dragFree: true, loop: true }}
-                      />
-                    ) : (
-                      <video
-                        ref={video}
-                        muted={true}
-                        onVolumeChange={() => {
-                          if (
-                            video &&
-                            video.current &&
-                            video.current.volume === 1 &&
-                            !videoUnmuted
-                          ) {
-                            video.current.volume = 0.1;
-                            videoUnmuted = true;
-                          }
-                        }}
-                        controls
-                        preload={"true"}
-                        autoPlay={true}
-                        loop={true}
-                        className={`rounded-md min-w-[150px] max-w-[90%] px-4 mt-12 md:max-w-60% md:mt-0 ${
-                          hideHighlights ? "hidden" : "block"
-                        }`}
-                      >
-                        <source
-                          src={getVideo(gameContent)}
-                          type="video/mp4"
-                        ></source>
-                        Your Browser does not support video tag.
-                      </video>
-                    )}
-                  </div>
+                {/* //ANCHOR - Stories */}
+                <TabsContent
+                  value="stories"
+                  className="min-h-0 h-full flex flex-col items-center justify-center"
+                >
+                  <iframe
+                    src={`${story}?amp;landscape=true&amp;suppressPoll=true&amp;suppressOutlink=true&amp;suppressOutlinkSponsor=true&amp;suppressDrawer=true&amp;ap=1#embedMode=2`}
+                    allow="autoplay"
+                    aria-label="Game Story"
+                    className="w-full md:w-3/4 aspect-video"
+                  ></iframe>
+                </TabsContent>
+
+                {/* //ANCHOR - Gallery */}
+                <TabsContent value="gallery" className="min-h-0">
+                  <ImageCarousel
+                    images={gameImages}
+                    autoPlay={{ delay: prmRef.current ? 10000 : 5000 }}
+                    classN="basis-3/4 h-full"
+                    opts={{ align: "center", dragFree: true, loop: true }}
+                  />
+                </TabsContent>
+
+                {/* //ANCHOR - Video */}
+                <TabsContent
+                  value="video"
+                  className="min-h-0 h-full flex flex-col items-center justify-center"
+                >
+                  <video
+                    ref={video}
+                    muted={true}
+                    onVolumeChange={() => {
+                      if (
+                        video &&
+                        video.current &&
+                        video.current.volume === 1 &&
+                        !videoUnmuted
+                      ) {
+                        video.current.volume = 0.1;
+                        videoUnmuted = true;
+                      }
+                    }}
+                    controls
+                    preload={"true"}
+                    autoPlay={true}
+                    loop={true}
+                    className={`rounded-md min-w-[150px] max-w-[55%] aspect-video`}
+                  >
+                    <source
+                      src={getVideo(gameContent)}
+                      type="video/mp4"
+                    ></source>
+                    Your Browser does not support video tag.
+                  </video>
                 </TabsContent>
               </Tabs>
             </div>
