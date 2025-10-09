@@ -59,27 +59,86 @@ const prettyPlaceholder = (name: string) =>
     .replace(/\bLower Seed\b/gi, "Lower Seed");
 
 const determineSeriesScore = (series: PlayoffSeries) => {
-  let homeWins = 0;
-  let awayWins = 0;
-  let draws = 0;
+  type TeamScore = {
+    id: number | undefined;
+    wins: number;
+    losses: number;
+    draws: number;
+  };
 
-  const filteredGames = series.games.filter(
-    (game) => game.state === "final" && (game.homeScore || game.awayScore)
+  const team1: TeamScore = { id: series.home.id, wins: 0, losses: 0, draws: 0 }; // fixed team on card left
+  const team2: TeamScore = { id: series.away.id, wins: 0, losses: 0, draws: 0 }; // fixed team on card right
+
+  const scores: Array<{
+    gameDate: string;
+    gamePk: number;
+    team1: { id?: number; abbr?: string; name: string; score: number | null };
+    team2: { id?: number; abbr?: string; name: string; score: number | null };
+  }> = [];
+
+  // only count completed games that actually have a score
+  const finished = series.games.filter(
+    (g) =>
+      g.state?.toLowerCase() === "final" &&
+      (g.homeScore != null || g.awayScore != null)
   );
 
-  filteredGames.forEach((game) => {
-    let away = game.awayScore ?? 0;
-    let home = game.homeScore ?? 0;
-    if (away < home) {
-      homeWins += 1;
+  finished.forEach((g) => {
+    const home = g.homeScore ?? 0;
+    const away = g.awayScore ?? 0;
+
+    let winnerId: number | undefined;
+    let loserId: number | undefined;
+
+    if (home > away) {
+      // HOME wins
+      winnerId = g.homeId;
+      loserId = g.awayId;
     } else if (away > home) {
-      awayWins += 1;
+      // AWAY wins
+      winnerId = g.awayId;
+      loserId = g.homeId;
     } else {
-      draws += 1;
+      // tie/draw
+      team1.draws += 1;
+      team2.draws += 1;
     }
+
+    if (winnerId !== undefined) {
+      if (winnerId === team1.id) {
+        team1.wins += 1;
+        team2.losses += 1;
+      } else if (winnerId === team2.id) {
+        team2.wins += 1;
+        team1.losses += 1;
+      }
+    }
+
+    // Record the line as team1 vs team2 (constant order), not home/away
+    const team1Score =
+      g.homeId === team1.id ? g.homeScore ?? null : g.awayScore ?? null;
+    const team2Score =
+      g.homeId === team2.id ? g.homeScore ?? null : g.awayScore ?? null;
+
+    scores.push({
+      gameDate: g.date,
+      gamePk: g.gamePk,
+      team1: {
+        id: series.home.id,
+        abbr: series.home.abbreviation,
+        name: series.home.name,
+        score: team1Score,
+      },
+      team2: {
+        id: series.away.id,
+        abbr: series.away.abbreviation,
+        name: series.away.name,
+        score: team2Score,
+      },
+    });
   });
 
-  return { home: homeWins, away: awayWins, draws };
+  return { team1, team2, scores };
 };
 
 // derive accent from team or friendly fallback
@@ -191,7 +250,7 @@ const MatchupCard: React.FC<{
 }> = ({ series, expanded, onToggle }) => {
   const accentA = getAccent(series.home);
   const accentB = getAccent(series.away);
-  const { home, away, draws } = determineSeriesScore(series);
+  const { team1, team2, scores } = determineSeriesScore(series);
   return (
     <Card
       className={`
@@ -220,16 +279,16 @@ const MatchupCard: React.FC<{
         <div className="divide-y divide-white/10">
           <TeamRow
             t={series.home}
-            w={home}
-            oppW={away}
-            draws={draws}
+            w={series.home.id == team1.id ? team1.wins : team2.wins}
+            oppW={series.home.id == team1.id ? team2.wins : team1.wins}
+            draws={team1.draws}
             accent={accentA}
           />
           <TeamRow
             t={series.away}
-            w={away}
-            oppW={home}
-            draws={draws}
+            w={series.home.id == team1.id ? team1.wins : team2.wins}
+            oppW={series.home.id == team1.id ? team2.wins : team1.wins}
+            draws={team1.draws}
             accent={accentB}
           />
         </div>
@@ -269,28 +328,26 @@ const MatchupCard: React.FC<{
                 {series.status !== "scheduled" && (
                   <li className="flex flex-col items-start justify-start">
                     • Scores:
-                    {series.games
-                      .filter((game) => game.awayScore || game.homeScore)
-                      .map((game) => {
-                        return (
-                          <Link
-                            to={`/scores/${game.date}/${game.gamePk}`}
-                            className="hover:text-white"
-                          >
-                            <div className="flex flex-col">
-                              <div className="flex flex-row flex-wrap gap-1">
-                                <span>
-                                  {series.away.abbreviation} {game.awayScore}
-                                </span>
-                                -
-                                <span>
-                                  {game.homeScore} {series.home.abbreviation}
-                                </span>
-                              </div>
+                    {scores.map((game) => {
+                      return (
+                        <Link
+                          to={`/scores/${game.gameDate}/${game.gamePk}`}
+                          className="text-primary-foreground hover:text-tertiary"
+                        >
+                          <div className="flex flex-col">
+                            <div className="flex flex-row flex-wrap gap-1">
+                              <span>
+                                {game.team1.abbr} {game.team1.score}
+                              </span>
+                              -
+                              <span>
+                                {game.team2.score} {game.team2.abbr}
+                              </span>
                             </div>
-                          </Link>
-                        );
-                      })}
+                          </div>
+                        </Link>
+                      );
+                    })}
                   </li>
                 )}
                 {/* Add highlight clips */}
@@ -338,7 +395,7 @@ const TeamRow: React.FC<{
         <Link
           to={href ?? "#"}
           style={{ "--teamColor": accent } as React.CSSProperties}
-          className="flex items-center gap-2 p-2 rounded hover:text-[var(--teamColor)] dark:hover:text-sky-400"
+          className="flex items-center gap-2 p-2 rounded hover:text-[var(--teamColor)] dark:hover:text-tertiary"
         >
           {getTeamImageUrl(t) ? (
             <img
