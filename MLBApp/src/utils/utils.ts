@@ -238,7 +238,7 @@ export function seasonYear(today = new Date()) {
 export function candidateStandingsDates(today = new Date()): string[] {
   const dates: string[] = [];
   // Try today, then the last 7 days
-  for (let i = 0; i <= 7; i++) {
+  for (let i = 0; i <= 5; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
     const strDt = formatYYYYMMDD(d);
@@ -246,7 +246,23 @@ export function candidateStandingsDates(today = new Date()): string[] {
   }
   // Safe late-season anchors for the current season (avoid hard-coded "end dates")
   const sy = seasonYear(today);
-  const anchors = [`${sy}-10-31`, `${sy}-10-15`, `${sy}-10-01`, `${sy}-09-30`];
+  const anchors = [
+    `${sy}-10-31`,
+    `${sy}-10-15`,
+    `${sy}-10-01`,
+    `${sy}-09-30`,
+    `${sy}-09-29`,
+    `${sy}-09-28`,
+    `${sy}-09-27`,
+    `${sy}-09-26`,
+    `${sy}-09-25`,
+  ];
+  // for (let i = 0; i <= 7; i++) {
+  //   const d = new Date(`${2025}-09-29`);
+  //   d.setDate(today.getDate() - i);
+  //   const strDt = formatYYYYMMDD(d);
+  //   dates.push(strDt);
+  // }
   for (const a of anchors) dates.push(a);
   // Deduplicate while preserving order
   const uniqueDates = Array.from(new Set(dates));
