@@ -62,7 +62,7 @@
     --primary: 217 10% 91%;
     --primary-foreground: 217 1% 26%;
 
-    --tertiary-foreground: 217 91% 59%;
+    --tertiary: 217.2 91.2% 59.8%;
 
     /* Destructive */
     --destructive: 0 72% 51%;
@@ -94,6 +94,8 @@
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 0 0% 100%;
+
+    --tertiary: 217.2 91.2% 59.8%;
 
     --muted: 217.2 32.6% 17.5%;
     --accent: 217.2 32.6% 17.5%;
